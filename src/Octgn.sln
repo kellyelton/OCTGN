@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octgn.WindowsClient", "Octgn.WindowsClient\Octgn.WindowsClient.csproj", "{9A0F112F-91BE-48B9-93C1-0B0114D6381E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octgn.Client", "Octgn.Client\Octgn.Client.csproj", "{02A89092-3561-474E-8221-F6A9D92C6C96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octgn.Server", "Octgn.Server\Octgn.Server.csproj", "{B6B5D47A-FC8A-47DD-B9F3-B66F1CC25B1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{02A89092-3561-474E-8221-F6A9D92C6C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02A89092-3561-474E-8221-F6A9D92C6C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02A89092-3561-474E-8221-F6A9D92C6C96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6B5D47A-FC8A-47DD-B9F3-B66F1CC25B1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6B5D47A-FC8A-47DD-B9F3-B66F1CC25B1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6B5D47A-FC8A-47DD-B9F3-B66F1CC25B1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6B5D47A-FC8A-47DD-B9F3-B66F1CC25B1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
