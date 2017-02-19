@@ -76,8 +76,6 @@ namespace Octgn
 
         static Program()
         {
-            if (ControlExtensions.IsInDesignMode())
-                MessageBox.Show("WE'RE IN DEISGN MODE, WHY IS THIS GETTING CALLED!");
             Log.Info("Constructng Program");
             //Do not put anything here, it'll just lead to pain and confusion
         }
