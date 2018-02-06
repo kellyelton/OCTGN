@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Game Key="Game" Name="Test Game">
+  <File Key="BlueMatBackgroundImage" Path="Images\BlueBoard.png"/>
+  <File Key="RedMatBackgroundImage" Path="Images\RedBoard.png"/>
+  <File Key="MainBoardBackgroundImage" Path="Images\MainBoard.jpg"/>
+  <File Key="BackgroundImage" Path="Images\BackgroundImage.jpg"/>
+
+  <Mat Key="RedMat" Width="1600" Height="500">
+    <Image Source="{Resource RedMatBackgroundImage}"/>
+    <Zone Group="Hand" Left="10" Bottom="10" Width="1340" Height="200" LayoutEngine="Fan"/>
+    <Zone Group="Draw" Right="260" Bottom="10" Height="200" LayoutEngine="Pile"/>
+    <Zone Group="Discard" Right="10" Bottom="10" Height="200" LayoutEngine="Pile"/>
+    <Zone Group="PlayArea" Right="10" Bottom="10" Width="1580" Height="300" LayoutEngine="Free"/>
+  </Mat>
+  <Mat Key="BlueMat" Width="1600" Height="500">
+    <Image Source="{Resource BlueMatBackgroundImage}"/>
+    <Zone Group="Hand" Left="10" Bottom="10" Width="1340" Height="200" LayoutEngine="Fan"/>
+    <Zone Group="Draw" Right="260" Bottom="10" Height="200" LayoutEngine="Pile"/>
+    <Zone Group="Discard" Right="10" Bottom="10" Height="200" LayoutEngine="Pile"/>
+    <Zone Group="PlayArea" Right="10" Bottom="10" Width="1580" Height="300" LayoutEngine="Free"/>
+  </Mat>
+
+  <Dictionary Key="Main">
+    <Language>
+      <String Key="TwoPlayerFormat">Two-Player</String>
+    </Language>
+    <Language Code="es">
+      <String Key="TwoPlayerFormat">Dos Jugadores</String>
+    </Language>
+  </Dictionary>
+
+  <Format Key="TwoPlayer" Dictionary="Main" Name="@TwoPlayerFormat">
+    <PlayerSlot Key="Red" Mat="RedMat">
+      <Group Key="Hand" Visibility="Owner"/>
+      <Group Key="Draw" Visibility="Hidden"/>
+      <Group Key="Discard" Visibility="All"/>
+      <Group Key="PlayArea"/>
+    </PlayerSlot>
+    <PlayerSlot Key="Blue" Mat="BlueMat" Required="True">
+      <Group Key="Hand" Visibility="Owner"/>
+      <Group Key="Draw" Visibility="Hidden"/>
+      <Group Key="Discard" Visibility="All"/>
+      <Group Key="PlayArea"/>
+    </PlayerSlot>
+    <Layout Key="Standard">
+      <PlayerConfig Slot="Red" Rotation="0"/>
+      <PlayerConfig Slot="Blue" Rotation="180"/>
+      <Image Source="BackgroundImage" IsStatic="True"/>
+      <Zone Key="Main" Width="2000" Height="1000">
+        <Image Source="MainBoardBackgroundImage"/>
+        <Zone Owner="{Player Red}" Group="{Owner PlayArea}" Width="1600" Height="500" X="200"/>
+        <Zone Owner="{Player Blue}" Group="{Owner PlayArea}" Width="1600" Height="500" X="200" Y="500"/>
+      </Zone>
+    </Layout>
+    <Layout Key="Vertical">
+      <PlayerConfig Slot="Red"/>
+      <PlayerConfig Slot="Blue"/>
+      <Image Source="BackgroundImage" IsStatic="True"/>
+      <Zone Key="Main" Width="2000" Height="1000">
+        <Image Source="MainBoardBackgroundImage"/>
+        <Zone Owner="{Player Red}" Group="{Owner PlayArea}" Width="1000" Height="1000" X="0" Y="0"/>
+        <Zone Owner="{Player Blue}" Group="{Owner PlayArea}" Width="1000" Height="1000" X="1000" Y="0"/>
+      </Zone>
+    </Layout>
+  </Format>
+</Game>
