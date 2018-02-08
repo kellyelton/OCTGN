@@ -687,9 +687,7 @@
       <LastGenOutput>DoVersionStuff.txt</LastGenOutput>
     </None>
     <None Include="Properties\SlowCheetah\SlowCheetah.Transforms.targets" />
-    <Resource Include="Resources\materialdesignicons-webfont.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Resources\materialdesignicons-webfont.ttf" />
     <None Include="Scripting\GameEvents.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>GameEvents.cs</LastGenOutput>

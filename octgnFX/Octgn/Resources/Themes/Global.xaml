@@ -96,5 +96,5 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <FontFamily x:Key="IconFont" >#Material Design Icons</FontFamily>
+    <FontFamily x:Key="IconFont" >pack://application:,,,/Octgn;component/Resources/#Material Design Icons</FontFamily>
 </ResourceDictionary>
