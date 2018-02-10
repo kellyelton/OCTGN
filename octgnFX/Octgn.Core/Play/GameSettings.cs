@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Octgn.Data
+namespace Octgn.Core.Play
 {
     public class GameSettings : INotifyPropertyChanged
     {

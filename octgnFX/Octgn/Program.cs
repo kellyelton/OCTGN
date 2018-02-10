@@ -10,8 +10,6 @@ using System.Management;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Threading;
-using Octgn.Data;
-using Octgn.DataNew.Entities;
 using Octgn.Library;
 using Octgn.Networking;
 using Octgn.Play;
@@ -30,7 +28,6 @@ using Octgn.Windows;
 using log4net;
 using Octgn.Controls;
 using Octgn.Library.Communication;
-using Octgn.Online.Hosting;
 
 namespace Octgn
 {
@@ -40,7 +37,6 @@ namespace Octgn
 
         public static GameEngine GameEngine;
 
-        public static string CurrentOnlineGameName = "";
         public static Client LobbyClient;
 
         public static GameSettings GameSettings { get; set; }
@@ -57,7 +53,6 @@ namespace Octgn
 #pragma warning restore 67
 
         internal static bool IsHost { get; set; }
-        internal static GameMode GameMode { get; set; }
 
         internal static Dispatcher Dispatcher;
 
@@ -74,7 +69,6 @@ namespace Octgn
 
         public static string SessionKey { get; set; }
         public static string UserId { get; set; }
-        public static HostedGame CurrentHostedGame { get; internal set; }
 
         private static bool shutDown = false;
 
