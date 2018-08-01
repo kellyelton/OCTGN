@@ -31,6 +31,9 @@ using log4net;
 using Octgn.Controls;
 using Octgn.Library.Communication;
 using Octgn.Online.Hosting;
+using Octgn.Communication;
+using Octgn.Communication.Modules.SubscriptionModule;
+using Octgn.Communication.Modules;
 
 namespace Octgn
 {
@@ -129,7 +132,11 @@ namespace Octgn
             }
 
             Log.Info("Creating Lobby Client");
-            LobbyClient = new Client(LibraryCommunicationClientConfig.Get(), typeof(Program).Assembly.GetName().Version);
+            LobbyClient = new Client(LibraryCommunicationClientConfig.Get());
+            LobbyClient.InitializeSubscriptionModule();
+            LobbyClient.InitializeHosting(typeof(Program).Assembly.GetName().Version);
+            LobbyClient.InitializeStatsModule();
+            LobbyClient.Initialize();
             //Log.Info("Adding trace listeners");
             //Debug.Listeners.Add(DebugListener);
             //DebugTrace.Listeners.Add(DebugListener);
@@ -340,8 +347,7 @@ namespace Octgn
             LogManager.Shutdown();
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
-                if (LobbyClient != null)
-                    LobbyClient.Stop();
+                LobbyClient?.Dispose();
                 WindowManager.Shutdown();
 
                 //Apparently this can be null sometimes?

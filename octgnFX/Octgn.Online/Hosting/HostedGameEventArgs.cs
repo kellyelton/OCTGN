@@ -3,7 +3,7 @@ using System;
 
 namespace Octgn.Online.Hosting
 {
-    public class HostedGameReadyEventArgs : EventArgs
+    public class HostedGameEventArgs : EventArgs
     {
         public Client Client { get; set; }
 

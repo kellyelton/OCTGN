@@ -1,9 +1,10 @@
 ﻿using Octgn.Communication;
+using Octgn.Communication.Serializers;
 using Octgn.Library.Communication;
 
 namespace Octgn
 {
-    public class LibraryCommunicationClientConfig : IClientConfig
+    public class LibraryCommunicationClientConfig : IClientConfig, IClientConnectionProvider
     {
         #region Singleton
 
@@ -38,8 +39,17 @@ namespace Octgn
             return "gameserv";
         }
 
-        public IConnection CreateConnection(string host) {
-            return new TcpConnection(host);
+        private readonly ISerializer _serializer = new XmlSerializer();
+        private readonly SessionHandshaker _handshaker = new SessionHandshaker();
+
+        public IConnection Create(string host) {
+            return new TcpConnection(host, _serializer, _handshaker);
+        }
+
+        public void ConfigureSession(string sessionKey, User user, string deviceId) {
+            _handshaker.SessionKey = sessionKey;
+            _handshaker.UserId = user.Id;
+            _handshaker.DeviceId = deviceId;
         }
     }
 }

@@ -25,7 +25,6 @@ namespace Octgn.Online.GameService
 
             this.InitializeSubscriptionModule();
             this.InitializeStatsModule();
-            RequestReceived += ChatClient_RequestReceived;
         }
 
         public async Task Start(CancellationToken cancellationToken = default(CancellationToken)) {
@@ -45,40 +44,47 @@ namespace Octgn.Online.GameService
             await Connect(cancellationToken);
         }
 
-        private async Task ChatClient_RequestReceived(object sender, RequestReceivedEventArgs args) {
-            if (args.Request.Name == nameof(IClientHostingRPC.HostGame)) {
-                try {
-                    var game = HostedGame.GetFromPacket(args.Request);
-                    if (game == null) throw new InvalidOperationException("game is null");
-
-                    game.HostUser = args.Request.Origin ?? throw new InvalidOperationException("args.Request.Origin is null");
-
-                    Log.InfoFormat("Host game from {0}", args.Request.Origin);
-                    var endTime = DateTime.Now.AddSeconds(10);
-                    while (SasUpdater.Instance.IsUpdating) {
-                        await Task.Delay(100);
-                        if (endTime > DateTime.Now) throw new Exception("Couldn't host, sas is updating");
-                    }
-                    var id = await HostedGames.HostGame(game);
-
-                    if (id == Guid.Empty) throw new InvalidOperationException("id == Guid.Empty");
-
-                    game = HostedGames.Get(id);
-
-                    if (game == null) throw new InvalidOperationException("game from HostedGames is null");
-                    if (game.HostUser == null) throw new InvalidOperationException("game.HostUser is null");
-
-                    args.Response = new Communication.Packets.ResponsePacket(args.Request, game);
-                } catch (Exception ex) {
-                    Log.Error($"{nameof(ChatClient_RequestReceived)}", ex);
-                    args.Response = new Communication.Packets.ResponsePacket(args.Request, new ErrorResponseData(Communication.ErrorResponseCodes.UnhandledServerError, "Problem starting SAS", false));
-                }
-
-                args.IsHandled = true;
-            }
-        }
-
         protected override IConnection CreateConnection()
             => new TcpConnection(AppConfig.Instance.ComUrl);
+    }
+
+    public class HostedGameLauncherModule : Communication.Module
+    {
+        public override Task<ProcessResult> Process(object obj, CancellationToken cancellationToken = default(CancellationToken)) {
+            if(obj is HostedGame hostedGame) {
+                return LaunchHostedGame(hostedGame);
+            }
+            return base.Process(obj, cancellationToken);
+        }
+
+        private async Task LaunchHostedGame(HostedGame hostedGame) {
+            try {
+                var game = HostedGame.GetFromPacket(args.Request);
+                if (game == null) throw new InvalidOperationException("game is null");
+
+                game.HostUser = args.Request.Origin ?? throw new InvalidOperationException("args.Request.Origin is null");
+
+                Log.InfoFormat("Host game from {0}", args.Request.Origin);
+                var endTime = DateTime.Now.AddSeconds(10);
+                while (SasUpdater.Instance.IsUpdating) {
+                    await Task.Delay(100);
+                    if (endTime > DateTime.Now) throw new Exception("Couldn't host, sas is updating");
+                }
+                var id = await HostedGames.HostGame(game);
+
+                if (id == Guid.Empty) throw new InvalidOperationException("id == Guid.Empty");
+
+                game = HostedGames.Get(id);
+
+                if (game == null) throw new InvalidOperationException("game from HostedGames is null");
+                if (game.HostUser == null) throw new InvalidOperationException("game.HostUser is null");
+
+                args.Response = new Communication.Packets.ResponsePacket(args.Request, game);
+            } catch (Exception ex) {
+                Log.Error($"{nameof(ChatClient_RequestReceived)}", ex);
+                args.Response = new Communication.Packets.ResponsePacket(args.Request, new ErrorResponseData(Communication.ErrorResponseCodes.UnhandledServerError, "Problem starting SAS", false));
+            }
+
+        }
     }
 }

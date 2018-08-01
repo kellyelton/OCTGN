@@ -156,7 +156,7 @@ namespace Octgn.Controls
 
         #region LobbyEvents
 
-        private async void LobbyClient_HostedGameReady(object sender, HostedGameReadyEventArgs e) {
+        private async void LobbyClient_HostedGameReady(object sender, HostedGameEventArgs e) {
             try
             {
                 var gameData = e.Game;

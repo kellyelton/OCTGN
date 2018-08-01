@@ -2,11 +2,11 @@
 using Octgn.Communication;
 using System;
 using Octgn.Communication.Packets;
-using Octgn.Communication.Serializers;
+using System.Collections.Generic;
 
 namespace Octgn.Online.Hosting
 {
-    public class ServerHostingModule : IServerModule
+    public class ServerHostingModule : Module
     {
         private readonly Server _server;
         private readonly string _gameServerUserId;
@@ -15,28 +15,25 @@ namespace Octgn.Online.Hosting
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _gameServerUserId = gameServerUserId ?? throw new ArgumentNullException(nameof(gameServerUserId));
 
-            _requestHandler.Register(nameof(IClientHostingRPC.HostGame), OnHostGame);
-
-            if(_server.Serializer is XmlSerializer serializer) {
-                serializer.Include(typeof(HostedGame));
-            }
+            Attach(new RequestHandler());
         }
 
-        private async Task<ResponsePacket> OnHostGame(object sender, RequestReceivedEventArgs args) {
-            var sendRequest = new RequestPacket(args.Request);
+        public override void Initialize() {
+            var requestHandler = GetModule<RequestHandler>();
+
+            requestHandler.Register(nameof(IClientHostingRPC.HostGame), OnHostGame);
+
+            base.Initialize();
+        }
+
+        public override IEnumerable<Type> IncludedTypes => _includedTypes;
+        private static Type[] _includedTypes = new Type[] { typeof(HostedGame) };
+
+        private async Task<ProcessResult> OnHostGame(RequestPacket request) {
+            var sendRequest = new RequestPacket(request);
             var gsResp = await _server.Request(sendRequest, _gameServerUserId);
 
-            return new ResponsePacket(args.Request, gsResp.Data);
-        }
-
-        private readonly RequestHandler _requestHandler = new RequestHandler();
-
-        public Task HandleRequest(object sender, RequestReceivedEventArgs args) {
-            return _requestHandler.HandleRequest(sender, args);
-        }
-
-        public Task UserStatusChanged(object sender, UserStatusChangedEventArgs e) {
-            return Task.CompletedTask;
+            return new ProcessResult(gsResp.Data);
         }
     }
 }

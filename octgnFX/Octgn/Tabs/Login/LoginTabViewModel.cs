@@ -111,8 +111,8 @@ namespace Octgn.Tabs.Login
                 if (!await LoginWithWebsite())
                     return;
 
-                Program.LobbyClient.ConfigureSession(Program.SessionKey, new Communication.User(Program.UserId, Username), Prefs.DeviceId);
-                await Program.LobbyClient.Connect();
+                LibraryCommunicationClientConfig.Get().ConfigureSession(Program.SessionKey, new Communication.User(Program.UserId, Username), Prefs.DeviceId);
+                await Program.LobbyClient.Connect(AppConfig.ChatServerHost);
 
                 if (Prefs.Username == null || Prefs.Username.Equals(Username, StringComparison.InvariantCultureIgnoreCase) == false)
                 {
