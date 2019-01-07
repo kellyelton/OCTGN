@@ -65,10 +65,11 @@
                     </xs:element>
                   </xs:sequence>
                   <xs:attribute name="name" use="required" type="xs:string" />
+                  <xs:attribute name="isHandlable" use="optional" type="xs:boolean" default="false" />
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-			<xs:attribute name="version" use="required" type="version"/>
+            <xs:attribute name="version" use="required" type="version"/>
           </xs:complexType>
         </xs:element>
       </xs:sequence>

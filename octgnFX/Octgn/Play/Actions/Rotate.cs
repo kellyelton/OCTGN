@@ -8,7 +8,7 @@ namespace Octgn.Play.Actions
         private readonly CardOrientation _rot;
         private readonly Player _who;
 
-        public Rotate(Player who, Card card, CardOrientation rot)
+        public Rotate(Player who, Card card, CardOrientation rot, Caller caller) : base(caller)
         {
             _who = who;
             _card = card;

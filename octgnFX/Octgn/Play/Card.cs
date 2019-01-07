@@ -92,7 +92,6 @@ namespace Octgn.Play
 
         internal static void MoveCardsTo(Group to, Card[] cards, bool[] faceups, int[] idxs, bool isScriptMove)
         {
-            var notMoved = new List<Card>();
             for (var i = 0; i < cards.Length; i++)
             {
                 var c = cards[i];
@@ -102,12 +101,6 @@ namespace Octgn.Play
                 //over-large indecies reduced to place cards at end of pile
                 if (idxs[i] >= to.Count) idxs[i] = to.Count;
                 if (idxs[i] < 0) idxs[i] = 0;
-                //move skipped if card already at location specified
-                if (to == c.Group && idxs[i] < c.Group.Count && c.Group[idxs[i]] == c)
-                {
-                    notMoved.Add(c);
-                    continue;
-                }
                 if (to.Visibility != GroupVisibility.Undefined) lFaceUp = c.FaceUp;
             }
             if (Program.GameEngine.Definition.Events.ContainsKey("OverrideCardsMoved") && !isScriptMove)
@@ -117,10 +110,7 @@ namespace Octgn.Play
                 Program.GameEngine.EventProxy.OverrideCardsMoved_3_1_0_2(cards, tos, idxs, xy, xy, faceups);
                 return;
             }
-            Program.Client.Rpc.MoveCardReq(cards.Select(x => x.Id).ToArray(), to, idxs, faceups, isScriptMove);
-            new MoveCards(Player.LocalPlayer, cards, to, idxs, faceups, isScriptMove).Do();
-            foreach (var c in cards.Where(x => notMoved.Contains(x) == false))
-                Program.Client.Rpc.CardSwitchTo(Player.LocalPlayer, c, c.Alternate());
+            new MoveCards(Player.LocalPlayer, cards, to, idxs, faceups, new Caller(Player.LocalPlayer, CallSource.Local, isScriptMove)).Do();
         }
 
         internal static void MoveCardsTo(Group to, Card[] cards, Action<MoveCardsArgs> it, bool isScriptMove)
@@ -151,7 +141,7 @@ namespace Octgn.Play
                 return;
             }
             Program.Client.Rpc.MoveCardAtReq(cards.Select(a => a.Id).ToArray(), x, y, idx, isScriptMove, lFaceUp);
-            new MoveCards(Player.LocalPlayer, cards, x, y, idx, lFaceUp, isScriptMove).Do();
+            new MoveCards(Player.LocalPlayer, cards, x, y, idx, lFaceUp, new Caller(Player.LocalPlayer, CallSource.Local, isScriptMove)).Do();
             foreach (var c in cards)
                 Program.Client.Rpc.CardSwitchTo(Player.LocalPlayer, c, c.Alternate());
         }
@@ -522,14 +512,14 @@ namespace Octgn.Play
         {
             if (TargetedBy == Player.LocalPlayer) return;
             Program.Client.Rpc.TargetReq(this, isScriptChange);
-            new Target(Player.LocalPlayer, this, null, true, isScriptChange).Do();
+            new Target(Player.LocalPlayer, this, null, true, new Caller(Player.LocalPlayer, CallSource.Local, isScriptChange)).Do();
         }
 
         public void Untarget(bool isScriptChange)
         {
             if (TargetedBy == null && !TargetsOtherCards) return;
             Program.Client.Rpc.UntargetReq(this, isScriptChange);
-            new Target(Player.LocalPlayer, this, null, false, isScriptChange).Do();
+            new Target(Player.LocalPlayer, this, null, false, new Caller(Player.LocalPlayer, CallSource.Local, isScriptChange)).Do();
         }
 
         public void Target(Card otherCard, bool isScriptChange)
@@ -540,7 +530,7 @@ namespace Octgn.Play
                 return;
             }
             Program.Client.Rpc.TargetArrowReq(this, otherCard, isScriptChange);
-            new Target(Player.LocalPlayer, this, otherCard, true, isScriptChange).Do();
+            new Target(Player.LocalPlayer, this, otherCard, true, new Caller(Player.LocalPlayer, CallSource.Local, isScriptChange)).Do();
         }
 
         public override string ToString()
@@ -644,7 +634,7 @@ namespace Octgn.Play
 
         public void MoveToTableRawStyle(int x, int y, bool lFaceUp, int idx, bool isScriptMove)
         {
-            new MoveCards(Player.LocalPlayer, new[] { this }, new[] { x }, new[] { y }, new[] { idx }, new[] { lFaceUp }, isScriptMove, true).Do();
+            new MoveCards(Player.LocalPlayer, new[] { this }, new[] { x }, new[] { y }, new[] { idx }, new[] { lFaceUp }, new Caller(Player.LocalPlayer, CallSource.Local, isScriptMove)).Do();
         }
 
         public int GetIndex()

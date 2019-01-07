@@ -316,6 +316,7 @@
     <Compile Include="Controls\WaitingDialog.xaml.cs">
       <DependentUpon>WaitingDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Play\Actions\MoveCard.cs" />
     <Compile Include="Tabs\Login\NewsViewModel.cs" />
     <Compile Include="Tabs\Play\PlayTab.xaml.cs">
       <DependentUpon>PlayTab.xaml</DependentUpon>
@@ -483,9 +484,9 @@
     </Compile>
     <Compile Include="Networking\ClientHandler.cs" />
     <Compile Include="Networking\Mute.cs" />
-    <Compile Include="Play\Actions\Action.cs" />
+    <Compile Include="Play\Actions\ActionBase.cs" />
     <Compile Include="Play\Actions\Create.cs" />
-    <Compile Include="Play\Actions\Move.cs" />
+    <Compile Include="Play\Actions\MoveCards.cs" />
     <Compile Include="Play\Actions\Rotate.cs" />
     <Compile Include="Play\Actions\Target.cs" />
     <Compile Include="Play\Actions\Turn.cs" />

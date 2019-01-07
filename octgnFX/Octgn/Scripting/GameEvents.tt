@@ -52,14 +52,27 @@ namespace Octgn.Scripting
     {
 		string bareEventName = eve.Attribute("name").Value;
         string eventName = bareEventName + version;
+		bool isHandlable = false;
+		var isHandlableAttr = eve.Attribute("isHandlable");
+		if(isHandlableAttr != null){
+			isHandlable = bool.Parse(isHandlableAttr.Value);
+		}
+		var returnType = isHandlable ? "bool" : "void";
         PopIndent();
     #>
-		public void <#= eventName #>(<#= ParametersList(eve, true) #>)
+		public <#= returnType #> <#= eventName #>(<#= ParametersList(eve, true) #>)
 		{
-			if(Player.LocalPlayer.Spectator)return;
-			if(MuteEvents)return;
+<# if(isHandlable) { #>
+			if(Player.LocalPlayer.Spectator) return false;
+			if(MuteEvents) return false;
+			if(gameEngine.Definition.ScriptVersion != <#= "C" + version #> )
+				return false;
+<# } else { #>
+			if(Player.LocalPlayer.Spectator) return;
+			if(MuteEvents) return;
 			if(gameEngine.Definition.ScriptVersion != <#= "C" + version #> )
 				return;
+<# } #>
 			<#
 			var paramArray = eve.Elements().Where(x => x.Name.LocalName == "param").ToArray();
 		    #>var thisVersion = Version.Parse("<#=versionString#>");
@@ -73,6 +86,9 @@ namespace Octgn.Scripting
 					//PopIndent();
 				}
 #>
+<# if(isHandlable) { #>
+				args.isHandled = false;
+<# } #>
 			}
 <#
 			var comma = paramArray.Length == 0 ?
@@ -90,11 +106,20 @@ namespace Octgn.Scripting
 				{
 					engine.ExecuteFunction(e.PythonFunction<#= comma #><#= paramArray.Length > 0 ? " args" : "" #>);
 				}
-			}<#
+<# if(isHandlable) { #>
+
+				if(args.isHandled) return true;
+<# } #>
+			}
+<# if(isHandlable) { #>
+
+			return args.isHandled;
+<# } #>
+<#
 		PopIndent();
 			#>
-
 		}
+
 <# } }#>
 	}
 }

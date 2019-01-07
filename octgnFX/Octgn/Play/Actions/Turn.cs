@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Octgn.Play.Actions
 {
     internal sealed class Turn : ActionBase
@@ -8,7 +6,7 @@ namespace Octgn.Play.Actions
         private readonly bool _up;
         private readonly Player _who;
 
-        public Turn(Player who, Card card, bool up)
+        public Turn(Player who, Card card, bool up, Caller caller) : base(caller)
         {
             _who = who;
             _card = card;

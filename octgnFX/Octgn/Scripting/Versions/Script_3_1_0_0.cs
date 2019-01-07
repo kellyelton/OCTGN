@@ -1011,7 +1011,7 @@ namespace Octgn.Scripting.Versions
                         ulong key = ((ulong)Crypto.PositiveRandom()) << 32 | model.Id.Condense();
                         int id = model.GenerateCardId();
 
-                        new CreateCard(Player.LocalPlayer, id, faceDown != true, model, x, y, !persist).Do();
+                        new CreateCard(Player.LocalPlayer, id, faceDown != true, model, x, y, !persist, new Caller(Player.LocalPlayer, CallSource.Local, true)).Do();
 
                         ids[i] = id;
                         models[i] = model.Id;

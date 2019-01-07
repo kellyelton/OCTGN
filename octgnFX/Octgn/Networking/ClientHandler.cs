@@ -374,7 +374,7 @@ namespace Octgn.Networking
             else
             {
                 for (var i = 0; i < id.Length; i++)
-                    new CreateCard(owner, id[i], faceUp, Program.GameEngine.Definition.GetCardById(modelId[i]), x[i], y[i], !persist).Do();
+                    new CreateCard(owner, id[i], faceUp, Program.GameEngine.Definition.GetCardById(modelId[i]), x[i], y[i], !persist, new Caller(owner, CallSource.Network, false)).Do();
             }
 
             if (modelId.All(m => m == modelId[0]))
@@ -403,7 +403,7 @@ namespace Octgn.Networking
             // Ignore cards moved by the local player (already done, for responsiveness)
             var cards = card.Select(Card.Find).Where(x=>x != null).ToArray();
             if (player != Player.LocalPlayer)
-                new MoveCards(player, cards, to, idx, faceUp, isScriptMove).Do();
+                new MoveCards(player, cards, to, idx, faceUp, new Caller(player, CallSource.Network, isScriptMove)).Do();
         }
 
         public void MoveCardAt(Player player, int[] cards, int[] x, int[] y, int[] idx, bool[] faceUp, bool isScriptMove)
@@ -445,7 +445,7 @@ namespace Octgn.Networking
             if (player == Player.LocalPlayer) return;
             // Find the old position on the table, if any
             // Do the move
-            new MoveCards( player, playCards, x, y, idx, faceUp, isScriptMove).Do();
+            new MoveCards( player, playCards, x, y, idx, faceUp, new Caller(player, CallSource.Network, isScriptMove)).Do();
         }
 
         public void AddMarker(Player player, Card card, Guid id, string name, ushort count, ushort oldCount, bool isScriptChange)
@@ -625,21 +625,21 @@ namespace Octgn.Networking
         {
             // Ignore the card we targeted ourselves
             if (player == Player.LocalPlayer) return;
-            new Target(player, card, null, false, isScriptChange).Do();
+            new Target(player, card, null, false, new Caller(player, CallSource.Network, isScriptChange)).Do();
         }
 
         public void Target(Player player, Card card, bool isScriptChange)
         {
             // Ignore the card we targeted ourselves
             if (player == Player.LocalPlayer) return;
-            new Target(player, card, null, true, isScriptChange).Do();
+            new Target(player, card, null, true, new Caller(player, CallSource.Network, isScriptChange)).Do();
         }
 
         public void TargetArrow(Player player, Card card, Card otherCard, bool isScriptChange)
         {
             // Ignore the card we targeted ourselves
             if (player == Player.LocalPlayer) return;
-            new Target(player, card, otherCard, true, isScriptChange).Do();
+            new Target(player, card, otherCard, true, new Caller(player, CallSource.Network, isScriptChange)).Do();
         }
 
         public void Highlight(Card card, Color? color)
@@ -656,7 +656,7 @@ namespace Octgn.Networking
                 card.MayBeConsideredFaceUp = false;     // see comment on mayBeConsideredFaceUp
                 return;
             }
-            new Turn(player, card, up).Do();
+            new Turn(player, card, up, new Caller(player, CallSource.Network, false)).Do();
         }
 
         public void Rotate(Player player, Card card, CardOrientation rot)
@@ -664,7 +664,7 @@ namespace Octgn.Networking
             // Ignore the moves we made ourselves
             if (player == Player.LocalPlayer)
                 return;
-            new Rotate(player, card, rot).Do();
+            new Rotate(player, card, rot, new Caller(player, CallSource.Network, false)).Do();
         }
 
         public void Shuffled(Player player, Group group, int[] card, short[] pos)

@@ -1,5 +1,4 @@
 ﻿using System;
-using Octgn.Data;
 
 namespace Octgn.Play.Actions
 {
@@ -15,7 +14,7 @@ namespace Octgn.Play.Actions
         internal Card Card;
 
         public CreateCard(Player owner, int id,bool faceUp, DataNew.Entities.Card model, int x, int y,
-                          bool deletesWhenLeavesGroup)
+                          bool deletesWhenLeavesGroup, Caller caller) : base(caller)
         {
             _owner = owner;
             _id = id;

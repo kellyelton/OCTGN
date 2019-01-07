@@ -318,6 +318,15 @@
       <param name="oldPlayer" type="Player"/>
       <param name="player" type="Player"/>
     </event>
+    <event name="OnCardsMoving" isHandlable="true">
+      <param name="cards" type="Card[]"/>
+      <param name="toGroups" type="Group[]"/>
+      <!-- index within the group -->
+      <param name="indexs" type="int[]"/>
+      <param name="xs" type="int[]"/>
+      <param name="ys" type="int[]"/>
+      <param name="faceups" type="bool[]"/>
+    </event>
     <event name="OnCardsMoved">
       <param name="player" type="Player"/>
       <param name="cards" type="Card[]"/>
