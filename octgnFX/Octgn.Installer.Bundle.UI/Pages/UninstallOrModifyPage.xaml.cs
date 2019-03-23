@@ -44,12 +44,12 @@ namespace Octgn.Installer.Bundle.UI.Pages
                 throw new InvalidOperationException($"Must select DoModify or DoUninstall");
 
             if (DoModify) {
-                App.Current.RunMode = RunMode.Modify;
+                App.Current.Plan = SelectedPlan.ChangeDataDirectory;
                 DoTransition(new DirectorySelectionPageViewModel());
             } else if (DoUninstall) {
-                App.Current.RunMode = RunMode.Uninstall;
+                App.Current.Plan = SelectedPlan.Uninstall;
                 DoTransition(new ProgressPageViewModel());
-                App.Current.StartUninstall();
+                App.Current.Engine.Plan(Microsoft.Tools.WindowsInstallerXml.Bootstrapper.LaunchAction.Uninstall);
             }
         }
     }

@@ -9,16 +9,17 @@
            Manufacturer="OCTGN"
            UpgradeCode="$(var.UpgradeCode)">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Description="Version: $(var.ProductVersion)" Comments="Version: $(var.ProductVersion)"/>
+    <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+    <!--<Upgrade Id="$(var.UpgradeCode)">
+      <UpgradeVersion
+         Minimum="1.0.0.0" Maximum="99.0.0.0"
+         Property="PREVIOUSVERSIONSINSTALLED"
+         IncludeMinimum="yes" IncludeMaximum="no" />
+    </Upgrade>-->
+    <MajorUpgrade AllowDowngrades="yes" Schedule="afterInstallInitialize"/>
 
-    <MajorUpgrade AllowDowngrades="yes"/>
     <MediaTemplate EmbedCab="yes" />
 
-    <Upgrade Id="$(var.UpgradeCode)">
-      <!-- Detect older product versions -->
-      <UpgradeVersion OnlyDetect="no" IncludeMinimum="yes" IncludeMaximum="no" Minimum="0.0.1" Maximum="$(var.ProductVersion)" Property="PREVIOUSVERSIONSINSTALLED"/>
-      <!-- Detect newer product versions -->
-      <UpgradeVersion OnlyDetect="yes" IncludeMinimum="no" Minimum="$(var.ProductVersion)" Property="NEWERVERSIONDETECTED"/>
-    </Upgrade>
     <!-- Exits successfully in the case newer version are already installed -->
     <CustomActionRef Id="WixExitEarlyWithSuccess"/>
 
@@ -55,9 +56,6 @@
 
       <Custom Action="SetCustomPropertiesForRemoveDataDirectoryFromConfigFilection" Before="RemoveDataDirectoryFromConfigFile"/>
       <Custom Action="RemoveDataDirectoryFromConfigFile" After="CopyOldOctgnFiles">NOT REMOVE</Custom>
-
-      <Custom Action="SetCustomPropertiesForChangeEventSourceSize_OctgnAction" Before="ChangeEventSourceSize_Octgn">NOT REMOVE</Custom>
-      <Custom Action="ChangeEventSourceSize_Octgn" After="PublishProduct">NOT REMOVE</Custom>
     </InstallExecuteSequence>
 
     <WixVariable Id="WixUILicenseRtf" Value="$(var.RootPath)\EULA.rtf" />

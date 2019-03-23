@@ -40,18 +40,21 @@ namespace Octgn.Installer.Bundle.UI.Pages
 
             Button1Text = "Cancel";
 
-            switch (App.Current.RunMode) {
-                case RunMode.Install:
+            switch (App.Current.Plan) {
+                case SelectedPlan.Install:
                     Task = "Installing...";
                     break;
-                case RunMode.Uninstall:
+                case SelectedPlan.Uninstall:
                     Task = "Uninstalling...";
                     break;
-                case RunMode.Modify:
+                case SelectedPlan.ChangeDataDirectory:
                     Task = "Modifying...";
                     break;
+                case SelectedPlan.Update:
+                    Task = "Updating...";
+                    break;
                 default:
-                    throw new NotImplementedException($"RunMode {App.Current.RunMode} not implemented");
+                    throw new NotImplementedException($"RunMode {App.Current.Plan} not implemented");
             }
 
             App.Current.CacheAcquireProgress += (sender, args) =>

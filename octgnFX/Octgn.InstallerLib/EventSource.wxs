@@ -3,8 +3,13 @@
   <Fragment>
     <Property Id="Octgn.EventSourceProperty">Octgn</Property>
 
-    <CustomAction Id="SetCustomPropertiesForChangeEventSourceSize_OctgnAction" Property="ChangeEventSourceSize_Octgn" Value="SOURCENAME=[Octgn.EventSourceProperty]" />
+    <!--<CustomAction Id="SetCustomPropertiesForChangeEventSourceSize_OctgnAction" Property="ChangeEventSourceSize_Octgn" Value="SOURCENAME=[Octgn.EventSourceProperty]" />
     <CustomAction Id="ChangeEventSourceSize_Octgn" Execute="deferred" BinaryKey="Octgn.Installer.CustomActions.dll" DllEntry="ChangeEventSourceSize"></CustomAction>
+
+    <InstallExecuteSequence>
+      <Custom Action="SetCustomPropertiesForChangeEventSourceSize_OctgnAction" Before="ChangeEventSourceSize_Octgn">NOT REMOVE</Custom>
+      <Custom Action="ChangeEventSourceSize_Octgn" After="WriteRegistryValues">NOT REMOVE</Custom>
+    </InstallExecuteSequence>-->
 
     <PropertyRef Id="NETFRAMEWORK40FULLINSTALLROOTDIR" />
     <PropertyRef Id="NETFRAMEWORK40FULLINSTALLROOTDIR64" />

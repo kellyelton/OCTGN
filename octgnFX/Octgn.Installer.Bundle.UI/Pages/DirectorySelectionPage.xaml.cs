@@ -61,18 +61,18 @@ namespace Octgn.Installer.Bundle.UI.Pages
         private bool _enableSetInstallDirectory;
 
         public DirectorySelectionPageViewModel() {
-            switch (App.Current.RunMode) {
-                case RunMode.Install:
+            switch (App.Current.Plan) {
+                case SelectedPlan.Install:
                     Button1Text = "Install";
                     EnableSetInstallDirectory = true;
                     break;
-                case RunMode.Modify:
+                case SelectedPlan.ChangeDataDirectory:
                     Button1Text = "Modify";
                     EnableSetInstallDirectory = false;
                     break;
-                case RunMode.UninstallOrModify:
-                case RunMode.Uninstall:
-                    throw new NotImplementedException($"RunMode {App.Current.RunMode} is unsupported with this page.");
+                case SelectedPlan.Update:
+                case SelectedPlan.Uninstall:
+                    throw new NotImplementedException($"RunMode {App.Current.Plan} is unsupported with this page.");
             }
 
             Button1Text = "Install";
@@ -104,18 +104,7 @@ namespace Octgn.Installer.Bundle.UI.Pages
 
             DoTransition(new ProgressPageViewModel());
 
-            switch (App.Current.RunMode) {
-                case RunMode.Install:
-                    App.Current.StartInstall();
-                    break;
-                case RunMode.Modify:
-                    App.Current.StartModify();
-                    break;
-                case RunMode.Uninstall:
-                case RunMode.UninstallOrModify:
-                default:
-                    throw new NotImplementedException($"RunMode {App.Current.RunMode} is unsupported with this page.");
-            }
+            App.Current.StartPlan();
         }
     }
 }
