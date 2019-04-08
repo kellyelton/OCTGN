@@ -20,6 +20,7 @@
     <DefineConstants>HarvestPath=..\Octgn\bin\$(Configuration);RootPath=..\..\</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Fonts.wxs" />
     <Compile Include="EventSource.wxs" />
     <Compile Include="HeatGeneratedFileList.wxs" />
     <Compile Include="Library.wxs" />

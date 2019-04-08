@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="Octgn.InstallDirectory">
+      <Directory Id="FontsFolder">
+        <Component Id="EntypoFont" Guid="{128AAA65-B209-42DB-B97A-16BCFAEDDCEC}">
+          <File Id="Entypo.otf" Source="$(var.RootPath)\octgnFX\Graphics\Entypo.otf" TrueType="yes" KeyPath="yes"/>
+        </Component>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="Fonts">
+      <ComponentRef Id="EntypoFont"/>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
