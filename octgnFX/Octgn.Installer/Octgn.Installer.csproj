@@ -179,18 +179,26 @@
       <Link>Resources\Icon.ico</Link>
     </Resource>
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="InstallPackage\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="InstallPackage\**" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PreBuildEvent>del "$(ProjectDir)InstallPackage\*.*" /s /Q
-xcopy /Y "$(ProjectDir)..\Octgn\bin\$(ConfigurationName)\*.*" "$(ProjectDir)InstallPackage"</PreBuildEvent>
-  </PropertyGroup>
+  <Target Name="CreateInstallPackage" BeforeTargets="PrepareResources">
+    <MakeDir Directories="$(TargetDir)InstallPackage"/>
+    <MakeDir Directories="$(TargetDir)InstallPackage\Octgn"/>
+    <Delete Files="$(TargetDir)InstallPackage\Octgn\*.*"/>
+    <ItemGroup>
+      <OctgnFiles Include="$(ProjectDir)..\Octgn\bin\$(ConfigurationName)\*.*"/>
+    </ItemGroup>
+    <Copy SourceFiles="@(OctgnFiles)"
+          DestinationFolder="$(TargetDir)InstallPackage\Octgn"/>
+    <DownloadFile SourceUrl="http://download.microsoft.com/download/F/9/E/F9EE2F15-8F40-4319-A300-1734E58B8E0B/NDP47-KB3186497-x86-x64-AllOS-ENU.exe" DestinationFolder="$(TargetDir)InstallPackage" DestinationFileName="DotNetInstaller.exe" SkipUnchangedFiles="true">
+      <Output TaskParameter="DownloadedFile" ItemName="Content" />
+    </DownloadFile>
+    <ZipDirectory
+        SourceDirectory="$(TargetDir)InstallPackage"
+        DestinationFile="$(ProjectDir)InstallPackage.zip" Overwrite="true" />
+  </Target>
+  <ItemGroup>
+    <EmbeddedResource Include="InstallPackage.zip" />
+  </ItemGroup>
   <Import Project="..\..\packages\ILMerge.MSBuild.Task.1.0.5\build\ILMerge.MSBuild.Task.targets" Condition="Exists('..\..\packages\ILMerge.MSBuild.Task.1.0.5\build\ILMerge.MSBuild.Task.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
