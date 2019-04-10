@@ -7,7 +7,8 @@
         mc:Ignorable="d" Title="OCTGN Installer" Height="500" Width="800"
         ResizeMode="NoResize" WindowStyle="None" Background="{x:Null}" AllowsTransparency="True"
         MouseDown="Window_MouseDown" WindowStartupLocation="CenterScreen"
-        DataContext="{Binding Path=PageViewModel, RelativeSource={RelativeSource Mode=Self}}">
+        DataContext="{Binding Path=PageViewModel, RelativeSource={RelativeSource Mode=Self}}"
+        Icon="pack://application:,,,/Octgn.Installer;component/Resources/Icon.ico">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
