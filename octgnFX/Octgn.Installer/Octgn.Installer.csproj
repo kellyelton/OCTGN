@@ -99,6 +99,9 @@
     <Compile Include="Features\Fonts.cs" />
     <Compile Include="Features\Logging.cs" />
     <Compile Include="Features\OctgnProgram.cs" />
+    <Compile Include="Plans\Install.cs" />
+    <Compile Include="Plans\Maintenance.cs" />
+    <Compile Include="Plans\Plan.cs" />
     <Compile Include="Pages\DirectorySelectionPage.xaml.cs">
       <DependentUpon>DirectorySelectionPage.xaml</DependentUpon>
     </Compile>
@@ -117,8 +120,12 @@
     <Compile Include="Pages\UninstallOrModifyPage.xaml.cs">
       <DependentUpon>UninstallOrModifyPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Shared\InstalledOctgn.cs" />
-    <Compile Include="Shared\Paths.cs" />
+    <Compile Include="Plans\Stage.cs" />
+    <Compile Include="Plans\StageChangedEventArgs.cs" />
+    <Compile Include="Plans\Uninstall.cs" />
+    <Compile Include="Plans\Update.cs" />
+    <Compile Include="Tools\InstalledOctgn.cs" />
+    <Compile Include="Tools\Paths.cs" />
     <Compile Include="ViewModelBase.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

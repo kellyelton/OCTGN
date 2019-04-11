@@ -1,4 +1,4 @@
-﻿using Octgn.Installer.Shared;
+﻿using Octgn.Installer.Tools;
 using System;
 using System.IO;
 using System.Windows;
@@ -19,7 +19,7 @@ namespace Octgn.Installer.Pages
             Button1Text = "I Accept";
 
             var stringPath = "pack://application:,,,/Octgn.Installer;Component/Resources/EULA.rtf";
-            var eulaInfo = System.Windows.Application.GetResourceStream(new Uri(stringPath));
+            var eulaInfo = Application.GetResourceStream(new Uri(stringPath));
 
             Page = new TermsPage();
             Page.DataContext = this;

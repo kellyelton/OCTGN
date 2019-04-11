@@ -1,22 +1,39 @@
-﻿using System;
+﻿using Octgn.Installer.Plans;
+using Octgn.Installer.Tools;
+using System;
 using System.Threading.Tasks;
 
 namespace Octgn.Installer
 {
     public class App : ViewModelBase
     {
-        public static App Current { get; set; }
+        public string Version => _version.ToString();
+        private readonly Version _version;
 
-        public string Version {
-            get => _version;
-            set => SetAndNotify(ref _version, value);
+        public InstalledOctgn InstalledOctgn { get; }
+        public Plan Plan { get; }
+
+        public App(Version version, InstalledOctgn installedOctgn, Plan plan) {
+            _version = version;
+            InstalledOctgn = installedOctgn ?? throw new ArgumentNullException(nameof(installedOctgn));
+            Plan = plan ?? throw new ArgumentNullException(nameof(plan));
         }
-        private string _version;
 
         public async Task OnStart() {
             // Figure out the launch configuration (Silent, uninstalling, installing, ARP, etc)
 
+            if (!Plan.IsQuiet) {
+                var window = new MainWindow(this);
+                window.Show();
+            } else {
+                Plan.StageChanged += Plan_StageChanged;
+            }
 
+            Plan.Start();
+        }
+
+        private void Plan_StageChanged(object sender, StageChangedEventArgs e) {
+            
         }
 
         public void Shutdown() {

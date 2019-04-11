@@ -13,8 +13,6 @@ namespace Octgn.Installer.Pages
 
         private async void LoadingPage_Loaded(object sender, System.Windows.RoutedEventArgs e) {
             Loaded -= LoadingPage_Loaded;
-
-            await App.Current.OnStart();
         }
     }
 

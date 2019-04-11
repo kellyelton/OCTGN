@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Octgn.Installer.Shared
+namespace Octgn.Installer.Tools
 {
     public class InstalledOctgn {
         public static InstalledOctgn Get() {
@@ -77,5 +77,7 @@ namespace Octgn.Installer.Shared
         public DirectoryInfo InstalledDirectory { get; set; }
 
         public DirectoryInfo DataDirectory { get; set; }
+
+        public Version InstalledVersion { get; set; }
     }
 }

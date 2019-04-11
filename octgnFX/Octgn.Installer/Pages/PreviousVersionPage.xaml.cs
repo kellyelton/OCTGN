@@ -1,4 +1,4 @@
-﻿using Octgn.Installer.Shared;
+﻿using Octgn.Installer.Tools;
 using System;
 using System.Windows.Controls;
 

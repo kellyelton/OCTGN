@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using Octgn.Installer.Pages;
 
@@ -45,12 +46,38 @@ namespace Octgn.Installer
             set => SetValue(PageProperty, value);
         }
 
-        public MainWindow() {
+        private readonly App _app;
+
+        public MainWindow(App app) {
+            _app = app ?? throw new ArgumentNullException(nameof(app));
+
             InitializeComponent();
 
-            VersionText.Text = App.Current.Version;
+            VersionText.Text = app.Version;
 
             PageViewModel = new LoadingPageViewModel();
+
+            _app.Plan.StageChanged += Plan_StageChanged;
+        }
+
+        private void Plan_StageChanged(object sender, Plans.StageChangedEventArgs e) {
+            switch (e.NewStage) {
+                case Plans.Stage.Loading:
+                    PageViewModel = new LoadingPageViewModel();
+                    break;
+                case Plans.Stage.Terms:
+                    PageViewModel = new TermsPageViewModel();
+                    break;
+                case Plans.Stage.Features:
+                case Plans.Stage.Progress:
+                case Plans.Stage.ConfirmUninstall:
+                case Plans.Stage.ChooseMaintenance:
+                case Plans.Stage.FinishedUninstalling:
+                case Plans.Stage.FinishedInstalling:
+                case Plans.Stage.FinishedWithError:
+                default:
+                    throw new InvalidOperationException($"Stage {e.NewStage} has not been implemented here.");
+            }
         }
 
         private void Window_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e) {
@@ -62,7 +89,7 @@ namespace Octgn.Installer
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) {
-            App.Current.Shutdown();
+            _app.Shutdown();
         }
     }
 }

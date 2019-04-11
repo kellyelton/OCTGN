@@ -21,10 +21,12 @@ namespace Octgn.Installer
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        protected void SetAndNotify<T>(ref T field, T value, [CallerMemberName]string propertyName = null) {
-            if(Set(ref field, value)) {
+        protected bool SetAndNotify<T>(ref T field, T value, [CallerMemberName]string propertyName = null) {
+            if (Set(ref field, value)) {
                 Notify(propertyName);
+                return true;
             }
+            return false;
         }
     }
 }

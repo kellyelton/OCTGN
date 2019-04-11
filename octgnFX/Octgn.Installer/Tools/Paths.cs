@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Octgn.Installer.Shared
+namespace Octgn.Installer.Tools
 {
     public class Paths
     {
