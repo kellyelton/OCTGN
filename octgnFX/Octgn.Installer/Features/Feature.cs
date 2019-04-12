@@ -9,7 +9,17 @@ namespace Octgn.Installer.Features
 
         public bool ShouldInstall {
             get => _shouldInstall;
-            set => SetAndNotify(ref _shouldInstall, value);
+            set {
+                if(SetAndNotify(ref _shouldInstall, value)) {
+                    foreach(var child in Children) {
+                        if (child.IsRequired) {
+                            child.ShouldInstall = true;
+                        } else {
+                            child.ShouldInstall = _shouldInstall;
+                        }
+                    }
+                }
+            }
         }
         private bool _shouldInstall;
 
