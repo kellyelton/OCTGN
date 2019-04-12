@@ -18,7 +18,7 @@ namespace Octgn.Installer.Pages
 
     public class LoadingPageViewModel : PageViewModel
     {
-        public LoadingPageViewModel() {
+        public LoadingPageViewModel(App app) : base(app) {
             Button1Visible = false;
 
             Page = new LoadingPage();

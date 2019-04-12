@@ -60,7 +60,7 @@ namespace Octgn.Installer.Pages
         }
         private bool _enableSetInstallDirectory;
 
-        public DirectorySelectionPageViewModel() {
+        public DirectorySelectionPageViewModel(App app) : base(app) {
             //switch (App.Current.Plan) {
             //    case SelectedPlan.Install:
             //        Button1Text = "Install";
@@ -99,10 +99,9 @@ namespace Octgn.Installer.Pages
         public override void Button1_Action() {
             base.Button1_Action();
 
+            App.Plan.Next();
             //App.Current.Engine.StringVariables["INSTALLDIR"] = InstallDirectory;
             //App.Current.Engine.StringVariables["DATADIRECTORY"] = DataDirectory;
-
-            DoTransition(new ProgressPageViewModel());
         }
     }
 }

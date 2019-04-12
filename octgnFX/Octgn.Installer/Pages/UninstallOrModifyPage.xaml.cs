@@ -24,7 +24,7 @@ namespace Octgn.Installer.Pages
         }
         private bool _doUninstall;
 
-        public UninstallOrModifyPageViewModel() {
+        public UninstallOrModifyPageViewModel(App app) : base(app) {
             Button1Text = "Continue";
 
             DoModify = true;
@@ -43,11 +43,12 @@ namespace Octgn.Installer.Pages
             if (!DoModify && !DoUninstall)
                 throw new InvalidOperationException($"Must select DoModify or DoUninstall");
 
-            if (DoModify) {
-                DoTransition(new DirectorySelectionPageViewModel());
-            } else if (DoUninstall) {
-                DoTransition(new ProgressPageViewModel());
-            }
+            App.Plan.Next();
+            //if (DoModify) {
+            //    DoTransition(new DirectorySelectionPageViewModel());
+            //} else if (DoUninstall) {
+            //    DoTransition(new ProgressPageViewModel());
+            //}
         }
     }
 }

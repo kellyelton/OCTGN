@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace Octgn.Installer
@@ -25,6 +24,12 @@ namespace Octgn.Installer
         private UserControl _page;
 
         public event EventHandler<PageTransitionEventArgs> Transition;
+
+        protected App App { get; }
+
+        public PageViewModel(App app) {
+            App = app ?? throw new ArgumentNullException(nameof(app));
+        }
 
         public virtual void Button1_Action() {
 

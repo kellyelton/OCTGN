@@ -30,7 +30,7 @@ namespace Octgn.Installer.Pages
         }
         private string _task;
 
-        public ProgressPageViewModel() {
+        public ProgressPageViewModel(App app) : base(app) {
             this.Page = new ProgressPage() {
                 DataContext = this
             };

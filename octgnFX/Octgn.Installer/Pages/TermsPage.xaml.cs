@@ -1,6 +1,5 @@
 ﻿using Octgn.Installer.Tools;
 using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,7 +14,7 @@ namespace Octgn.Installer.Pages
 
     public class TermsPageViewModel : PageViewModel
     {
-        public TermsPageViewModel() {
+        public TermsPageViewModel(App app) : base(app) {
             Button1Text = "I Accept";
 
             var stringPath = "pack://application:,,,/Octgn.Installer;Component/Resources/EULA.rtf";
@@ -28,11 +27,7 @@ namespace Octgn.Installer.Pages
         }
 
         public override void Button1_Action() {
-            if (InstalledOctgn.Get().IsIncompatible) {
-                DoTransition(new PreviousVersionPageViewModel());
-            } else {
-                DoTransition(new DirectorySelectionPageViewModel());
-            }
+            App.Plan.Next();
         }
     }
 }

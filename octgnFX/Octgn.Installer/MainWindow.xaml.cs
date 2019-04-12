@@ -55,7 +55,7 @@ namespace Octgn.Installer
 
             VersionText.Text = app.Version;
 
-            PageViewModel = new LoadingPageViewModel();
+            PageViewModel = new LoadingPageViewModel(_app);
 
             _app.Plan.StageChanged += Plan_StageChanged;
         }
@@ -63,15 +63,19 @@ namespace Octgn.Installer
         private void Plan_StageChanged(object sender, Plans.StageChangedEventArgs e) {
             switch (e.NewStage) {
                 case Plans.Stage.Loading:
-                    PageViewModel = new LoadingPageViewModel();
+                    PageViewModel = new LoadingPageViewModel(_app);
                     break;
                 case Plans.Stage.Terms:
-                    PageViewModel = new TermsPageViewModel();
+                    PageViewModel = new TermsPageViewModel(_app);
+                    break;
+                case Plans.Stage.Progress:
+                    PageViewModel = new ProgressPageViewModel(_app);
+                    break;
+                case Plans.Stage.ChooseMaintenance:
+                    PageViewModel = new UninstallOrModifyPageViewModel(_app);
                     break;
                 case Plans.Stage.Features:
-                case Plans.Stage.Progress:
                 case Plans.Stage.ConfirmUninstall:
-                case Plans.Stage.ChooseMaintenance:
                 case Plans.Stage.FinishedUninstalling:
                 case Plans.Stage.FinishedInstalling:
                 case Plans.Stage.FinishedWithError:
