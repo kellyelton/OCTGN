@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="Octgn.Installer.Pages.FeaturesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:features="clr-namespace:Octgn.Installer.Features"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:Octgn.Installer.Converters"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+      >
+    <UserControl.Resources>
+        <converters:InvertedBooleanConverter x:Key="InvertedBooleanConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TreeView x:Name="FeatureTree"
+                  ItemsSource="{Binding Features.Children}"
+                  Padding="0 10 20 0">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                    <Setter Property="IsExpanded" Value="True"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type features:Feature}"
+                                          ItemsSource="{Binding Children}">
+                    <CheckBox Content="{Binding Name}"
+                              IsChecked="{Binding ShouldInstall}"
+                              IsEnabled="{Binding IsRequired, Converter={StaticResource InvertedBooleanConverter}}"
+                              PreviewMouseUp="Feature_MouseUp"
+                              Margin="3 3 6 3"
+                              Foreground="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeViewItem}, Path=Foreground}"/>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        <TextBox Text="{Binding ElementName=FeatureTree, Path=SelectedItem.Description, Mode=OneWay}"
+                 Grid.Column="2"
+                 Padding="10">
+            
+        </TextBox>
+    </Grid>
+</UserControl>

@@ -75,6 +75,8 @@ namespace Octgn.Installer
                     PageViewModel = new UninstallOrModifyPageViewModel(_app);
                     break;
                 case Plans.Stage.Features:
+                    PageViewModel = new FeaturesPageViewModel(_app);
+                    break;
                 case Plans.Stage.ConfirmUninstall:
                 case Plans.Stage.FinishedUninstalling:
                 case Plans.Stage.FinishedInstalling:

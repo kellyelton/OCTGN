@@ -88,6 +88,7 @@
     </Compile>
     <Compile Include="App.cs" />
     <Compile Include="Context.cs" />
+    <Compile Include="Converters\InvertedBooleanConverter.cs" />
     <Compile Include="Features\AddOctgnToPath.cs" />
     <Compile Include="Features\DataDirectory.cs" />
     <Compile Include="Features\DeckFileSupport.cs" />
@@ -99,6 +100,9 @@
     <Compile Include="Features\Fonts.cs" />
     <Compile Include="Features\Logging.cs" />
     <Compile Include="Features\OctgnProgram.cs" />
+    <Compile Include="Pages\FeaturesPage.xaml.cs">
+      <DependentUpon>FeaturesPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Plans\Install.cs" />
     <Compile Include="Plans\Maintenance.cs" />
     <Compile Include="Plans\Plan.cs" />
@@ -145,6 +149,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\ProgressPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\FeaturesPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
