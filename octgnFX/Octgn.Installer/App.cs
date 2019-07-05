@@ -20,8 +20,6 @@ namespace Octgn.Installer
         }
 
         public async Task OnStart() {
-            // Figure out the launch configuration (Silent, uninstalling, installing, ARP, etc)
-
             if (!Plan.IsQuiet) {
                 var window = new MainWindow(this);
                 window.Show();
@@ -33,7 +31,7 @@ namespace Octgn.Installer
         }
 
         private void Plan_StageChanged(object sender, StageChangedEventArgs e) {
-            
+
         }
 
         public void Shutdown() {
