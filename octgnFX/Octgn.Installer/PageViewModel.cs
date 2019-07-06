@@ -19,8 +19,29 @@ namespace Octgn.Installer
 
         public UserControl Page {
             get => _page;
-            set => SetAndNotify(ref _page, value);
+            set {
+                var oldPage = _page;
+
+                if (!SetAndNotify(ref _page, value)) return;
+
+                if(oldPage != null) {
+                    oldPage.Loaded -= OnPageLoaded;
+                }
+
+                value.Loaded += OnPageLoaded;
+            }
         }
+
+        private void OnPageLoaded(object sender, System.Windows.RoutedEventArgs e) {
+            var page = (UserControl)sender;
+
+            page.Loaded -= OnPageLoaded;
+
+            PageLoaded();
+
+            App.Plan.Run();
+        }
+
         private UserControl _page;
 
         public event EventHandler<PageTransitionEventArgs> Transition;
@@ -29,6 +50,10 @@ namespace Octgn.Installer
 
         public PageViewModel(App app) {
             App = app ?? throw new ArgumentNullException(nameof(app));
+        }
+
+        public virtual void PageLoaded() {
+
         }
 
         public virtual void Button1_Action() {

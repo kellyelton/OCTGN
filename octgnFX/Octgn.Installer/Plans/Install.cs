@@ -7,12 +7,6 @@ namespace Octgn.Installer.Plans
         public Install(bool isQuiet) : base(isQuiet) {
         }
 
-        protected override void OnStart() {
-            Stage = Stage.Terms;
-            CanGoBack = false;
-            CanGoForward = true;
-        }
-
         protected override void OnNext() {
             switch (Stage) {
                 case Stage.Terms:
@@ -42,7 +36,31 @@ namespace Octgn.Installer.Plans
         }
 
         protected override void OnBack() {
-            
+
+        }
+
+        protected override void OnRun() {
+            switch (Stage) {
+                case Stage.Loading:
+                    Next();
+                    break;
+                case Stage.Terms:
+                    break;
+                case Stage.Features:
+                    break;
+                case Stage.Progress:
+                    //TODO: Install
+                    break;
+                case Stage.FinishedInstalling:
+                    break;
+                case Stage.FinishedWithError:
+                    break;
+                case Stage.ConfirmUninstall:
+                case Stage.ChooseMaintenance:
+                case Stage.FinishedUninstalling:
+                default:
+                    throw new InvalidOperationException($"Can't run stage {Stage} here.");
+            }
         }
     }
 }
