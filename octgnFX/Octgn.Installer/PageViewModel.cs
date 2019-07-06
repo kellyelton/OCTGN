@@ -32,14 +32,14 @@ namespace Octgn.Installer
             }
         }
 
-        private void OnPageLoaded(object sender, System.Windows.RoutedEventArgs e) {
+        private async void OnPageLoaded(object sender, System.Windows.RoutedEventArgs e) {
             var page = (UserControl)sender;
 
             page.Loaded -= OnPageLoaded;
 
             PageLoaded();
 
-            App.Plan.Run();
+            await App.Plan.Run();
         }
 
         private UserControl _page;

@@ -1,14 +1,28 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Octgn.Installer.Plans
 {
     public class Install : Plan
     {
+        public Features.Features Features { get; }
+
         public Install(bool isQuiet) : base(isQuiet) {
+            Features = new Features.Features();
+
+            Stage = Stage.Loading;
+
+            CanGoForward = true;
+            CanGoBack = false;
         }
 
         protected override void OnNext() {
             switch (Stage) {
+                case Stage.Loading:
+                    Stage = Stage.Terms;
+                    CanGoBack = false;
+                    CanGoForward = true;
+                    break;
                 case Stage.Terms:
                     Stage = Stage.Features;
                     CanGoBack = true;
@@ -26,7 +40,6 @@ namespace Octgn.Installer.Plans
                     break;
                 case Stage.FinishedInstalling:
                 case Stage.FinishedWithError:
-                case Stage.Loading:
                 case Stage.ConfirmUninstall:
                 case Stage.ChooseMaintenance:
                 case Stage.FinishedUninstalling:
@@ -39,7 +52,7 @@ namespace Octgn.Installer.Plans
 
         }
 
-        protected override void OnRun() {
+        protected override async Task OnRun() {
             switch (Stage) {
                 case Stage.Loading:
                     Next();
@@ -50,6 +63,9 @@ namespace Octgn.Installer.Plans
                     break;
                 case Stage.Progress:
                     //TODO: Install
+                    var context = new Context();
+                    await Features.Install(context);
+
                     break;
                 case Stage.FinishedInstalling:
                     break;

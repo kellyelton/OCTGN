@@ -1,6 +1,7 @@
 ﻿using Octgn.Installer.Tools;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Octgn.Installer.Plans
 {
@@ -82,8 +83,8 @@ namespace Octgn.Installer.Plans
             OnBack();
         }
 
-        public void Run() {
-            OnRun();
+        public Task Run() {
+            return OnRun();
         }
 
         public void Cancel() {
@@ -94,7 +95,7 @@ namespace Octgn.Installer.Plans
         protected virtual void OnNext() { }
         protected virtual void OnBack() { }
         protected virtual void OnCancel() { }
-        protected virtual void OnRun() { }
+        protected virtual Task OnRun() => Task.Delay(0);
 
         public override string ToString() {
             return this.GetType().Name;
