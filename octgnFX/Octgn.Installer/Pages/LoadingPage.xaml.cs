@@ -7,12 +7,6 @@ namespace Octgn.Installer.Pages
     {
         public LoadingPage() {
             InitializeComponent();
-
-            Loaded += LoadingPage_Loaded;
-        }
-
-        private async void LoadingPage_Loaded(object sender, System.Windows.RoutedEventArgs e) {
-            Loaded -= LoadingPage_Loaded;
         }
     }
 

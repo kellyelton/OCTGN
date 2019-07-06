@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Octgn.Installer.Plans;
+using System;
 using System.Windows.Controls;
 
 namespace Octgn.Installer.Pages
@@ -37,24 +38,13 @@ namespace Octgn.Installer.Pages
 
             Button1Text = "Cancel";
 
-            throw new NotImplementedException();
+            if(App.Plan is Install installPlan) {
+                Task = "Installing...";
+            } else {
+                throw new NotImplementedException($"Plan {App.Plan} not implemented");
+            }
 
-            //switch (App.Current.Plan) {
-            //    case SelectedPlan.Install:
-            //        Task = "Installing...";
-            //        break;
-            //    case SelectedPlan.Uninstall:
-            //        Task = "Uninstalling...";
-            //        break;
-            //    case SelectedPlan.ChangeDataDirectory:
-            //        Task = "Modifying...";
-            //        break;
-            //    case SelectedPlan.Update:
-            //        Task = "Updating...";
-            //        break;
-            //    default:
-            //        throw new NotImplementedException($"RunMode {App.Current.Plan} not implemented");
-            //}
+            throw new NotImplementedException();
         }
 
         public override void Button1_Action() {
