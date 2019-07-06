@@ -82,6 +82,10 @@ namespace Octgn.Installer.Plans
             OnBack();
         }
 
+        public void Run() {
+            OnRun();
+        }
+
         public void Cancel() {
             OnCancel();
         }
@@ -90,5 +94,10 @@ namespace Octgn.Installer.Plans
         protected virtual void OnNext() { }
         protected virtual void OnBack() { }
         protected virtual void OnCancel() { }
+        protected virtual void OnRun() { }
+
+        public override string ToString() {
+            return this.GetType().Name;
+        }
     }
 }
