@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Octgn.Installer.Features
@@ -34,15 +35,19 @@ namespace Octgn.Installer.Features
 
         public abstract string Description { get; }
 
-        public abstract IEnumerable<Feature> Children { get; }
+        public virtual IEnumerable<Feature> Children { get; } = Enumerable.Empty<Feature>();
 
-        public virtual async Task Install(Context context) {
+        public virtual Task Install(Context context) => InstallChildren(context);
+
+        protected async Task InstallChildren(Context context) {
             foreach(var child in Children) {
                 await child.Install(context);
             }
         }
 
-        public virtual async Task Uninstall(Context context) {
+        public virtual Task Uninstall(Context context) => UninstallChildren(context);
+
+        protected async Task UninstallChildren(Context context) {
             foreach (var child in Children) {
                 await child.Uninstall(context);
             }

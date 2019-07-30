@@ -18,11 +18,15 @@ namespace Octgn.Installer.Features
             new Logging()
         };
 
-        public override Task Install(Context context) {
+        public override async Task Install(Context context) {
+            await InstallChildren(context);
+
             throw new NotImplementedException();
         }
 
-        public override Task Uninstall(Context context) {
+        public override async Task Uninstall(Context context) {
+            await UninstallChildren(context);
+
             throw new NotImplementedException();
         }
     }

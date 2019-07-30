@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Octgn.Installer.Features
 {
@@ -18,13 +17,5 @@ namespace Octgn.Installer.Features
             new AddOctgnToPath(),
             new DeveloperShortcuts()
         };
-
-        public override Task Install(Context context) {
-            throw new NotImplementedException();
-        }
-
-        public override Task Uninstall(Context context) {
-            throw new NotImplementedException();
-        }
     }
 }
