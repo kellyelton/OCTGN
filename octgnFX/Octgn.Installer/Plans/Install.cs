@@ -62,15 +62,15 @@ namespace Octgn.Installer.Plans
                 case Stage.Features:
                     break;
                 case Stage.Progress:
-                    //TODO: Install
                     var context = new Context();
+
                     await Features.Install(context);
 
+                    Next();
                     break;
                 case Stage.FinishedInstalling:
                     break;
                 case Stage.FinishedWithError:
-                    break;
                 case Stage.ConfirmUninstall:
                 case Stage.ChooseMaintenance:
                 case Stage.FinishedUninstalling:

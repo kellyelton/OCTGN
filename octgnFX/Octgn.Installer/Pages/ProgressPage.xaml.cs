@@ -43,8 +43,6 @@ namespace Octgn.Installer.Pages
             } else {
                 throw new NotImplementedException($"Plan {App.Plan} not implemented");
             }
-
-            throw new NotImplementedException();
         }
 
         public override void Button1_Action() {

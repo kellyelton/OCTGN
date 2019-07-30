@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Octgn.Installer.Plans;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -42,7 +43,11 @@ namespace Octgn.Installer.Pages
         public FeaturesPageViewModel(App app) : base(app) {
             Button1Text = "Next";
 
-            Features = new Features.Features();
+            if(app.Plan is Install installPlan) {
+                Features = installPlan.Features;
+            } else {
+                throw new InvalidOperationException($"Plan {app.Plan} is not valid here");
+            }
 
             Page = new FeaturesPage();
             Page.DataContext = this;
