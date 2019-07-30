@@ -100,6 +100,7 @@
     <Compile Include="Features\Fonts.cs" />
     <Compile Include="Features\Logging.cs" />
     <Compile Include="Features\OctgnProgram.cs" />
+    <Compile Include="Features\OctgnProgramFiles.cs" />
     <Compile Include="Pages\FeaturesPage.xaml.cs">
       <DependentUpon>FeaturesPage.xaml</DependentUpon>
     </Compile>
@@ -125,6 +126,9 @@
     <Compile Include="Plans\StageChangedEventArgs.cs" />
     <Compile Include="Plans\Uninstall.cs" />
     <Compile Include="Plans\Update.cs" />
+    <Compile Include="Steps\CreateDirectory.cs" />
+    <Compile Include="Steps\Step.cs" />
+    <Compile Include="Steps\ExtractEmbeddedResource.cs" />
     <Compile Include="Tools\InstalledOctgn.cs" />
     <Compile Include="Tools\Paths.cs" />
     <Compile Include="ViewModelBase.cs" />
@@ -207,6 +211,7 @@
   <ItemGroup>
     <EmbeddedResource Include="InstallPackage.zip" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\packages\ILMerge.MSBuild.Task.1.0.5\build\ILMerge.MSBuild.Task.targets" Condition="Exists('..\..\packages\ILMerge.MSBuild.Task.1.0.5\build\ILMerge.MSBuild.Task.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
