@@ -18,13 +18,5 @@ namespace Octgn.Installer.Features
             new Fonts(),
             new Logging()
         };
-
-        public override async Task Install(Context context) {
-            await InstallChildren(context);
-        }
-
-        public override async Task Uninstall(Context context) {
-            await UninstallChildren(context);
-        }
     }
 }

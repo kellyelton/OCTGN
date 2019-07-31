@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Octgn.Installer.Steps;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Octgn.Installer.Plans
@@ -62,7 +64,13 @@ namespace Octgn.Installer.Plans
                 case Stage.Features:
                     break;
                 case Stage.Progress:
-                    await Features.Install(context);
+                    var installSteps = Features.GetInstallSteps(context).ToList();
+
+                    installSteps.Insert(0, new ExtractInstallPackage());
+
+                    foreach(var step in installSteps) {
+                        await step.Execute(context);
+                    }
 
                     Next(force: true);
                     break;

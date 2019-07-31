@@ -129,6 +129,7 @@
     <Compile Include="Plans\Uninstall.cs" />
     <Compile Include="Plans\Update.cs" />
     <Compile Include="Steps\CreateDirectory.cs" />
+    <Compile Include="Steps\ExtractInstallPackage.cs" />
     <Compile Include="Steps\ZipFileExtractor.cs" />
     <Compile Include="Steps\Step.cs" />
     <Compile Include="Steps\EmbeddedResourceExtractor.cs" />

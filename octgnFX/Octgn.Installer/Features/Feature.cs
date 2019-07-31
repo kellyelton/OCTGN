@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Octgn.Installer.Steps;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,20 +38,10 @@ namespace Octgn.Installer.Features
 
         public virtual IEnumerable<Feature> Children { get; } = Enumerable.Empty<Feature>();
 
-        public virtual Task Install(Context context) => InstallChildren(context);
+        public virtual IEnumerable<Step> GetInstallSteps(Context context)
+            => GetChildrenInstallSteps(context);
 
-        protected async Task InstallChildren(Context context) {
-            foreach(var child in Children) {
-                await child.Install(context);
-            }
-        }
-
-        public virtual Task Uninstall(Context context) => UninstallChildren(context);
-
-        protected async Task UninstallChildren(Context context) {
-            foreach (var child in Children) {
-                await child.Uninstall(context);
-            }
-        }
+        protected IEnumerable<Step> GetChildrenInstallSteps(Context context)
+            => Children.SelectMany(child => child.GetChildrenInstallSteps(context));
     }
 }
