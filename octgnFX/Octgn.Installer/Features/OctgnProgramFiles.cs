@@ -1,7 +1,7 @@
 ﻿using System;
 using Octgn.Installer.Steps;
-using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Octgn.Installer.Features
 {
@@ -13,15 +13,18 @@ namespace Octgn.Installer.Features
 
         public override string Description => "OCTGN Program Files required to run OCTGN.";
 
-        public IEnumerable<Step> GetInstallSteps(Context context) {
+        public override async Task Install(Context context) {
             var resourcePath = "Octgn.Installer.InstallPackage.zip";
-            var outPath = Path.Combine(context.UnpackDirectory, "InstallPackage.zip");
+            var installPackageZip = Path.Combine(context.UnpackDirectory, "InstallPackage.zip");
+            var unpackZipDirectory = Path.Combine(context.UnpackDirectory, "InstallPackage");
 
-            yield return new ExtractEmbeddedResource(resourcePath, outPath);
+            var embeddedResourceExtractor = new EmbeddedResourceExtractor(resourcePath, installPackageZip);
+            await embeddedResourceExtractor.Execute(context);
 
-            //TODO
+            var zipFileExtractor = new ZipFileExtractor(installPackageZip, unpackZipDirectory);
+            await zipFileExtractor.Execute(context);
 
-            throw new NotImplementedException();
+            await InstallChildren(context);
         }
     }
 }
