@@ -14,7 +14,7 @@ namespace Octgn.Installer.Steps
             Directory = new DirectoryInfo(path);
         }
 
-        public override Task Execute() {
+        public override Task Execute(Context context) {
             if (!Directory.Exists) {
                 Directory.Create();
             }

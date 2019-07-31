@@ -5,6 +5,6 @@ namespace Octgn.Installer.Steps
 {
     public abstract class Step
     {
-        public abstract Task Execute();
+        public abstract Task Execute(Context context);
     }
 }

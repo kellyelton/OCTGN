@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 
 namespace Octgn.Installer.Steps
 {
-    public class ExtractEmbeddedResource : Step
+    public class EmbeddedResourceExtractor : Step
     {
         public string ResourcePath { get; }
 
         public FileInfo ExtractFile { get; }
 
-        public ExtractEmbeddedResource(string resourcePath, string extractFilePath) {
+        public EmbeddedResourceExtractor(string resourcePath, string extractFilePath) {
             if (string.IsNullOrWhiteSpace(nameof(resourcePath))) throw new ArgumentNullException(nameof(resourcePath));
             if (string.IsNullOrWhiteSpace(extractFilePath)) throw new ArgumentNullException(nameof(extractFilePath));
 
@@ -19,7 +19,7 @@ namespace Octgn.Installer.Steps
             ExtractFile = new FileInfo(extractFilePath);
         }
 
-        public override async Task Execute() {
+        public override async Task Execute(Context context) {
             if (ExtractFile.Exists) {
                 ExtractFile.Delete();
             }
@@ -28,7 +28,7 @@ namespace Octgn.Installer.Steps
                 ExtractFile.Directory.Create();
             }
 
-            var ass = typeof(ExtractEmbeddedResource).Assembly;
+            var ass = typeof(EmbeddedResourceExtractor).Assembly;
 
             using (var stream = ass.GetManifestResourceStream(ResourcePath))
             using (var outStream = ExtractFile.Open(FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None)) {

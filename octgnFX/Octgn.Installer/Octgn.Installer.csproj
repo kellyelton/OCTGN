@@ -63,6 +63,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp">
       <Private>False</Private>
@@ -127,8 +129,9 @@
     <Compile Include="Plans\Uninstall.cs" />
     <Compile Include="Plans\Update.cs" />
     <Compile Include="Steps\CreateDirectory.cs" />
+    <Compile Include="Steps\ZipFileExtractor.cs" />
     <Compile Include="Steps\Step.cs" />
-    <Compile Include="Steps\ExtractEmbeddedResource.cs" />
+    <Compile Include="Steps\EmbeddedResourceExtractor.cs" />
     <Compile Include="Tools\InstalledOctgn.cs" />
     <Compile Include="Tools\Paths.cs" />
     <Compile Include="ViewModelBase.cs" />
