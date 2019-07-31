@@ -66,6 +66,8 @@ namespace Octgn.Installer.Plans
                 case Stage.Progress:
                     var installSteps = Features.GetInstallSteps(context).ToList();
 
+                    //TODO: Maybe to fail if OCTGN is running and force a retry to check again
+
                     installSteps.Insert(0, new ExtractInstallPackage());
 
                     foreach(var step in installSteps) {
