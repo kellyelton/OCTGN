@@ -2,7 +2,7 @@
 {
     public class Maintenance : Plan
     {
-        public Maintenance() : base(false) {
+        public Maintenance(Context context) : base(context, false) {
         }
     }
 }

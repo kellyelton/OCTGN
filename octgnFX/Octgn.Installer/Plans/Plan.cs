@@ -1,5 +1,4 @@
-﻿using Octgn.Installer.Tools;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,31 +6,34 @@ namespace Octgn.Installer.Plans
 {
     public abstract class Plan : ViewModelBase
     {
-        public static Plan Get(InstalledOctgn installedOctgn, Version installerVersion, string[] commandLineArgs) {
+        public static Plan Get(Context context) {
             var isQuiet = false;
 
-            if (commandLineArgs.Contains("/quiet")) {
+            if (context.CommandLineArguments.Contains("/quiet")) {
                 isQuiet = true;
             }
 
-            if (installedOctgn.IsInstalled) {
-                if (installedOctgn.InstalledVersion == installerVersion) {
-                    if (commandLineArgs.Contains("/uninstall", StringComparer.CurrentCultureIgnoreCase)) {
-                        return new Uninstall(isQuiet);
+            if (context.InstalledOctgn.IsInstalled) {
+                if (context.InstalledOctgn.InstalledVersion == context.InstallerVersion) {
+                    if (context.CommandLineArguments.Contains("/uninstall", StringComparer.CurrentCultureIgnoreCase)) {
+                        return new Uninstall(context, isQuiet);
                     } else {
-                        return new Maintenance();
+                        return new Maintenance(context);
                     }
                 } else {
-                    return new Update(isQuiet);
+                    return new Update(context, isQuiet);
                 }
             } else {
-                return new Install(isQuiet);
+                return new Install(context, isQuiet);
             }
         }
 
-        public bool IsQuiet { get; private set; }
+        public bool IsQuiet { get; }
 
-        public Plan(bool isQuiet) {
+        public Context Context { get; }
+
+        public Plan(Context context, bool isQuiet) {
+            Context = context ?? throw new ArgumentNullException(nameof(context));
             IsQuiet = isQuiet;
         }
 
@@ -69,8 +71,8 @@ namespace Octgn.Installer.Plans
             OnStart();
         }
 
-        public void Next() {
-            if (!_canGoForward)
+        public void Next(bool force = false) {
+            if (!_canGoForward && !force)
                 throw new InvalidOperationException("Can't go forward");
 
             OnNext();
@@ -84,7 +86,7 @@ namespace Octgn.Installer.Plans
         }
 
         public Task Run() {
-            return OnRun();
+            return OnRun(Context);
         }
 
         public void Cancel() {
@@ -95,7 +97,7 @@ namespace Octgn.Installer.Plans
         protected virtual void OnNext() { }
         protected virtual void OnBack() { }
         protected virtual void OnCancel() { }
-        protected virtual Task OnRun() => Task.Delay(0);
+        protected virtual Task OnRun(Context context) => Task.Delay(0);
 
         public override string ToString() {
             return this.GetType().Name;

@@ -2,7 +2,7 @@
 {
     public class Update : Plan
     {
-        public Update(bool isQuiet) : base(isQuiet) {
+        public Update(Context context, bool isQuiet) : base(context, isQuiet) {
         }
     }
 }

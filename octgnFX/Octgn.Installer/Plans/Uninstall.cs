@@ -2,7 +2,7 @@
 {
     public class Uninstall : Plan
     {
-        public Uninstall(bool isQuiet) : base(isQuiet) {
+        public Uninstall(Context context, bool isQuiet) : base(context, isQuiet) {
         }
     }
 }

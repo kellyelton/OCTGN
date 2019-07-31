@@ -16,7 +16,9 @@ namespace Octgn.Installer
 
             var installedOctgn = await Task.Run(() => InstalledOctgn.Get());
 
-            var plan = Plan.Get(installedOctgn, version, Environment.GetCommandLineArgs());
+            var context = new Context(installedOctgn, version, Environment.GetCommandLineArgs());
+
+            var plan = Plan.Get(context);
 
             var app = new App(version, installedOctgn, plan);
 

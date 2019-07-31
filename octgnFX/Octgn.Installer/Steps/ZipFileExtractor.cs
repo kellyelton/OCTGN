@@ -29,11 +29,19 @@ namespace Octgn.Installer.Steps
                 ExtractTo.Create();
             }
 
-            using (var zipFile = ZipFile.Open("asdf", ZipArchiveMode.Read)) {
+            using (var zipFile = ZipFile.Open(ZipPath.FullName, ZipArchiveMode.Read)) {
                 foreach (var entry in zipFile.Entries) {
                     var newPath = Path.Combine(ExtractTo.FullName, entry.FullName);
 
-                    entry.ExtractToFile(newPath, true);
+                    var parentDirectory = Path.GetDirectoryName(newPath);
+
+                    if (!Directory.Exists(parentDirectory)) {
+                        Directory.CreateDirectory(parentDirectory);
+                    }
+
+                    await Task.Run(() => {
+                        entry.ExtractToFile(newPath, true);
+                    });
                 }
             }
         }

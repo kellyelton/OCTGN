@@ -7,7 +7,7 @@ namespace Octgn.Installer.Plans
     {
         public Features.Features Features { get; }
 
-        public Install(bool isQuiet) : base(isQuiet) {
+        public Install(Context context, bool isQuiet) : base(context, isQuiet) {
             Features = new Features.Features();
 
             Stage = Stage.Loading;
@@ -52,7 +52,7 @@ namespace Octgn.Installer.Plans
 
         }
 
-        protected override async Task OnRun() {
+        protected override async Task OnRun(Context context) {
             switch (Stage) {
                 case Stage.Loading:
                     Next();
@@ -62,11 +62,9 @@ namespace Octgn.Installer.Plans
                 case Stage.Features:
                     break;
                 case Stage.Progress:
-                    var context = new Context();
-
                     await Features.Install(context);
 
-                    Next();
+                    Next(force: true);
                     break;
                 case Stage.FinishedInstalling:
                     break;
