@@ -9,7 +9,7 @@ namespace Octgn.Installer.Steps
         public override async Task Execute(Context context) {
             var resourcePath = "Octgn.Installer.InstallPackage.zip";
             var installPackageZip = Path.Combine(context.UnpackDirectory, "InstallPackage.zip");
-            var unpackZipDirectory = Path.Combine(context.UnpackDirectory, "InstallPackage");
+            var unpackZipDirectory = context.UnpackedInstallPackageDirectory;
 
             var embeddedResourceExtractor = new EmbeddedResourceExtractor(resourcePath, installPackageZip);
             await embeddedResourceExtractor.Execute(context);

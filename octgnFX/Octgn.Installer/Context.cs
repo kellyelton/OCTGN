@@ -1,5 +1,6 @@
 ﻿using Octgn.Installer.Tools;
 using System;
+using System.IO;
 
 namespace Octgn.Installer
 {
@@ -17,6 +18,10 @@ namespace Octgn.Installer
 
         public string UnpackDirectory { get; }
 
+        public string UnpackedInstallPackageDirectory { get; }
+
+        public string UnpackedInstallerDirectory { get; }
+
         public string DataDirectory { get; }
 
         public Context(InstalledOctgn installedOctgn, Version installerVersion, string[] commandLineArgs) {
@@ -25,6 +30,10 @@ namespace Octgn.Installer
             CommandLineArguments = commandLineArgs ?? throw new ArgumentNullException(nameof(commandLineArgs));
 
             UnpackDirectory = Environment.ExpandEnvironmentVariables($"%TEMP%\\Octgn\\Installers\\{SessionId:N}");
+
+            UnpackedInstallPackageDirectory = Path.Combine(UnpackDirectory, "InstallPackage");
+
+            UnpackedInstallerDirectory = Path.Combine(UnpackedInstallPackageDirectory, "Octgn");
         }
     }
 }
