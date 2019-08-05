@@ -20,8 +20,6 @@ namespace Octgn.Installer.Features
 
             yield return new DeleteDirectory(context.InstallDirectory);
 
-            yield return new CreateDirectory(context.InstallDirectory);
-
             yield return new CopyDirectory(unpackDirectory, installDirectory);
         }
     }
