@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Octgn.Installer.Steps;
 
 namespace Octgn.Installer.Features
 {
@@ -9,5 +11,9 @@ namespace Octgn.Installer.Features
         public override string Name => "Fonts";
 
         public override string Description => "Fonts used by OCTGN.";
+
+        public override IEnumerable<Step> GetInstallSteps(Context context) {
+            throw new NotImplementedException();
+        }
     }
 }

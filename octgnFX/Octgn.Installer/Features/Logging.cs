@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Octgn.Installer.Steps;
 
 namespace Octgn.Installer.Features
 {
@@ -11,5 +13,9 @@ namespace Octgn.Installer.Features
         public override string Name => "Logging";
 
         public override string Description => "Logging support in OCTGN.";
+
+        public override IEnumerable<Step> GetInstallSteps(Context context) {
+            throw new NotImplementedException();
+        }
     }
 }

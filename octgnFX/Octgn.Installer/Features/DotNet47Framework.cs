@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Octgn.Installer.Steps;
 
 namespace Octgn.Installer.Features
 {
@@ -9,5 +11,9 @@ namespace Octgn.Installer.Features
         public override string Name => ".Net 4.7 Framework";
 
         public override string Description => "The Microsoft .Net 4.7 Framework. This is the framework used to build OCTGN.";
+
+        public override IEnumerable<Step> GetInstallSteps(Context context) {
+            throw new NotImplementedException();
+        }
     }
 }

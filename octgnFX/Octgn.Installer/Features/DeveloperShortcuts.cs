@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Octgn.Installer.Steps;
 
 namespace Octgn.Installer.Features
 {
@@ -11,5 +13,9 @@ namespace Octgn.Installer.Features
         public override string Name => "Start Menu Shortcuts";
 
         public override string Description => "Adds shortcuts to the start menu that are useful for OCTGN game developers";
+
+        public override IEnumerable<Step> GetInstallSteps(Context context) {
+            throw new NotImplementedException();
+        }
     }
 }
