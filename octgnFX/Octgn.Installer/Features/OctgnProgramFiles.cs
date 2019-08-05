@@ -13,7 +13,7 @@ namespace Octgn.Installer.Features
         public override string Description => "OCTGN Program Files required to run OCTGN.";
 
         public override IEnumerable<Step> GetInstallSteps(Context context) {
-            //TODO: yield return new DeleteDirectory(context.InstallDirectory);
+            yield return new DeleteDirectory(context.InstallDirectory);
 
             yield return new CreateDirectory(context.InstallDirectory);
 
