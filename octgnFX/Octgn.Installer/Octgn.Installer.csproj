@@ -128,6 +128,7 @@
     <Compile Include="Plans\StageChangedEventArgs.cs" />
     <Compile Include="Plans\Uninstall.cs" />
     <Compile Include="Plans\Update.cs" />
+    <Compile Include="Steps\SetRegistryValue.cs" />
     <Compile Include="Steps\CopyDirectory.cs" />
     <Compile Include="Steps\CreateDirectory.cs" />
     <Compile Include="Steps\DeleteDirectory.cs" />
