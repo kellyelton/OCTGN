@@ -304,23 +304,6 @@ namespace Octgn
                 OnOptionsChanged.Invoke();
         }
 
-        public static void StopGame()
-        {
-            //X.Instance.Try(ChatLog.ClearEvents);
-            Program.GameMess?.Clear();
-			X.Instance.Try(()=>Program.Client?.Rpc?.Leave(Player.LocalPlayer));
-            if (Client != null)
-            {
-                Client.Shutdown();
-                Client = null;
-            }
-            if (GameEngine != null)
-                GameEngine.End();
-            GameEngine = null;
-            Dispatcher = null;
-            IsGameRunning = false;
-        }
-
         public static void Exit()
         {
             try { SSLHelper.Dispose(); }

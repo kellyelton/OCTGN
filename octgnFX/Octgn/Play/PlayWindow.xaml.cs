@@ -465,8 +465,19 @@ namespace Octgn.Play
         {
             base.OnClosed(e);
             WindowManager.PlayWindow = null;
-            Program.StopGame();
-            // Fix: Don't do this earlier (e.g. in OnClosing) because an animation (e.g. card turn) may try to access Program.Game
+            Program.GameMess?.Clear();
+			X.Instance.Try(()=>Program.Client?.Rpc?.Leave(Player.LocalPlayer));
+            if (Program.Client != null)
+            {
+                //TODO: Probably don't need to null check
+                Program.Client.Shutdown();
+                Program.Client = null;
+            }
+            if (Program.GameEngine != null)
+                Program.GameEngine.End();
+            Program.GameEngine = null;
+            Program.Dispatcher = null;
+            Program.IsGameRunning = false;
         }
 
         public bool TryClose()

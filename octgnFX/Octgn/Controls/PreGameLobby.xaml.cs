@@ -92,8 +92,6 @@ namespace Octgn.Controls
 
         private void OnUnloaded(object sender, RoutedEventArgs routedEventArgs)
         {
-            if (this.StartingGame == false)
-                Program.StopGame();
             Program.GameSettings.PropertyChanged -= SettingsChanged;
             Program.ServerError -= HandshakeError;
         }
