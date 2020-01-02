@@ -161,7 +161,7 @@ namespace Octgn.Core
 
         public static string Nickname
         {
-            get { return Config.Instance.ReadValue("Nickname", "null"); }
+            get { return Config.Instance.ReadValue("Nickname", Randomness.GrabRandomNounWord() + Randomness.GrabRandomJargonWord()); }
             set
             {
                 Config.Instance.WriteValue("Nickname", value);

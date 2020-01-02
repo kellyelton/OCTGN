@@ -108,10 +108,12 @@ namespace Octgn.Controls
             this.ValidateFields(username, game, userhost, userport, password, out var host, out port);
 
             Program.IsHost = false;
-            Program.GameEngine = new Octgn.GameEngine(game.GetGame(), username,Spectator ,password, true);
+            var engine = new Octgn.GameEngine(game.GetGame(), username, Spectator, password, true);
 
-            Program.Client = new ClientSocket(host, port);
-            await Program.Client.Connect();
+            await engine.Join(host, port);
+
+            Program.GameEngine = engine;
+
             Successful = true;
         }
 

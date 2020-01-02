@@ -465,7 +465,7 @@ namespace Octgn.Play
         {
             base.OnClosed(e);
             WindowManager.PlayWindow = null;
-            Program.GameMess?.Clear();
+            Program.GameMess.Clear();
 			X.Instance.Try(()=>Program.Client?.Rpc?.Leave(Player.LocalPlayer));
             if (Program.Client != null)
             {
@@ -476,7 +476,6 @@ namespace Octgn.Play
             if (Program.GameEngine != null)
                 Program.GameEngine.End();
             Program.GameEngine = null;
-            Program.Dispatcher = null;
             Program.IsGameRunning = false;
         }
 

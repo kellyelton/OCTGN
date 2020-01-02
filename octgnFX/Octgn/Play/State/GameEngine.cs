@@ -32,6 +32,13 @@ using Octgn.DataNew;
 using Octgn.Play.Save;
 using Octgn.Play.State;
 using Octgn.Core.Play;
+using System.Threading.Tasks;
+using System.Net;
+using Octgn.Networking;
+using Octgn.Library.Utils;
+using Octgn.Online.Hosting;
+using Octgn.Communication;
+using Octgn.Online;
 
 namespace Octgn
 {
@@ -562,7 +569,7 @@ namespace Octgn
 
             string blockString = null;
 
-            Program.Dispatcher.InvokeAsync(() => { 
+            Program.Dispatcher.InvokeAsync(() => {
                 var block = ChatControl.GameMessageToBlock(obj);
 
                 blockString = BlockToString(block);
@@ -649,8 +656,123 @@ namespace Octgn
             }
         }
 
+        private void ValidateGameName(string gameName) {
+            if (string.IsNullOrWhiteSpace(gameName)) throw new ArgumentNullException(nameof(gameName));
+
+            if (gameName.Length > 32) throw new ArgumentOutOfRangeException(nameof(gameName), $"Game name max length is 32");
+        }
+
+        public Task<HostedGame> Host(string gameName, bool allowSpectators) {
+            ValidateGameName(gameName);
+
+            if (IsLocal) {
+                return HostLocal(Definition, gameName, Nickname, Password, allowSpectators);
+            } else {
+                return HostOnline(Definition, gameName, Password, allowSpectators);
+            }
+        }
+
+        private static async Task<HostedGame> HostLocal(Game game, string name, string nickname, string password, bool allowSpectators) {
+            var hostport = new Random().Next(5000, 6000);
+            while (!NetworkHelper.IsPortAvailable(hostport)) hostport++;
+
+            var result = new HostedGame() {
+                Id = Guid.NewGuid(),
+                Name = name,
+                HostUser = Program.LobbyClient?.User ?? new User(hostport.ToString(), nickname),
+                GameName = game.Name,
+                GameId = game.Id,
+                GameVersion = game.Version.ToString(),
+                HostAddress = $"0.0.0.0:{hostport}",
+                Password = password,
+                GameIconUrl = game.IconUrl,
+                Spectators = allowSpectators,
+            };
+            if (Program.LobbyClient?.User != null) {
+                result.HostUserIconUrl = ApiUserCache.Instance.ApiUser(Program.LobbyClient.User)?.IconUrl;
+            }
+
+            // Since it's a local game, we want to use the username instead of a userid, since that won't exist.
+            var hs = new HostedGameProcess(result, X.Instance.Debug, true);
+            hs.Start();
+
+            Prefs.Nickname = nickname;
+
+            var ip = IPAddress.Parse("127.0.0.1");
+
+            for (var i = 0; i < 5; i++) {
+                try {
+                    Program.Client = new ClientSocket(ip, hostport);
+                    await Program.Client.Connect();
+                    return result;
+                } catch (Exception e) {
+                    Log.Warn("Start local game error", e);
+                    if (i == 4) throw;
+                }
+                await Task.Delay(2000).ConfigureAwait(false);
+            }
+            throw new Exception("Unable to host");
+        }
+
+        private static async Task<HostedGame> HostOnline(Game game, string name, string password, bool allowSpectators) {
+            var client = new Octgn.Site.Api.ApiClient();
+            if (!await client.IsGameServerRunning(Prefs.Username, Prefs.Password.Decrypt()))
+            {
+                throw new UserMessageException("The game server is currently down. Please try again later.");
+            }
+            // TODO: Replace this with a server-side check
+            password = SubscriptionModule.Get().IsSubscribed == true ? password : String.Empty;
+
+            var octgnVersion = typeof(Server.Server).Assembly.GetName().Version;
+
+            var req = new HostedGame {
+                GameId = game.Id,
+                GameVersion = game.Version.ToString(),
+                Name = name,
+                GameName = game.Name,
+                GameIconUrl = game.IconUrl,
+                Password = password,
+                HasPassword = !string.IsNullOrWhiteSpace(password),
+                OctgnVersion = octgnVersion.ToString(),
+                Spectators = allowSpectators
+            };
+
+            HostedGame result = null;
+            try {
+                result = await Program.LobbyClient.HostGame(req) ?? throw new InvalidOperationException("HostGame returned a null");
+            } catch (ErrorResponseException ex) {
+                if (ex.Code != ErrorResponseCodes.UserOffline) throw;
+                throw new UserMessageException("The Game Service is currently offline. Please try again.");
+            }
+
+            foreach(var address in Dns.GetHostAddresses(AppConfig.GameServerPath)) {
+                try {
+                    if (address == IPAddress.IPv6Loopback) continue;
+
+                    // Should use gameData.IpAddress sometime.
+                    Log.Info($"{nameof(HostOnline)}: Trying to connect to {address}:{result.Port}");
+
+                    Program.Client = new ClientSocket(address, result.Port);
+                    await Program.Client.Connect();
+                    return result;
+                } catch (Exception ex) {
+                    Log.Error($"{nameof(HostOnline)}: Couldn't connect to address {address}:{result.Port}", ex);
+                }
+            }
+            throw new InvalidOperationException($"Unable to connect to {AppConfig.GameServerPath}.{result.Port}");
+        }
+
+        public async Task Join(IPAddress host, int port) {
+            Log.InfoFormat("Creating client for {0}:{1}", host, port);
+
+            Program.Client = new ClientSocket(host, port);
+
+            await Program.Client.Connect();
+        }
+
         public void Begin()
         {
+            //TODO: Merge into Start if possible
             if (_BeginCalled) return;
             _BeginCalled = true;
             // Register oneself to the server

@@ -262,12 +262,12 @@ namespace Octgn.Tabs.Play
 
                 var game = GameManager.Get().GetById(hostedGame.GameId);
 
-                Program.GameEngine = new GameEngine(game, username, spectate, password);
-                Program.CurrentOnlineGameName = hostedGame.Name;
+                var engine = new GameEngine(game, username, spectate, password);
 
-                Log.InfoFormat("Creating client for {0}:{1}", hostedGame.IPAddress, hostedGame.Port);
-                Program.Client = new ClientSocket(hostedGame.IPAddress, hostedGame.Port);
-                await Program.Client.Connect();
+                await engine.Join(hostedGame.IPAddress, hostedGame.Port);
+
+                Program.GameEngine = engine;
+                Program.CurrentOnlineGameName = hostedGame.Name;
 
                 Log.Info($"{nameof(JoinGame)}: Launching {nameof(PlayWindow)}");
                 LaunchPlayWindow();

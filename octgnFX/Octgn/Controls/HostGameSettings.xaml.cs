@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -13,18 +9,13 @@ using System.Windows.Forms;
 using Octgn.Core;
 using Octgn.Core.DataManagers;
 using Octgn.Library.Exceptions;
-using Octgn.Networking;
 using Octgn.ViewModels;
 
 using log4net;
 
 using UserControl = System.Windows.Controls.UserControl;
 using Octgn.Communication;
-using Octgn.Library.Utils;
-using Octgn.Extentions;
 using Octgn.Library;
-using Octgn.Online.Hosting;
-using Octgn.Online;
 
 namespace Octgn.Controls
 {
@@ -67,7 +58,6 @@ namespace Octgn.Controls
             Specators = true;
             Program.IsHost = true;
             Games = new ObservableCollection<DataGameViewModel>();
-            Program.LobbyClient.Hosting().HostedGameReady += LobbyClient_HostedGameReady;
             Program.LobbyClient.Connected += LobbyClient_Connected;
             Program.LobbyClient.Disconnected += LobbyClient_Disconnected;
             TextBoxGameName.Text = Prefs.LastRoomName ?? Randomness.RandomRoomName();
@@ -160,30 +150,6 @@ namespace Octgn.Controls
 
         #region LobbyEvents
 
-        private async void LobbyClient_HostedGameReady(object sender, HostedGameReadyEventArgs e) {
-            try
-            {
-                var gameData = e.Game;
-                var game = this.Game;
-
-                Program.GameEngine = new GameEngine(game,Program.LobbyClient.User.DisplayName,false,this.Password);
-                Program.IsHost = true;
-
-                var hostAddress = Dns.GetHostAddresses(AppConfig.GameServerPath).First();
-
-                // Should use gameData.IpAddress sometime.
-                Program.Client = new ClientSocket(hostAddress, gameData.Port);
-                await Program.Client.Connect();
-                SuccessfulHost = true;
-
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                Debug.WriteLine(ex.StackTrace);
-            }
-
-        }
         #endregion
 
         #region Dialog
@@ -213,7 +179,6 @@ namespace Octgn.Controls
         private void Close(DialogResult result)
         {
             Program.OnOptionsChanged -= ProgramOnOptionsChanged;
-            Program.LobbyClient.Hosting().HostedGameReady -= LobbyClient_HostedGameReady;
             IsLocalGame = CheckBoxIsLocalGame.IsChecked ?? false;
             Gamename = TextBoxGameName.Text;
             Password = PasswordGame.Password;
@@ -235,112 +200,6 @@ namespace Octgn.Controls
             BorderHostGame.IsEnabled = true;
             ProgressBar.Visibility = Visibility.Hidden;
             ProgressBar.IsIndeterminate = false;
-        }
-
-        async Task StartLocalGame(DataNew.Entities.Game game, string name, string password)
-        {
-            var hostport = new Random().Next(5000,6000);
-            while (!NetworkHelper.IsPortAvailable(hostport)) hostport++;
-
-            var hg = new HostedGame() {
-                Id = Guid.NewGuid(),
-                Name = name,
-                HostUser = Program.LobbyClient?.User ?? new User(hostport.ToString(), Username),
-                GameName = game.Name,
-                GameId = game.Id,
-                GameVersion = game.Version.ToString(),
-                HostAddress = $"0.0.0.0:{hostport}",
-                Password = password,
-                GameIconUrl = game.IconUrl,
-                Spectators = true,
-            };
-            if (Program.LobbyClient?.User != null) {
-                hg.HostUserIconUrl = ApiUserCache.Instance.ApiUser(Program.LobbyClient.User)?.IconUrl;
-            }
-
-            // Since it's a local game, we want to use the username instead of a userid, since that won't exist.
-            var hs = new HostedGameProcess(hg, X.Instance.Debug, true);
-            hs.Start();
-
-            Prefs.Nickname = hg.HostUser.DisplayName;
-            Program.CurrentOnlineGameName = name;
-            Program.GameEngine = new GameEngine(game, Username, false, password, true);
-            Program.IsHost = true;
-
-            var ip = IPAddress.Parse("127.0.0.1");
-
-            for (var i = 0; i < 5; i++)
-            {
-                try
-                {
-                    Program.Client = new ClientSocket(ip, hostport);
-                    await Program.Client.Connect();
-                    SuccessfulHost = true;
-                    return;
-                }
-                catch (Exception e)
-                {
-                    Log.Warn("Start local game error",e);
-                    if (i == 4) throw;
-                }
-                Thread.Sleep(2000);
-            }
-
-        }
-
-        async Task StartOnlineGame(DataNew.Entities.Game game, string name, string password)
-        {
-            var client = new Octgn.Site.Api.ApiClient();
-            if (!await client.IsGameServerRunning(Prefs.Username, Prefs.Password.Decrypt()))
-            {
-                throw new UserMessageException("The game server is currently down. Please try again later.");
-            }
-            Program.CurrentOnlineGameName = name;
-            // TODO: Replace this with a server-side check
-            password = SubscriptionModule.Get().IsSubscribed == true ? password : String.Empty;
-
-            var octgnVersion = typeof(Server.Server).Assembly.GetName().Version;
-
-            var req = new HostedGame {
-                GameId = game.Id,
-                GameVersion = game.Version.ToString(),
-                Name = name,
-                GameName = game.Name,
-                GameIconUrl = game.IconUrl,
-                Password = password,
-                HasPassword = !string.IsNullOrWhiteSpace(password),
-                OctgnVersion = octgnVersion.ToString(),
-                Spectators = Specators
-            };
-
-            HostedGame result = null;
-            try {
-                result = await Program.LobbyClient.HostGame(req);
-            } catch (ErrorResponseException ex) {
-                if (ex.Code != ErrorResponseCodes.UserOffline) throw;
-                throw new UserMessageException("The Game Service is currently offline. Please try again.");
-            }
-
-            Program.CurrentHostedGame = result ?? throw new InvalidOperationException("HostGame returned a null");
-            Program.GameEngine = new GameEngine(game, Program.LobbyClient.User.DisplayName, false, this.Password);
-            Program.IsHost = true;
-
-            foreach(var address in Dns.GetHostAddresses(AppConfig.GameServerPath)) {
-                try {
-                    if (address == IPAddress.IPv6Loopback) continue;
-
-                    // Should use gameData.IpAddress sometime.
-                    Log.Info($"{nameof(StartOnlineGame)}: Trying to connect to {address}:{result.Port}");
-
-                    Program.Client = new ClientSocket(address, result.Port);
-                    await Program.Client.Connect();
-                    SuccessfulHost = true;
-                    return;
-                } catch (Exception ex) {
-                    Log.Error($"{nameof(StartOnlineGame)}: Couldn't connect to address {address}:{result.Port}", ex);
-                }
-            }
-            throw new InvalidOperationException($"Unable to connect to {AppConfig.GameServerPath}.{result.Port}");
         }
 
         #endregion
@@ -366,12 +225,22 @@ namespace Octgn.Controls
                 this.Username = TextBoxUserName.Text;
                 var isLocalGame = CheckBoxIsLocalGame?.IsChecked ?? false;
 
-                //var startTime = DateTime.Now;
+                if (!isLocalGame) {
+                    Username = Program.LobbyClient.User.DisplayName;
+                }
+
+                var engine = new GameEngine(Game, Username, specator: false, Password, isLocalGame);
+
+                Program.CurrentHostedGame = await engine.Host(Gamename, Specators);
+
+                Program.GameEngine = engine;
+                Program.CurrentOnlineGameName = Gamename;
+                Program.IsHost = true;
+
+                SuccessfulHost = true;
 
                 if (isLocalGame) {
-                    await StartLocalGame(Game, Gamename, Password);
-                } else {
-                    await StartOnlineGame(Game, Gamename, Password);
+                    Prefs.Nickname = Username;
                 }
 
                 Prefs.LastRoomName = this.Gamename;
@@ -418,7 +287,6 @@ namespace Octgn.Controls
                     OnClose -= (Action<object, DialogResult>)d;
                 }
             }
-            Program.LobbyClient.Hosting().HostedGameReady -= LobbyClient_HostedGameReady;
             Program.LobbyClient.Connected -= LobbyClient_Connected;
             Program.LobbyClient.Disconnected -= LobbyClient_Disconnected;
         }
