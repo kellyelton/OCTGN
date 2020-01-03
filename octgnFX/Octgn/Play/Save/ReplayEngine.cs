@@ -18,19 +18,20 @@ namespace Octgn.Play.Save
 
         private readonly DispatcherTimer _timer;
         private readonly ReplayClient _client;
+        private readonly ReplayReader _reader;
 
         private readonly IReadOnlyDictionary<int, ReplayEvent> _events;
 
         public ReplayEngine(ReplayReader reader, ReplayClient client) {
+            _reader = reader ?? throw new ArgumentNullException(nameof(reader));
+
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromMilliseconds(5);
             _client = client ?? throw new ArgumentNullException(nameof(client));
 
-            if(reader == null) throw new ArgumentNullException(nameof(reader));
+            Replay = _reader.Replay;
 
-            Replay = reader.Replay;
-
-            _events = reader.ReadAllEvents().ToDictionary(x => x.Id, x => x);
+            _events = _reader.ReadAllEvents().ToDictionary(x => x.Id, x => x);
 
             _timer.Tick += _timer_Tick;
         }
@@ -330,6 +331,7 @@ namespace Octgn.Play.Save
                     _timer.Stop();
                     _timer.Tick -= _timer_Tick;
                     (_events as Dictionary<int, ReplayEvent>)?.Clear();
+                    _reader.Dispose();
                 }
 
                 disposedValue = true;

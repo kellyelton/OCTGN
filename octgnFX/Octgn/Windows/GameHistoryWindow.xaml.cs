@@ -1,8 +1,5 @@
-using Octgn.Core;
 using Octgn.DataNew;
-using Octgn.Library;
 using Octgn.Play;
-using Octgn.Play.Save;
 using Octgn.Tabs.GameHistory;
 using System;
 using System.IO;
@@ -101,29 +98,8 @@ namespace Octgn.Windows
                 return;
             }
 
-            var replayClient = new ReplayClient();
-            Program.Client = replayClient;
+            Program.GameEngine = GameEngine.Replay(game, History.ReplayFile);
 
-            // TODO: Should set username to the user that created the replay
-
-            Program.IsHost = true;
-            Program.CurrentOnlineGameName = History.GameName;
-
-            ReplayReader reader = null;
-            ReplayEngine engine = null;
-            try {
-                reader = ReplayReader.FromStream(File.OpenRead(History.ReplayFile));
-                engine = new ReplayEngine(reader, replayClient);
-
-                Program.GameEngine = new GameEngine(engine, game, reader.Replay.User);
-            } catch {
-                reader?.Dispose();
-                engine?.Dispose();
-
-                throw;
-            }
-
-            Program.IsHost = true;
             LaunchPlayWindow();
         }
 
@@ -134,7 +110,7 @@ namespace Octgn.Windows
 
             Dispatcher.InvokeAsync(async () => {
                 await Dispatcher.Yield(DispatcherPriority.Background);
-                WindowManager.PlayWindow = new PlayWindow();
+                WindowManager.PlayWindow = new PlayWindow(Program.GameEngine);
                 WindowManager.PlayWindow.Show();
                 WindowManager.PlayWindow.Activate();
             });

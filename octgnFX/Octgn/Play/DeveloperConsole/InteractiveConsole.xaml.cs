@@ -20,7 +20,7 @@
     {
 #pragma warning disable 649   // Unassigned variable: it's initialized by MEF
 
-        [Import] private Engine _scriptEngine;
+        private Engine _scriptEngine;
 
 #pragma warning restore 649
 
@@ -32,9 +32,7 @@
         {
             this.InitializeComponent();
             if (this.IsInDesignMode()) return;
-            Program.GameEngine.ComposeParts(this);
-            //this._scope = this._scriptEngine.CreateScope(Path.Combine(Prefs.DataDirectory, "GameDatabase", Program.GameEngine.Definition.Id.ToString()));
-            //this._scope = this._scriptEngine.ActionsScope;
+            _scriptEngine = Program.GameEngine.ScriptEngine;
 
             this.Loaded += (s, a) => this.prompt.Focus();
         }

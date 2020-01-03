@@ -13,18 +13,18 @@ namespace Octgn.Networking
 {
 	sealed class BinaryParser
 	{
-		private static ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		Handler handler;
+		private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		private readonly Handler _handler;
 
 		public BinaryParser(Handler handler)
-		{ this.handler = handler; }
+		{ _handler = handler ?? throw new ArgumentNullException(nameof(handler)); }
 
 		public void Parse(byte[] data)
 		{
 			var stream = new MemoryStream(data);
 			var reader = new BinaryReader(stream);
 			short length;
-			Program.Client.Muted = reader.ReadInt32();
+			_handler.SetMuted(reader.ReadInt32());
 			var method = reader.ReadByte();
 			switch (method)
 			{
@@ -32,14 +32,14 @@ namespace Octgn.Networking
 				{
 					var arg0 = reader.ReadString();
 					Log.Debug($"OCTGN IN: Error");
-					handler.Error(arg0);
+					_handler.Error(arg0);
 					break;
 				}
 				case 2:
 				{
 					var arg0 = reader.ReadString();
 					Log.Debug($"OCTGN IN: Kick");
-					handler.Kick(arg0);
+					_handler.Kick(arg0);
 					break;
 				}
 				case 5:
@@ -49,7 +49,7 @@ namespace Octgn.Networking
 					var arg2 = reader.ReadString();
 					var arg3 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: Welcome");
-					handler.Welcome(arg0, arg1, arg2, arg3);
+					_handler.Welcome(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 6:
@@ -58,18 +58,18 @@ namespace Octgn.Networking
 					var arg1 = reader.ReadBoolean();
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: Settings");
-					handler.Settings(arg0, arg1, arg2);
+					_handler.Settings(arg0, arg1, arg2);
 					break;
 				}
 				case 7:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[PlayerSettings] Player not found."); return; }
 					var arg1 = reader.ReadBoolean();
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: PlayerSettings");
-					handler.PlayerSettings(arg0, arg1, arg2);
+					_handler.PlayerSettings(arg0, arg1, arg2);
 					break;
 				}
 				case 8:
@@ -81,51 +81,51 @@ namespace Octgn.Networking
 					var arg4 = reader.ReadBoolean();
 					var arg5 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: NewPlayer");
-					handler.NewPlayer(arg0, arg1, arg2, arg3, arg4, arg5);
+					_handler.NewPlayer(arg0, arg1, arg2, arg3, arg4, arg5);
 					break;
 				}
 				case 9:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Leave] Player not found."); return; }
 					Log.Debug($"OCTGN IN: Leave");
-					handler.Leave(arg0);
+					_handler.Leave(arg0);
 					break;
 				}
 				case 10:
 				{
 					Log.Debug($"OCTGN IN: Start");
-					handler.Start();
+					_handler.Start();
 					break;
 				}
 				case 12:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Reset] Player not found."); return; }
 					Log.Debug($"OCTGN IN: Reset");
-					handler.Reset(arg0);
+					_handler.Reset(arg0);
 					break;
 				}
 				case 13:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[NextTurn] Player not found."); return; }
 					var arg1 = reader.ReadBoolean();
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: NextTurn");
-					handler.NextTurn(arg0, arg1, arg2);
+					_handler.NextTurn(arg0, arg1, arg2);
 					break;
 				}
 				case 15:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[StopTurn] Player not found."); return; }
 					Log.Debug($"OCTGN IN: StopTurn");
-					handler.StopTurn(arg0);
+					_handler.StopTurn(arg0);
 					break;
 				}
 				case 17:
@@ -135,69 +135,69 @@ namespace Octgn.Networking
 					var arg1 = new Player[length];
 					for (var i = 0; i < length; ++i)
 					{
-					  arg1[i] = Player.Find(reader.ReadByte());
+					  arg1[i] = Player.Find(_handler.GameEngine, reader.ReadByte());
 					  if (arg1[i] == null)
 					    Debug.WriteLine("[SetPhase] Player not found.");
 					}
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: SetPhase");
-					handler.SetPhase(arg0, arg1, arg2);
+					_handler.SetPhase(arg0, arg1, arg2);
 					break;
 				}
 				case 19:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[SetActivePlayer] Player not found."); return; }
 					Log.Debug($"OCTGN IN: SetActivePlayer");
-					handler.SetActivePlayer(arg0);
+					_handler.SetActivePlayer(arg0);
 					break;
 				}
 				case 20:
 				{
 					Log.Debug($"OCTGN IN: ClearActivePlayer");
-					handler.ClearActivePlayer();
+					_handler.ClearActivePlayer();
 					break;
 				}
 				case 22:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Chat] Player not found."); return; }
 					var arg1 = reader.ReadString();
 					Log.Debug($"OCTGN IN: Chat");
-					handler.Chat(arg0, arg1);
+					_handler.Chat(arg0, arg1);
 					break;
 				}
 				case 24:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Print] Player not found."); return; }
 					var arg1 = reader.ReadString();
 					Log.Debug($"OCTGN IN: Print");
-					handler.Print(arg0, arg1);
+					_handler.Print(arg0, arg1);
 					break;
 				}
 				case 26:
 				{
 					var arg0 = reader.ReadInt32();
 					Log.Debug($"OCTGN IN: Random");
-					handler.Random(arg0);
+					_handler.Random(arg0);
 					break;
 				}
 				case 28:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Counter] Player not found."); return; }
-					var arg1 = Counter.Find(reader.ReadInt32());
+					var arg1 = Counter.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[Counter] Counter not found."); return; }
 					var arg2 = reader.ReadInt32();
 					var arg3 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: Counter");
-					handler.Counter(arg0, arg1, arg2, arg3);
+					_handler.Counter(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 29:
@@ -214,7 +214,7 @@ namespace Octgn.Networking
 					var arg2 = new Group[length];
 					for (var i = 0; i < length; ++i)
 					{
-					  arg2[i] = Group.Find(reader.ReadInt32());
+					  arg2[i] = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					  if (arg2[i] == null)
 					    Debug.WriteLine("[LoadDeck] Group not found.");
 					}
@@ -225,7 +225,7 @@ namespace Octgn.Networking
 					var arg4 = reader.ReadString();
 					var arg5 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: LoadDeck");
-					handler.LoadDeck(arg0, arg1, arg2, arg3, arg4, arg5);
+					_handler.LoadDeck(arg0, arg1, arg2, arg3, arg4, arg5);
 					break;
 				}
 				case 30:
@@ -242,11 +242,11 @@ namespace Octgn.Networking
 					var arg2 = new string[length];
 					for (var i = 0; i < length; ++i)
 						arg2[i] = reader.ReadString();
-					var arg3 = Group.Find(reader.ReadInt32());
+					var arg3 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg3 == null)
 					{ Debug.WriteLine("[CreateCard] Group not found."); return; }
 					Log.Debug($"OCTGN IN: CreateCard");
-					handler.CreateCard(arg0, arg1, arg2, arg3);
+					_handler.CreateCard(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 31:
@@ -270,7 +270,7 @@ namespace Octgn.Networking
 					var arg4 = reader.ReadBoolean();
 					var arg5 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: CreateCardAt");
-					handler.CreateCardAt(arg0, arg1, arg2, arg3, arg4, arg5);
+					_handler.CreateCardAt(arg0, arg1, arg2, arg3, arg4, arg5);
 					break;
 				}
 				case 32:
@@ -284,19 +284,19 @@ namespace Octgn.Networking
 					for (var i = 0; i < length; ++i)
 						arg1[i] = reader.ReadUInt64();
 					Log.Debug($"OCTGN IN: CreateAliasDeprecated");
-					handler.CreateAliasDeprecated(arg0, arg1);
+					_handler.CreateAliasDeprecated(arg0, arg1);
 					break;
 				}
 				case 34:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[MoveCard] Player not found."); return; }
 					length = reader.ReadInt16();
 					var arg1 = new int[length];
 					for (var i = 0; i < length; ++i)
 						arg1[i] = reader.ReadInt32();
-					var arg2 = Group.Find(reader.ReadInt32());
+					var arg2 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg2 == null)
 					{ Debug.WriteLine("[MoveCard] Group not found."); return; }
 					length = reader.ReadInt16();
@@ -309,12 +309,12 @@ namespace Octgn.Networking
 						arg4[i] = reader.ReadBoolean();
 					var arg5 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: MoveCard");
-					handler.MoveCard(arg0, arg1, arg2, arg3, arg4, arg5);
+					_handler.MoveCard(arg0, arg1, arg2, arg3, arg4, arg5);
 					break;
 				}
 				case 36:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[MoveCardAt] Player not found."); return; }
 					length = reader.ReadInt16();
@@ -339,103 +339,103 @@ namespace Octgn.Networking
 						arg5[i] = reader.ReadBoolean();
 					var arg6 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: MoveCardAt");
-					handler.MoveCardAt(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+					_handler.MoveCardAt(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 					break;
 				}
 				case 38:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Peek] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[Peek] Card not found."); return; }
 					Log.Debug($"OCTGN IN: Peek");
-					handler.Peek(arg0, arg1);
+					_handler.Peek(arg0, arg1);
 					break;
 				}
 				case 40:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Untarget] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[Untarget] Card not found."); return; }
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: Untarget");
-					handler.Untarget(arg0, arg1, arg2);
+					_handler.Untarget(arg0, arg1, arg2);
 					break;
 				}
 				case 42:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Target] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[Target] Card not found."); return; }
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: Target");
-					handler.Target(arg0, arg1, arg2);
+					_handler.Target(arg0, arg1, arg2);
 					break;
 				}
 				case 44:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[TargetArrow] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[TargetArrow] Card not found."); return; }
-					var arg2 = Card.Find(reader.ReadInt32());
+					var arg2 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg2 == null)
 					{ Debug.WriteLine("[TargetArrow] Card not found."); return; }
 					var arg3 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: TargetArrow");
-					handler.TargetArrow(arg0, arg1, arg2, arg3);
+					_handler.TargetArrow(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 45:
 				{
-					var arg0 = Card.Find(reader.ReadInt32());
+					var arg0 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Highlight] Card not found."); return; }
 					var temp1 = reader.ReadString();
 					var arg1 = temp1 == "" ? (Color?)null : (Color?)ColorConverter.ConvertFromString(temp1);
 					Log.Debug($"OCTGN IN: Highlight");
-					handler.Highlight(arg0, arg1);
+					_handler.Highlight(arg0, arg1);
 					break;
 				}
 				case 47:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Turn] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[Turn] Card not found."); return; }
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: Turn");
-					handler.Turn(arg0, arg1, arg2);
+					_handler.Turn(arg0, arg1, arg2);
 					break;
 				}
 				case 49:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Rotate] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[Rotate] Card not found."); return; }
 					var arg2 = (CardOrientation)reader.ReadByte();
 					Log.Debug($"OCTGN IN: Rotate");
-					handler.Rotate(arg0, arg1, arg2);
+					_handler.Rotate(arg0, arg1, arg2);
 					break;
 				}
 				case 50:
 				{
-					var arg0 = Group.Find(reader.ReadInt32());
+					var arg0 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[ShuffleDeprecated] Group not found."); return; }
 					length = reader.ReadInt16();
@@ -443,15 +443,15 @@ namespace Octgn.Networking
 					for (var i = 0; i < length; ++i)
 						arg1[i] = reader.ReadInt32();
 					Log.Debug($"OCTGN IN: ShuffleDeprecated");
-					handler.ShuffleDeprecated(arg0, arg1);
+					_handler.ShuffleDeprecated(arg0, arg1);
 					break;
 				}
 				case 51:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Shuffled] Player not found."); return; }
-					var arg1 = Group.Find(reader.ReadInt32());
+					var arg1 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[Shuffled] Group not found."); return; }
 					length = reader.ReadInt16();
@@ -463,16 +463,16 @@ namespace Octgn.Networking
 					for (var i = 0; i < length; ++i)
 						arg3[i] = reader.ReadInt16();
 					Log.Debug($"OCTGN IN: Shuffled");
-					handler.Shuffled(arg0, arg1, arg2, arg3);
+					_handler.Shuffled(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 52:
 				{
-					var arg0 = Group.Find(reader.ReadInt32());
+					var arg0 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[UnaliasGrpDeprecated] Group not found."); return; }
 					Log.Debug($"OCTGN IN: UnaliasGrpDeprecated");
-					handler.UnaliasGrpDeprecated(arg0);
+					_handler.UnaliasGrpDeprecated(arg0);
 					break;
 				}
 				case 53:
@@ -486,15 +486,15 @@ namespace Octgn.Networking
 					for (var i = 0; i < length; ++i)
 						arg1[i] = reader.ReadUInt64();
 					Log.Debug($"OCTGN IN: UnaliasDeprecated");
-					handler.UnaliasDeprecated(arg0, arg1);
+					_handler.UnaliasDeprecated(arg0, arg1);
 					break;
 				}
 				case 55:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[AddMarker] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[AddMarker] Card not found."); return; }
 					var arg2 = new Guid(reader.ReadBytes(16));
@@ -503,15 +503,15 @@ namespace Octgn.Networking
 					var arg5 = reader.ReadUInt16();
 					var arg6 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: AddMarker");
-					handler.AddMarker(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+					_handler.AddMarker(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 					break;
 				}
 				case 57:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[RemoveMarker] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[RemoveMarker] Card not found."); return; }
 					var arg2 = new Guid(reader.ReadBytes(16));
@@ -520,18 +520,18 @@ namespace Octgn.Networking
 					var arg5 = reader.ReadUInt16();
 					var arg6 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: RemoveMarker");
-					handler.RemoveMarker(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+					_handler.RemoveMarker(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 					break;
 				}
 				case 59:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[TransferMarker] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[TransferMarker] Card not found."); return; }
-					var arg2 = Card.Find(reader.ReadInt32());
+					var arg2 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg2 == null)
 					{ Debug.WriteLine("[TransferMarker] Card not found."); return; }
 					var arg3 = new Guid(reader.ReadBytes(16));
@@ -540,146 +540,146 @@ namespace Octgn.Networking
 					var arg6 = reader.ReadUInt16();
 					var arg7 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: TransferMarker");
-					handler.TransferMarker(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+					_handler.TransferMarker(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 					break;
 				}
 				case 61:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[PassTo] Player not found."); return; }
-					var arg1 = ControllableObject.Find(reader.ReadInt32());
+					var arg1 = ControllableObject.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[PassTo] ControllableObject not found."); return; }
-					var arg2 = Player.Find(reader.ReadByte());
+					var arg2 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg2 == null)
 					{ Debug.WriteLine("[PassTo] Player not found."); return; }
 					var arg3 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: PassTo");
-					handler.PassTo(arg0, arg1, arg2, arg3);
+					_handler.PassTo(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 63:
 				{
-					var arg0 = ControllableObject.Find(reader.ReadInt32());
+					var arg0 = ControllableObject.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[TakeFrom] ControllableObject not found."); return; }
-					var arg1 = Player.Find(reader.ReadByte());
+					var arg1 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg1 == null)
 					{ Debug.WriteLine("[TakeFrom] Player not found."); return; }
 					Log.Debug($"OCTGN IN: TakeFrom");
-					handler.TakeFrom(arg0, arg1);
+					_handler.TakeFrom(arg0, arg1);
 					break;
 				}
 				case 65:
 				{
-					var arg0 = ControllableObject.Find(reader.ReadInt32());
+					var arg0 = ControllableObject.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[DontTake] ControllableObject not found."); return; }
 					Log.Debug($"OCTGN IN: DontTake");
-					handler.DontTake(arg0);
+					_handler.DontTake(arg0);
 					break;
 				}
 				case 66:
 				{
-					var arg0 = Group.Find(reader.ReadInt32());
+					var arg0 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[FreezeCardsVisibility] Group not found."); return; }
 					Log.Debug($"OCTGN IN: FreezeCardsVisibility");
-					handler.FreezeCardsVisibility(arg0);
+					_handler.FreezeCardsVisibility(arg0);
 					break;
 				}
 				case 68:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[GroupVis] Player not found."); return; }
-					var arg1 = Group.Find(reader.ReadInt32());
+					var arg1 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[GroupVis] Group not found."); return; }
 					var arg2 = reader.ReadBoolean();
 					var arg3 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: GroupVis");
-					handler.GroupVis(arg0, arg1, arg2, arg3);
+					_handler.GroupVis(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 70:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[GroupVisAdd] Player not found."); return; }
-					var arg1 = Group.Find(reader.ReadInt32());
+					var arg1 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[GroupVisAdd] Group not found."); return; }
-					var arg2 = Player.Find(reader.ReadByte());
+					var arg2 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg2 == null)
 					{ Debug.WriteLine("[GroupVisAdd] Player not found."); return; }
 					Log.Debug($"OCTGN IN: GroupVisAdd");
-					handler.GroupVisAdd(arg0, arg1, arg2);
+					_handler.GroupVisAdd(arg0, arg1, arg2);
 					break;
 				}
 				case 72:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[GroupVisRemove] Player not found."); return; }
-					var arg1 = Group.Find(reader.ReadInt32());
+					var arg1 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[GroupVisRemove] Group not found."); return; }
-					var arg2 = Player.Find(reader.ReadByte());
+					var arg2 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg2 == null)
 					{ Debug.WriteLine("[GroupVisRemove] Player not found."); return; }
 					Log.Debug($"OCTGN IN: GroupVisRemove");
-					handler.GroupVisRemove(arg0, arg1, arg2);
+					_handler.GroupVisRemove(arg0, arg1, arg2);
 					break;
 				}
 				case 74:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[LookAt] Player not found."); return; }
 					var arg1 = reader.ReadInt32();
-					var arg2 = Group.Find(reader.ReadInt32());
+					var arg2 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg2 == null)
 					{ Debug.WriteLine("[LookAt] Group not found."); return; }
 					var arg3 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: LookAt");
-					handler.LookAt(arg0, arg1, arg2, arg3);
+					_handler.LookAt(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 76:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[LookAtTop] Player not found."); return; }
 					var arg1 = reader.ReadInt32();
-					var arg2 = Group.Find(reader.ReadInt32());
+					var arg2 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg2 == null)
 					{ Debug.WriteLine("[LookAtTop] Group not found."); return; }
 					var arg3 = reader.ReadInt32();
 					var arg4 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: LookAtTop");
-					handler.LookAtTop(arg0, arg1, arg2, arg3, arg4);
+					_handler.LookAtTop(arg0, arg1, arg2, arg3, arg4);
 					break;
 				}
 				case 78:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[LookAtBottom] Player not found."); return; }
 					var arg1 = reader.ReadInt32();
-					var arg2 = Group.Find(reader.ReadInt32());
+					var arg2 = Group.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg2 == null)
 					{ Debug.WriteLine("[LookAtBottom] Group not found."); return; }
 					var arg3 = reader.ReadInt32();
 					var arg4 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: LookAtBottom");
-					handler.LookAtBottom(arg0, arg1, arg2, arg3, arg4);
+					_handler.LookAtBottom(arg0, arg1, arg2, arg3, arg4);
 					break;
 				}
 				case 80:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[StartLimited] Player not found."); return; }
 					length = reader.ReadInt16();
@@ -687,41 +687,41 @@ namespace Octgn.Networking
 					for (var i = 0; i < length; ++i)
 						arg1[i] = new Guid(reader.ReadBytes(16));
 					Log.Debug($"OCTGN IN: StartLimited");
-					handler.StartLimited(arg0, arg1);
+					_handler.StartLimited(arg0, arg1);
 					break;
 				}
 				case 82:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[CancelLimited] Player not found."); return; }
 					Log.Debug($"OCTGN IN: CancelLimited");
-					handler.CancelLimited(arg0);
+					_handler.CancelLimited(arg0);
 					break;
 				}
 				case 83:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[CardSwitchTo] Player not found."); return; }
-					var arg1 = Card.Find(reader.ReadInt32());
+					var arg1 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg1 == null)
 					{ Debug.WriteLine("[CardSwitchTo] Card not found."); return; }
 					var arg2 = reader.ReadString();
 					Log.Debug($"OCTGN IN: CardSwitchTo");
-					handler.CardSwitchTo(arg0, arg1, arg2);
+					_handler.CardSwitchTo(arg0, arg1, arg2);
 					break;
 				}
 				case 84:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[PlayerSetGlobalVariable] Player not found."); return; }
 					var arg1 = reader.ReadString();
 					var arg2 = reader.ReadString();
 					var arg3 = reader.ReadString();
 					Log.Debug($"OCTGN IN: PlayerSetGlobalVariable");
-					handler.PlayerSetGlobalVariable(arg0, arg1, arg2, arg3);
+					_handler.PlayerSetGlobalVariable(arg0, arg1, arg2, arg3);
 					break;
 				}
 				case 85:
@@ -730,104 +730,104 @@ namespace Octgn.Networking
 					var arg1 = reader.ReadString();
 					var arg2 = reader.ReadString();
 					Log.Debug($"OCTGN IN: SetGlobalVariable");
-					handler.SetGlobalVariable(arg0, arg1, arg2);
+					_handler.SetGlobalVariable(arg0, arg1, arg2);
 					break;
 				}
 				case 87:
 				{
-					handler.Ping();
+					_handler.Ping();
 					break;
 				}
 				case 88:
 				{
 					var arg0 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: IsTableBackgroundFlipped");
-					handler.IsTableBackgroundFlipped(arg0);
+					_handler.IsTableBackgroundFlipped(arg0);
 					break;
 				}
 				case 89:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[PlaySound] Player not found."); return; }
 					var arg1 = reader.ReadString();
 					Log.Debug($"OCTGN IN: PlaySound");
-					handler.PlaySound(arg0, arg1);
+					_handler.PlaySound(arg0, arg1);
 					break;
 				}
 				case 90:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Ready] Player not found."); return; }
 					Log.Debug($"OCTGN IN: Ready");
-					handler.Ready(arg0);
+					_handler.Ready(arg0);
 					break;
 				}
 				case 91:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[PlayerState] Player not found."); return; }
 					var arg1 = reader.ReadByte();
 					Log.Debug($"OCTGN IN: PlayerState");
-					handler.PlayerState(arg0, arg1);
+					_handler.PlayerState(arg0, arg1);
 					break;
 				}
 				case 92:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[RemoteCall] Player not found."); return; }
 					var arg1 = reader.ReadString();
 					var arg2 = reader.ReadString();
 					Log.Debug($"OCTGN IN: RemoteCall");
-					handler.RemoteCall(arg0, arg1, arg2);
+					_handler.RemoteCall(arg0, arg1, arg2);
 					break;
 				}
 				case 93:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[GameStateReq] Player not found."); return; }
 					Log.Debug($"OCTGN IN: GameStateReq");
-					handler.GameStateReq(arg0);
+					_handler.GameStateReq(arg0);
 					break;
 				}
 				case 94:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[GameState] Player not found."); return; }
 					var arg1 = reader.ReadString();
 					Log.Debug($"OCTGN IN: GameState");
-					handler.GameState(arg0, arg1);
+					_handler.GameState(arg0, arg1);
 					break;
 				}
 				case 95:
 				{
-					var arg0 = Card.Find(reader.ReadInt32());
+					var arg0 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[DeleteCard] Card not found."); return; }
-					var arg1 = Player.Find(reader.ReadByte());
+					var arg1 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg1 == null)
 					{ Debug.WriteLine("[DeleteCard] Player not found."); return; }
 					Log.Debug($"OCTGN IN: DeleteCard");
-					handler.DeleteCard(arg0, arg1);
+					_handler.DeleteCard(arg0, arg1);
 					break;
 				}
 				case 96:
 				{
-					var arg0 = Player.FindIncludingSpectators(reader.ReadByte());
+					var arg0 = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[PlayerDisconnect] Player not found."); return; }
 					Log.Debug($"OCTGN IN: PlayerDisconnect");
-					handler.PlayerDisconnect(arg0);
+					_handler.PlayerDisconnect(arg0);
 					break;
 				}
 				case 98:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[AddPacks] Player not found."); return; }
 					length = reader.ReadInt16();
@@ -836,75 +836,75 @@ namespace Octgn.Networking
 						arg1[i] = new Guid(reader.ReadBytes(16));
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: AddPacks");
-					handler.AddPacks(arg0, arg1, arg2);
+					_handler.AddPacks(arg0, arg1, arg2);
 					break;
 				}
 				case 99:
 				{
-					var arg0 = Card.Find(reader.ReadInt32());
+					var arg0 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[AnchorCard] Card not found."); return; }
-					var arg1 = Player.Find(reader.ReadByte());
+					var arg1 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg1 == null)
 					{ Debug.WriteLine("[AnchorCard] Player not found."); return; }
 					var arg2 = reader.ReadBoolean();
 					Log.Debug($"OCTGN IN: AnchorCard");
-					handler.AnchorCard(arg0, arg1, arg2);
+					_handler.AnchorCard(arg0, arg1, arg2);
 					break;
 				}
 				case 100:
 				{
-					var arg0 = Card.Find(reader.ReadInt32());
+					var arg0 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[SetCardProperty] Card not found."); return; }
-					var arg1 = Player.Find(reader.ReadByte());
+					var arg1 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg1 == null)
 					{ Debug.WriteLine("[SetCardProperty] Player not found."); return; }
 					var arg2 = reader.ReadString();
 					var arg3 = reader.ReadString();
 					var arg4 = reader.ReadString();
 					Log.Debug($"OCTGN IN: SetCardProperty");
-					handler.SetCardProperty(arg0, arg1, arg2, arg3, arg4);
+					_handler.SetCardProperty(arg0, arg1, arg2, arg3, arg4);
 					break;
 				}
 				case 101:
 				{
-					var arg0 = Card.Find(reader.ReadInt32());
+					var arg0 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[ResetCardProperties] Card not found."); return; }
-					var arg1 = Player.Find(reader.ReadByte());
+					var arg1 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg1 == null)
 					{ Debug.WriteLine("[ResetCardProperties] Player not found."); return; }
 					Log.Debug($"OCTGN IN: ResetCardProperties");
-					handler.ResetCardProperties(arg0, arg1);
+					_handler.ResetCardProperties(arg0, arg1);
 					break;
 				}
 				case 102:
 				{
-					var arg0 = Card.Find(reader.ReadInt32());
+					var arg0 = Card.Find(_handler.GameEngine, reader.ReadInt32());
 					if (arg0 == null)
 					{ Debug.WriteLine("[Filter] Card not found."); return; }
 					var temp1 = reader.ReadString();
 					var arg1 = temp1 == "" ? (Color?)null : (Color?)ColorConverter.ConvertFromString(temp1);
 					Log.Debug($"OCTGN IN: Filter");
-					handler.Filter(arg0, arg1);
+					_handler.Filter(arg0, arg1);
 					break;
 				}
 				case 103:
 				{
 					var arg0 = reader.ReadString();
 					Log.Debug($"OCTGN IN: SetBoard");
-					handler.SetBoard(arg0);
+					_handler.SetBoard(arg0);
 					break;
 				}
 				case 104:
 				{
-					var arg0 = Player.Find(reader.ReadByte());
+					var arg0 = Player.Find(_handler.GameEngine, reader.ReadByte());
 					if (arg0 == null)
 					{ Debug.WriteLine("[SetPlayerColor] Player not found."); return; }
 					var arg1 = reader.ReadString();
 					Log.Debug($"OCTGN IN: SetPlayerColor");
-					handler.SetPlayerColor(arg0, arg1);
+					_handler.SetPlayerColor(arg0, arg1);
 					break;
 				}
 		  default:

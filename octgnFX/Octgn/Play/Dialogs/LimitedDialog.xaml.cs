@@ -1,10 +1,13 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Octgn.Data;
 
 namespace Octgn.Play.Dialogs
 {
@@ -13,11 +16,15 @@ namespace Octgn.Play.Dialogs
 
     public partial class LimitedDialog
     {
-        public LimitedDialog()
+        private readonly GameEngine _gameEngine;
+
+        public LimitedDialog(GameEngine gameEngine)
         {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             Singleton = this;
             Packs = new ObservableCollection<SelectedPack>();
-            Sets = Program.GameEngine.Definition.Sets().Where(x=>x.Packs.Count() > 0).OrderBy(x=>x.Name).ToArray();
+            Sets = _gameEngine.Definition.Sets().Where(x=>x.Packs.Count() > 0).OrderBy(x=>x.Name).ToArray();
             InitializeComponent();
             setsCombo.SelectionChanged += setsCombo_SelectionChanged;
         }
@@ -25,7 +32,7 @@ namespace Octgn.Play.Dialogs
         public static LimitedDialog Singleton { get; private set; }
 
         public ObservableCollection<SelectedPack> Packs { get; set; }
-        public IEnumerable<DataNew.Entities.Set> Sets { get; set; } 
+        public IEnumerable<DataNew.Entities.Set> Sets { get; set; }
 
         protected override void OnClosed(EventArgs e)
         {
@@ -37,8 +44,8 @@ namespace Octgn.Play.Dialogs
         {
             e.Handled = true;
             if (packsCombo.SelectedItem == null) return;
-            // I am creating lightweight "clones" of the pack, because the 
-            // WPF ListBox doesn't like having multiple copies of the same 
+            // I am creating lightweight "clones" of the pack, because the
+            // WPF ListBox doesn't like having multiple copies of the same
             // instance and messes up selection
             var pack = (DataNew.Entities.Pack) packsCombo.SelectedItem;
             Packs.Add(new SelectedPack {Id = pack.Id, FullName = pack.GetFullName()});
@@ -54,16 +61,16 @@ namespace Octgn.Play.Dialogs
                     TopMostMessageBox.Show(
                         "Some players have cards currently loaded.\n\nReset the game before starting limited game?",
                         "Warning", MessageBoxButton.YesNo))
-                    Program.Client.Rpc.ResetReq();
+                    _gameEngine.Client.Rpc.ResetReq();
             }
             if (addCards.Visibility == Visibility.Visible)
             {
                 if (addCards.SelectedIndex == 1)
-                    Program.Client.Rpc.AddPacksReq(Packs.Select(p => p.Id).ToArray(), false);
+                    _gameEngine.Client.Rpc.AddPacksReq(Packs.Select(p => p.Id).ToArray(), false);
                 else if (addCards.SelectedIndex == 0)
-                    Program.Client.Rpc.AddPacksReq(Packs.Select(p => p.Id).ToArray(), true);
+                    _gameEngine.Client.Rpc.AddPacksReq(Packs.Select(p => p.Id).ToArray(), true);
             }
-            else Program.Client.Rpc.StartLimitedReq(Packs.Select(p => p.Id).ToArray());
+            else _gameEngine.Client.Rpc.StartLimitedReq(Packs.Select(p => p.Id).ToArray());
             Close();
             // Solves an issue where Dialog isn't the active window anymore if the confirmation dialog above was shown
             //fix MAINWINDOW bug

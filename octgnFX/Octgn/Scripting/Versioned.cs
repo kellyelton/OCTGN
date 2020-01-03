@@ -13,8 +13,8 @@ namespace Octgn.Scripting
 	    private static bool isDeveloperMode;
         internal static ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 	    private static readonly object Locker = new object();
-		private static Dictionary<Version,VersionMetaData> _versionData = new Dictionary<Version, VersionMetaData>(); 
-	    private static readonly Dictionary<Type, Dictionary<VersionedAttribute, Type>> Versions = new Dictionary<Type, Dictionary<VersionedAttribute, Type>>(); 
+		private static Dictionary<Version,VersionMetaData> _versionData = new Dictionary<Version, VersionMetaData>();
+	    private static readonly Dictionary<Type, Dictionary<VersionedAttribute, Type>> Versions = new Dictionary<Type, Dictionary<VersionedAttribute, Type>>();
 		private static readonly Dictionary<string,Dictionary<Version,VersionedFileMetaData>> FileVersions = new Dictionary<string, Dictionary<Version, VersionedFileMetaData>>(StringComparer.InvariantCultureIgnoreCase);
 
 		public static void Setup(bool developerMode)
@@ -123,7 +123,7 @@ namespace Octgn.Scripting
 			}
 		}
 
-		public static T Get<T>(Version version)
+		public static T Get<T>(Version version, params object[] arguments)
 		{
 			if (_versionData.ContainsKey(version) == false)
 			{
@@ -141,7 +141,7 @@ namespace Octgn.Scripting
             {
                 var ret = Versions[typeof (T)].FirstOrDefault(x => x.Key.Version == version).Value;
 
-                return (T)Activator.CreateInstance(ret);
+                return (T)Activator.CreateInstance(ret, arguments);
             }
             else
             {
@@ -155,7 +155,7 @@ namespace Octgn.Scripting
 
                 var ret = Versions[typeof(T)].FirstOrDefault(x => x.Key.Version == version).Value;
 
-                return (T)Activator.CreateInstance(ret);
+                return (T)Activator.CreateInstance(ret, arguments);
             }
 		}
 

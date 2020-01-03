@@ -39,12 +39,12 @@ namespace Octgn
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static GameEngine GameEngine;
+        //internal static IClient Client;
 
-        public static string CurrentOnlineGameName = "";
+        public static string CurrentOnlineGameName => GameEngine?.HostedGameName;
         public static Client LobbyClient;
 
         public static GameSettings GameSettings { get; set; }
-        internal static IClient Client;
         public static event Action OnOptionsChanged;
 
 
@@ -56,7 +56,7 @@ namespace Octgn
         internal static event EventHandler<ServerErrorEventArgs> ServerError;
 #pragma warning restore 67
 
-        internal static bool IsHost { get; set; }
+        internal static bool IsHost => GameEngine?.IsHost ?? false;
         internal static GameMode GameMode { get; set; }
 
         internal static Dispatcher Dispatcher;
@@ -74,7 +74,7 @@ namespace Octgn
 
         public static string SessionKey { get; set; }
         public static string UserId { get; set; }
-        public static HostedGame CurrentHostedGame { get; internal set; }
+        public static HostedGame CurrentHostedGame => GameEngine?.HostedGame;
 
         private static bool shutDown = false;
 
@@ -89,8 +89,9 @@ namespace Octgn
             IsReleaseTest = isTestRelease;
             GameMessage.MuteChecker = () =>
             {
-                if (Program.Client == null) return false;
-                return Program.Client.Muted != 0;
+                var client = GameEngine?.Client;
+                if (client == null) return false;
+                return client.Muted != 0;
             };
 
             Log.Info("Setting SSL Validation Helper");
@@ -313,7 +314,7 @@ namespace Octgn
             Sounds.Close();
             try
             {
-                Program.Client?.Rpc?.Leave(Player.LocalPlayer);
+                GameEngine?.Client?.Rpc?.Leave(Player.LocalPlayer);
             }
             catch (Exception e)
             {
@@ -394,7 +395,7 @@ namespace Octgn
                         {
                             int id;
                             if (!int.TryParse(token.Substring(1), out id)) break;
-                            ControllableObject obj = ControllableObject.Find(id);
+                            ControllableObject obj = ControllableObject.Find(player.GameEngine, id);
                             if (obj == null) break;
                             tokenValue = obj;
                             break;

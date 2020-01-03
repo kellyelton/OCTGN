@@ -107,12 +107,7 @@ namespace Octgn.Controls
             var port = -1;
             this.ValidateFields(username, game, userhost, userport, password, out var host, out port);
 
-            Program.IsHost = false;
-            var engine = new Octgn.GameEngine(game.GetGame(), username, Spectator, password, true);
-
-            await engine.Join(host, port);
-
-            Program.GameEngine = engine;
+            Program.GameEngine = await GameEngine.Join(game.GetGame(), username, password, Spectator, host, port).ConfigureAwait(false);
 
             Successful = true;
         }

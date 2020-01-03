@@ -5,20 +5,17 @@ namespace Octgn.Networking
     public class Mute : IDisposable
     {
         private readonly int _oldMuteId;
+        private readonly IClient _client;
 
-        public Mute(int muteId)
+        public Mute(IClient client, int muteId)
         {
-            _oldMuteId = Program.Client.Muted;
-            Program.Client.Muted = muteId;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+
+            _oldMuteId = _client.Muted;
+
+            _client.Muted = muteId;
         }
 
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            Program.Client.Muted = _oldMuteId;
-        }
-
-        #endregion
+        public void Dispose() => _client.Muted = _oldMuteId;
     }
 }

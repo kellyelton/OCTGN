@@ -24,18 +24,18 @@ namespace Octgn.Networking
 {
 	sealed class BinaryParser
 	{
-		private static ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		Handler handler;
+		private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		private readonly Handler _handler;
 
 		public BinaryParser(Handler handler)
-		{ this.handler = handler; }
+		{ _handler = handler ?? throw new ArgumentNullException(nameof(handler)); }
 
 		public void Parse(byte[] data)
 		{
 			var stream = new MemoryStream(data);
 			var reader = new BinaryReader(stream);
 			short length;
-			Program.Client.Muted = reader.ReadInt32();
+			_handler.SetMuted(reader.ReadInt32());
 			var method = reader.ReadByte();
 			switch (method)
 			{
@@ -58,7 +58,7 @@ namespace Octgn.Networking
     }
 	if(msgName != "Ping")
 		WriteLine($"Log.Debug($\"OCTGN IN: {msgName}\");");
-    WriteLine("handler.{0}({1});", msgName, BuildParameters(paramId));
+    WriteLine("_handler.{0}({1});", msgName, BuildParameters(paramId));
     WriteLine("break;");
     PopIndent();
     WriteLine("}");
@@ -129,11 +129,11 @@ var arg{0} = new Guid[length];
 for (var i = 0; i < length; ++i)
 	arg{0}[i] = new Guid(reader.ReadBytes(16));" },
 
-    { "Player", @"var arg{0} = Player.Find(reader.ReadByte());
+    { "Player", @"var arg{0} = Player.Find(_handler.GameEngine, reader.ReadByte());
 if (arg{0} == null)
 {{ Debug.WriteLine(""[{1}] Player not found.""); return; }}" },
 
-			    { "PlayerOrSpectator", @"var arg{0} = Player.FindIncludingSpectators(reader.ReadByte());
+			    { "PlayerOrSpectator", @"var arg{0} = Player.FindIncludingSpectators(_handler.GameEngine, reader.ReadByte());
 if (arg{0} == null)
 {{ Debug.WriteLine(""[{1}] Player not found.""); return; }}" },
 
@@ -141,16 +141,16 @@ if (arg{0} == null)
 var arg{0} = new Player[length];
 for (var i = 0; i < length; ++i)
 {{
-  arg{0}[i] = Player.Find(reader.ReadByte());
+  arg{0}[i] = Player.Find(_handler.GameEngine, reader.ReadByte());
   if (arg{0}[i] == null)
     Debug.WriteLine(""[{1}] Player not found."");
 }}" },
 
-    { "ControllableObject", @"var arg{0} = ControllableObject.Find(reader.ReadInt32());
+    { "ControllableObject", @"var arg{0} = ControllableObject.Find(_handler.GameEngine, reader.ReadInt32());
 if (arg{0} == null)
 {{ Debug.WriteLine(""[{1}] ControllableObject not found.""); return; }}" },
 
-    { "Group", @"var arg{0} = Group.Find(reader.ReadInt32());
+    { "Group", @"var arg{0} = Group.Find(_handler.GameEngine, reader.ReadInt32());
 if (arg{0} == null)
 {{ Debug.WriteLine(""[{1}] Group not found.""); return; }}" },
 
@@ -158,16 +158,16 @@ if (arg{0} == null)
 var arg{0} = new Group[length];
 for (var i = 0; i < length; ++i)
 {{
-  arg{0}[i] = Group.Find(reader.ReadInt32());
+  arg{0}[i] = Group.Find(_handler.GameEngine, reader.ReadInt32());
   if (arg{0}[i] == null)
     Debug.WriteLine(""[{1}] Group not found."");
 }}" },
 
-    { "Card", @"var arg{0} = Card.Find(reader.ReadInt32());
+    { "Card", @"var arg{0} = Card.Find(_handler.GameEngine, reader.ReadInt32());
 if (arg{0} == null)
 {{ Debug.WriteLine(""[{1}] Card not found.""); return; }}" },
 
-    { "Counter", @"var arg{0} = Counter.Find(reader.ReadInt32());
+    { "Counter", @"var arg{0} = Counter.Find(_handler.GameEngine, reader.ReadInt32());
 if (arg{0} == null)
 {{ Debug.WriteLine(""[{1}] Counter not found.""); return; }}" },
 

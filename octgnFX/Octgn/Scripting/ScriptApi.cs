@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +13,13 @@ namespace Octgn.Scripting
 {
     public abstract class ScriptApi
     {
-        internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        protected Engine ScriptEngine { get { return Program.GameEngine.ScriptEngine; } }
+        protected readonly static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected ScriptApi()
-        {
+        protected GameEngine GameEngine { get; }
+        protected Engine ScriptEngine => GameEngine.ScriptEngine;
 
+        protected ScriptApi(GameEngine gameEngine) {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
         }
 
         /// <summary>
@@ -25,7 +30,7 @@ namespace Octgn.Scripting
         /// <param name="a">Action</param>
         protected void QueueAction(Action a)
         {
-            Program.GameEngine.ScriptEngine.Invoke(a);
+            GameEngine.ScriptEngine.Invoke(a);
         }
 
         /// <summary>
@@ -35,22 +40,22 @@ namespace Octgn.Scripting
         /// </summary>
         protected T QueueAction<T>(Func<T> a)
         {
-            return Program.GameEngine.ScriptEngine.Invoke<T>(a);
+            return GameEngine.ScriptEngine.Invoke<T>(a);
         }
 
         protected void Suspend()
         {
-            Program.GameEngine.ScriptEngine.Suspend();
+            GameEngine.ScriptEngine.Suspend();
         }
 
         protected void Resume()
         {
-            Program.GameEngine.ScriptEngine.Resume();
+            GameEngine.ScriptEngine.Resume();
         }
 
         protected Mute CreateMute()
         {
-            return new Mute(Program.GameEngine.ScriptEngine.CurrentJob.Muted);
+            return new Mute(GameEngine.Client, GameEngine.ScriptEngine.CurrentJob.Muted);
         }
 
         public void RegisterEvent(string name, IronPython.Runtime.PythonFunction derp)
@@ -62,7 +67,7 @@ namespace Octgn.Scripting
         public int Random(int min, int max)
         {
             _randRequest = new SynchornusNetworkCall<int>(ScriptEngine, () => {
-                Program.Client.Rpc.RandomReq(min, max);
+                GameEngine.Client.Rpc.RandomReq(min, max);
             });
             return _randRequest.Get();
         }
@@ -104,10 +109,6 @@ namespace Octgn.Scripting
                                 if (_gotResult)
                                     return;
                             }
-                            if (Program.Client == null)
-                                return;
-                            if (Program.GameEngine == null)
-                                return;
                             _call();
                             //Program.Client.Rpc.RandomReq(_min, _max);
                             Thread.Sleep(3000);

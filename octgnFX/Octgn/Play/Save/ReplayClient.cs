@@ -9,9 +9,9 @@ namespace Octgn.Play.Save
         public Handler Handler { get; set; }
         public int Muted { get; set; }
 
-        public ReplayClient() {
-            Rpc = new ReplayRpc();
-            Handler = new Handler();
+        public ReplayClient(GameEngine gameEngine) {
+            Rpc = new ReplayRpc(this);
+            Handler = new Handler(gameEngine);
         }
 
         public Task Connect() {
@@ -26,6 +26,9 @@ namespace Octgn.Play.Save
         }
         public class ReplayRpc : BaseBinaryStub
         {
+            public ReplayRpc(IClient client) : base(client) {
+            }
+
             protected override void Send(byte[] data) {
                 // Do nothing.
             }

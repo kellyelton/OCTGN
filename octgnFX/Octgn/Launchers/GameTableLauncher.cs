@@ -42,10 +42,9 @@ namespace Octgn.Launchers
         {
             Program.GameSettings.UseTwoSidedTable = HostGame.UseTwoSidedTable;
 
-            var engine = new GameEngine(HostGame, Prefs.Nickname, false, "", true);
-            await engine.Host(Randomness.RandomRoomName(), true);
+            var gameName = Randomness.RandomRoomName();
 
-            Program.GameEngine = engine;
+            Program.GameEngine = await GameEngine.HostLocal(HostGame, gameName, "", Prefs.Nickname, true);
 
             Octgn.Play.Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
             Program.GameSettings.UseTwoSidedTable = HostGame.UseTwoSidedTable;
@@ -64,7 +63,7 @@ namespace Octgn.Launchers
         private void StartGame()
         {
             Play.Player.OnLocalPlayerWelcomed -= this.PlayerOnOnLocalPlayerWelcomed;
-            WindowManager.PlayWindow = new PlayWindow();
+            WindowManager.PlayWindow = new PlayWindow(Program.GameEngine);
             Application.Current.MainWindow = WindowManager.PlayWindow;
 			WindowManager.PlayWindow.Show();
             WindowManager.PlayWindow.Closed += PlayWindowOnClosed;

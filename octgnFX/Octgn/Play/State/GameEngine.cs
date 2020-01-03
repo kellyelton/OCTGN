@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -30,7 +34,6 @@ using Player = Octgn.Play.Player;
 using System.Collections.ObjectModel;
 using Octgn.DataNew;
 using Octgn.Play.Save;
-using Octgn.Play.State;
 using Octgn.Core.Play;
 using System.Threading.Tasks;
 using System.Net;
@@ -46,12 +49,7 @@ namespace Octgn
     public class GameEngine : INotifyPropertyChanged {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-
-#pragma warning disable 649   // Unassigned variable: it's initialized by MEF
-
-        public Engine ScriptEngine { get; set; }
-
-#pragma warning restore 649
+        public Engine ScriptEngine { get; }
 
         public ScriptApi ScriptApi { get; set; }
 
@@ -115,6 +113,11 @@ namespace Octgn
         public ReplayWriter ReplayWriter { get; }
         public ReplayEngine ReplayEngine { get; }
 
+        public IClient Client { get; private set; }
+        public HostedGame HostedGame { get; }
+        public string HostedGameName { get; }
+        public bool IsHost { get; }
+
         public ushort CurrentUniqueId;
 
         /// <summary>
@@ -126,9 +129,19 @@ namespace Octgn
 
         }
 
-        public GameEngine(ReplayEngine replayEngine, Game def, string nickname) {
-            ReplayEngine = replayEngine;
+        private GameEngine(Game def, string nickname, ReplayReader replayReader) {
+            if (def == null) throw new ArgumentNullException(nameof(def));
+            if (replayReader == null) throw new ArgumentNullException(nameof(replayReader));
+            if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
+
             IsReplay = true;
+            IsHost = true;
+
+            Client = new ReplayClient(this);
+
+            ReplayEngine = new ReplayEngine(replayReader, (ReplayClient)Client);
+
+            HostedGameName = replayReader.Replay.Name;
 
             LoadedCards = new ObservableDeck();
             LoadedCards.Sections = new ObservableCollection<ObservableSection>();
@@ -157,7 +170,7 @@ namespace Octgn
             IsLocal = true;
             Definition = def;
             Password = string.Empty;
-            _table = new Table(def.Table);
+            _table = new Table(this, def.Table);
             if (def.Phases != null) {
                 byte PhaseId = 1;
                 _allPhases = def.Phases.Select(x => new Phase(PhaseId++, x)).ToList();
@@ -165,7 +178,7 @@ namespace Octgn
             GlobalVariables = new Dictionary<string, string>();
             foreach (var varDef in def.GlobalVariables)
                 GlobalVariables.Add(varDef.Name, varDef.DefaultValue);
-            ScriptApi = Versioned.Get<ScriptApi>(Definition.ScriptVersion);
+            ScriptApi = Versioned.Get<ScriptApi>(Definition.ScriptVersion, this);
             this.Nickname = nickname;
 
             // Load all game markers
@@ -192,17 +205,23 @@ namespace Octgn
                 Player.Spectators.Clear();
                 // Create the global player, if any
                 if (Definition.GlobalPlayer != null)
-                    Play.Player.GlobalPlayer = new Play.Player(Definition, IsReplay);
+                    Play.Player.GlobalPlayer = new Play.Player(this, Definition, IsReplay);
                 // Create the local player
-                Play.Player.LocalPlayer = new Player(Definition, this.Nickname, Program.UserId, 255, Crypto.ModExp(Prefs.PrivateKey), false, true, IsReplay);
+                Play.Player.LocalPlayer = new Player(this, Definition, this.Nickname, Program.UserId, 255, Crypto.ModExp(Prefs.PrivateKey), false, true, IsReplay);
 
                 IsConnected = true;
             }));
 
+            ScriptEngine = new Engine(this);
+            EventProxy = new GameEventProxy(ScriptEngine, this);
         }
 
-        public GameEngine(Game def, string nickname, bool specator, string password = "", bool isLocal = false)
+        private GameEngine(Game def, string hostedGameName, bool isHost, string nickname, bool specator, string password = "", bool isLocal = false, HostedGame hostedGame = null)
         {
+            HostedGame = hostedGame;
+            HostedGameName = hostedGameName;
+            IsHost = isHost;
+
             History = new History(def.Id);
             if (Program.IsHost) {
                 History.Name = Program.CurrentOnlineGameName;
@@ -242,7 +261,7 @@ namespace Octgn
             IsLocal = isLocal;
             this.Password = password;
             Definition = def;
-            _table = new Table(def.Table);
+            _table = new Table(this, def.Table);
             if (def.Phases != null)
             {
                 byte PhaseId = 1;
@@ -251,7 +270,7 @@ namespace Octgn
             GlobalVariables = new Dictionary<string, string>();
             foreach (var varDef in def.GlobalVariables)
                 GlobalVariables.Add(varDef.Name, varDef.DefaultValue);
-            ScriptApi = Versioned.Get<ScriptApi>(Definition.ScriptVersion);
+            ScriptApi = Versioned.Get<ScriptApi>(Definition.ScriptVersion, this);
             this.Nickname = nickname;
             while (String.IsNullOrWhiteSpace(this.Nickname))
             {
@@ -291,10 +310,10 @@ namespace Octgn
                 Play.Player.All.Clear();
                 Player.Spectators.Clear();
                 // Create the local player
-                Play.Player.LocalPlayer = new Player(Definition, this.Nickname, Program.UserId, 255, Crypto.ModExp(Prefs.PrivateKey), specator, true, IsReplay);
+                Play.Player.LocalPlayer = new Player(this, Definition, this.Nickname, Program.UserId, 255, Crypto.ModExp(Prefs.PrivateKey), specator, true, IsReplay);
                 // Create the global player, if any
                 if (Definition.GlobalPlayer != null)
-                    Play.Player.GlobalPlayer = new Play.Player(Definition, IsReplay);
+                    Play.Player.GlobalPlayer = new Play.Player(this, Definition, IsReplay);
             }));
         }
 
@@ -500,6 +519,18 @@ namespace Octgn
 
         private string _gameName;
 
+        public async Task Connect(string host, int port) {
+            if (Client != null) throw new InvalidOperationException("Already connected.");
+
+            Client = await GameEngine.ConnectToHost(this, host, port);
+        }
+
+        public async Task Connect(IPAddress host, int port) {
+            if (Client != null) throw new InvalidOperationException("Already connected.");
+
+            Client = await GameEngine.ConnectToHost(this, host, port);
+        }
+
         public void OnWelcomed(Guid gameSessionId, string gameName, bool waitForGameState) {
             IsWelcomed = true;
 
@@ -662,17 +693,43 @@ namespace Octgn
             if (gameName.Length > 32) throw new ArgumentOutOfRangeException(nameof(gameName), $"Game name max length is 32");
         }
 
-        public Task<HostedGame> Host(string gameName, bool allowSpectators) {
-            ValidateGameName(gameName);
+        private static async Task<IClient> ConnectToHost(GameEngine gameEngine, IPAddress host, int port) {
+            for (var i = 0; i < 5; i++) {
+                try {
+                    var client = new ClientSocket(gameEngine, host, port);
 
-            if (IsLocal) {
-                return HostLocal(Definition, gameName, Nickname, Password, allowSpectators);
-            } else {
-                return HostOnline(Definition, gameName, Password, allowSpectators);
+                    await client.Connect().ConfigureAwait(false);
+
+                    return client;
+                } catch (Exception e) {
+                    Log.Warn("Start local game error", e);
+                    if (i == 4) throw;
+                }
+
+                await Task.Delay(2000).ConfigureAwait(false);
             }
+
+            throw new NotImplementedException("Unreachable branch hit.");
         }
 
-        private static async Task<HostedGame> HostLocal(Game game, string name, string nickname, string password, bool allowSpectators) {
+        private static async Task<IClient> ConnectToHost(GameEngine gameEngine, string host, int port) {
+            foreach(var address in Dns.GetHostAddresses(host)) {
+                if (address == IPAddress.IPv6Loopback) continue;
+
+                // Should use gameData.IpAddress sometime.
+                Log.Info($"{nameof(HostOnline)}: Trying to connect to {address}:{port}");
+
+                try {
+                    return await ConnectToHost(gameEngine, address, port).ConfigureAwait(false);
+                } catch (Exception ex) {
+                    Log.Error($"{nameof(HostOnline)}: Couldn't connect to address {address}:{port}", ex);
+                }
+            }
+
+            throw new InvalidOperationException($"Unable to connect to {AppConfig.GameServerPath}.{port}");
+        }
+
+        public static async Task<GameEngine> HostLocal(Game game, string name, string password, string nickname, bool allowSpectators) {
             var hostport = new Random().Next(5000, 6000);
             while (!NetworkHelper.IsPortAvailable(hostport)) hostport++;
 
@@ -698,25 +755,18 @@ namespace Octgn
 
             Prefs.Nickname = nickname;
 
+            var engine = new GameEngine(game, name, true, nickname, false, password, true);
+
             var ip = IPAddress.Parse("127.0.0.1");
 
-            for (var i = 0; i < 5; i++) {
-                try {
-                    Program.Client = new ClientSocket(ip, hostport);
-                    await Program.Client.Connect();
-                    return result;
-                } catch (Exception e) {
-                    Log.Warn("Start local game error", e);
-                    if (i == 4) throw;
-                }
-                await Task.Delay(2000).ConfigureAwait(false);
-            }
-            throw new Exception("Unable to host");
+            await engine.Connect(ip, hostport).ConfigureAwait(false);
+
+            return engine;
         }
 
-        private static async Task<HostedGame> HostOnline(Game game, string name, string password, bool allowSpectators) {
-            var client = new Octgn.Site.Api.ApiClient();
-            if (!await client.IsGameServerRunning(Prefs.Username, Prefs.Password.Decrypt()))
+        public static async Task<GameEngine> HostOnline(Game game, string name, string password, bool allowSpectators) {
+            var apiclient = new Octgn.Site.Api.ApiClient();
+            if (!await apiclient.IsGameServerRunning(Prefs.Username, Prefs.Password.Decrypt()))
             {
                 throw new UserMessageException("The game server is currently down. Please try again later.");
             }
@@ -737,7 +787,7 @@ namespace Octgn
                 Spectators = allowSpectators
             };
 
-            HostedGame result = null;
+            HostedGame result;
             try {
                 result = await Program.LobbyClient.HostGame(req) ?? throw new InvalidOperationException("HostGame returned a null");
             } catch (ErrorResponseException ex) {
@@ -745,29 +795,34 @@ namespace Octgn
                 throw new UserMessageException("The Game Service is currently offline. Please try again.");
             }
 
-            foreach(var address in Dns.GetHostAddresses(AppConfig.GameServerPath)) {
-                try {
-                    if (address == IPAddress.IPv6Loopback) continue;
+            var engine = new GameEngine(game, result.Name, true, result.HostUser.DisplayName, false, password, false);
 
-                    // Should use gameData.IpAddress sometime.
-                    Log.Info($"{nameof(HostOnline)}: Trying to connect to {address}:{result.Port}");
+            await engine.Connect(AppConfig.GameServerPath, result.Port).ConfigureAwait(false);
 
-                    Program.Client = new ClientSocket(address, result.Port);
-                    await Program.Client.Connect();
-                    return result;
-                } catch (Exception ex) {
-                    Log.Error($"{nameof(HostOnline)}: Couldn't connect to address {address}:{result.Port}", ex);
-                }
-            }
-            throw new InvalidOperationException($"Unable to connect to {AppConfig.GameServerPath}.{result.Port}");
+            return engine;
         }
 
-        public async Task Join(IPAddress host, int port) {
+        public static async Task<GameEngine> Join(Game game, string nickname, string password, bool spectator, IPAddress host, int port) {
             Log.InfoFormat("Creating client for {0}:{1}", host, port);
 
-            Program.Client = new ClientSocket(host, port);
+            var engine = new GameEngine(game, null, false, nickname, spectator, password, true);
 
-            await Program.Client.Connect();
+            await engine.Connect(host, port).ConfigureAwait(false);
+
+            return engine;
+        }
+
+        public static GameEngine Replay(Game game, string replayFile) {
+            ReplayReader reader = null;
+            try {
+                reader = ReplayReader.FromStream(File.OpenRead(replayFile));
+
+                return new GameEngine(game, reader.Replay.User, reader);
+            } catch {
+                reader?.Dispose();
+
+                throw;
+            }
         }
 
         public void Begin()
@@ -777,7 +832,7 @@ namespace Octgn
             _BeginCalled = true;
             // Register oneself to the server
             Version oversion = Const.OctgnVersion;
-            Program.Client.Rpc.Hello(this.Nickname, Player.LocalPlayer.UserId, Player.LocalPlayer.PublicKey,
+            Client.Rpc.Hello(this.Nickname, Player.LocalPlayer.UserId, Player.LocalPlayer.PublicKey,
                                      Const.ClientName, oversion, oversion,
                                      Program.GameEngine.Definition.Id, Program.GameEngine.Definition.Version, this.Password
                                      , Spectator);
@@ -794,7 +849,7 @@ namespace Octgn
             // Register oneself to the server
             this.gameStateCount = 0;
             Version oversion = Const.OctgnVersion;
-            Program.Client.Rpc.HelloAgain(Player.LocalPlayer.Id, this.Nickname, Player.LocalPlayer.UserId, Player.LocalPlayer.PublicKey,
+            Client.Rpc.HelloAgain(Player.LocalPlayer.Id, this.Nickname, Player.LocalPlayer.UserId, Player.LocalPlayer.PublicKey,
                                      Const.ClientName, oversion, oversion,
                                      Program.GameEngine.Definition.Id, Program.GameEngine.Definition.Version, this.Password);
         }
@@ -991,7 +1046,7 @@ namespace Octgn
                 }
             }
 
-            Program.Client.Rpc.LoadDeck(ids, keys, groups, sizes, sleeveString ?? string.Empty, limited);
+            Client.Rpc.LoadDeck(ids, keys, groups, sizes, sleeveString ?? string.Empty, limited);
             //reset the visibility to what it was before pushing the deck to everybody. //bug (google) #20
             foreach (GrpTmp g in gtmps)
             {
@@ -1078,21 +1133,9 @@ namespace Octgn
 
 
 
-        #region MEF stuff for easy services composition
-
-        private static readonly AssemblyCatalog Catalog = new AssemblyCatalog(Assembly.GetExecutingAssembly());
-        private readonly CompositionContainer _container = new CompositionContainer(Catalog);
-
         private bool isTableBackgroundFlipped;
 
         private bool waitForGameState;
-
-        public void ComposeParts(params object[] attributedParts)
-        {
-            _container.ComposeParts(attributedParts);
-        }
-
-        #endregion MEF stuff for easy services composition
 
         #region Nested type: GrpTmp
 
@@ -1133,7 +1176,7 @@ namespace Octgn
         public void Ready()
         {
             Log.Debug("Ready");
-            Program.Client.Rpc.Ready(Player.LocalPlayer);
+            Client.Rpc.Ready(Player.LocalPlayer);
         }
 
         public void SaveHistory() {

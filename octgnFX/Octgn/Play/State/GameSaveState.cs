@@ -2,16 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Media;
+
+using Octgn.Core.DataExtensionMethods;
+using Octgn.DataNew.Entities;
 
 namespace Octgn.Play.State
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Windows.Media;
-
-    using Octgn.Core.DataExtensionMethods;
-    using Octgn.DataNew.Entities;
 
     public abstract class SaveState<T, T1>
     {
@@ -76,11 +76,11 @@ namespace Octgn.Play.State
             Program.GameEngine.StopTurn = state.StopTurn;
             Program.GameEngine.ChangeGameBoard(state.GameBoard);
             Program.GameEngine.TurnNumber = state.TurnNumber;
-            Program.GameEngine.ActivePlayer = Play.Player.Find(state.ActivePlayer);
+            Program.GameEngine.ActivePlayer = Play.Player.Find(engine, state.ActivePlayer);
 
             foreach (var p in state.Players)
             {
-                var player = Play.Player.Find(p.Id);
+                var player = Play.Player.Find(engine, p.Id);
                 player.Color = p.Color;
                 player.ActualColor = p.Color;
                 player.Brush = new SolidColorBrush(player.Color);
@@ -92,38 +92,38 @@ namespace Octgn.Play.State
 
                 foreach (var counter in p.Counters)
                 {
-                    var cnt = Play.Counter.Find(counter.Id);
+                    var cnt = Play.Counter.Find(engine, counter.Id);
                     cnt.SetValue(counter.Value, player, false, false);
                 }
 
                 foreach (var g in p.Groups)
                 {
-                    LoadGroup(g, fromPlayer);
+                    LoadGroup(engine, g, fromPlayer);
                 }
             }
 
-            LoadGroup(Table, fromPlayer, true);
+            LoadGroup(engine, Table, fromPlayer, true);
 
             return this;
         }
 
-        internal void LoadGroup(GroupSaveState g, Play.Player fromPlayer, bool isTable = false)
+        internal void LoadGroup(GameEngine engine, GroupSaveState g, Play.Player fromPlayer, bool isTable = false)
         {
-            var group = Play.Group.Find(g.Id);
+            var group = Play.Group.Find(fromPlayer.GameEngine, g.Id);
             if (!isTable)
-                group.Controller = Play.Player.Find(g.Controller);
-            group.Viewers = g.Viewers.Select(Play.Player.Find).ToList();
+                group.Controller = Play.Player.Find(engine, g.Controller);
+            group.Viewers = g.Viewers.Select(x => Play.Player.Find(engine, x)).ToList();
             group.Visibility = g.Visiblity;
             foreach (var c in g.Cards)
             {
-                var owner = Play.Player.Find(c.Owner);
+                var owner = Play.Player.Find(engine, c.Owner);
                 DataNew.Entities.Card model = null;
                 if (c.Type != Guid.Empty)
                     model =
                         Core.DataManagers.GameManager.Get()
                             .GetById(Program.GameEngine.Definition.Id)
                             .GetCardById(c.Type);
-                var card = Play.Card.Find(c.Id);
+                var card = Play.Card.Find(engine, c.Id);
                 if (fromPlayer == owner && card != null)
                 {
                     //card.Type.Key = ulong.Parse(c.EncType);
@@ -133,18 +133,18 @@ namespace Octgn.Play.State
                     //card = null;
                 }
                 if (card == null)
-                    card = new Play.Card(owner, c.Id, model, owner == Play.Player.LocalPlayer,c.Size);                group.Remove(card);
+                    card = new Play.Card(owner, c.Id, model, c.Size);                group.Remove(card);
                 group.Add(card);
                 card.Group = group;
                 card.SwitchTo(owner, c.Alternate, false);
-                card.Controller = Play.Player.Find(c.Controller);
+                card.Controller = Play.Player.Find(engine, c.Controller);
                 card.DeleteWhenLeavesGroup = c.DeleteWhenLeavesGroup;
                 card.SetFaceUp(c.FaceUp);
                 card.SetHighlight(c.HighlightColor);
                 card.SetIndex(c.Index);
                 card.Orientation = c.Orientation;
                 card.SetOverrideGroupVisibility(c.OverrideGroupVisibility);
-                card.SetTargetedBy(Play.Player.Find(c.TargetedBy));
+                card.SetTargetedBy(Play.Player.Find(engine, c.TargetedBy));
                 card.TargetsOtherCards = c.TargetsOtherCards;
                 card.X = c.X;
                 card.Y = c.Y;
@@ -154,7 +154,7 @@ namespace Octgn.Play.State
                 {
                     card.SetMarker(card.Owner, m.Id, m.Name, m.Count, false);
                 }
-                foreach (var pp in c.PeekingPlayers.Select(Play.Player.Find))
+                foreach (var pp in c.PeekingPlayers.Select(x => Play.Player.Find(engine, x)))
                 {
                     card.PeekingPlayers.Add(pp);
                 }

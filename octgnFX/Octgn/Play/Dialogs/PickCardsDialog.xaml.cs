@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -11,30 +15,31 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Octgn.Controls;
-using Octgn.Play;
 using Octgn.Play.Gui;
 using Octgn.Utils;
+using System.Threading.Tasks;
+using Octgn.Core.DataExtensionMethods;
+using Octgn.DataNew;
+using Octgn.DataNew.Entities;
 
 namespace Octgn.Play.Dialogs
 {
-    using System.Threading.Tasks;
-
-    using Octgn.Core.DataExtensionMethods;
-    using Octgn.DataNew;
-    using Octgn.DataNew.Entities;
-
     public partial class PickCardsDialog
     {
         public Game CurrentGame { get; set; }
-        public PickCardsDialog()
+        private readonly GameEngine _gameEngine;
+
+        public PickCardsDialog(GameEngine gameEngine)
         {
-            CurrentGame = Program.GameEngine.Definition;
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
+            CurrentGame = _gameEngine.Definition;
             CardPool = new ObservableCollection<ObservableMultiCard>();
             CardPoolView = new ListCollectionView(CardPool) { Filter = FilterCard };
             UnlimitedPool = new ObservableCollection<ObservableMultiCard>();
             UnlimitedPoolView = new ListCollectionView(UnlimitedPool);
             UnlimitedPoolView.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
-            LimitedDeck = Program.GameEngine.Definition.CreateDeck().AsObservable();
+            LimitedDeck = _gameEngine.Definition.CreateDeck().AsObservable();
             CreateFilters();
             InitializeComponent();
         }
@@ -67,7 +72,7 @@ namespace Octgn.Play.Dialogs
                         }));
                     this.StopListenningForFilterValueChanges();
 
-                    foreach (Pack pack in packs.Select(Program.GameEngine.Definition.GetPackById))
+                    foreach (Pack pack in packs.Select(_gameEngine.Definition.GetPackById))
                     {
                         if (pack == null)
                         {
@@ -108,7 +113,7 @@ namespace Octgn.Play.Dialogs
         public string PackNames(IEnumerable<Guid> packs)
         {
             string returnString = "";
-            foreach (Pack pack in packs.Select(Program.GameEngine.Definition.GetPackById))
+            foreach (Pack pack in packs.Select(_gameEngine.Definition.GetPackById))
             {
                 if (pack == null)
                 {
@@ -163,14 +168,14 @@ namespace Octgn.Play.Dialogs
                         }));
                     string noticeText = String.Format("{0} loaded a card pool with {1} cards.",Octgn.Play.Player.LocalPlayer.Name,deck.CardCount());
                     Program.Print(Octgn.Play.Player.LocalPlayer, noticeText);
-                    Program.Client.Rpc.PrintReq(noticeText);
+                    _gameEngine.Client.Rpc.PrintReq(noticeText);
                 }).Start();
         }
-        
+
         private void ComputeChildWidth(object sender, RoutedEventArgs e)
         {
             var panel = sender as VirtualizingWrapPanel;
-            if (panel != null) panel.ChildWidth = panel.ChildHeight * Program.GameEngine.Definition.CardSize.Width / Program.GameEngine.Definition.CardSize.Height;
+            if (panel != null) panel.ChildWidth = panel.ChildHeight * _gameEngine.Definition.CardSize.Width / _gameEngine.Definition.CardSize.Height;
         }
 
         private void SetPicture(object sender, RoutedEventArgs e)
@@ -325,7 +330,7 @@ namespace Octgn.Play.Dialogs
         private void CreateFilters()
         {
             Filters = new ObservableCollection<Filter>();
-            foreach (Filter filter in Program.GameEngine.Definition.CustomProperties
+            foreach (Filter filter in _gameEngine.Definition.CustomProperties
                 .Where(p => !p.Hidden && (p.Type == PropertyType.Integer || p.TextKind != PropertyTextKind.FreeText)).
                 Select(prop => new Filter
                                    {

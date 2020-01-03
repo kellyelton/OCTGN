@@ -56,7 +56,6 @@ namespace Octgn.Controls
         {
             InitializeComponent();
             Specators = true;
-            Program.IsHost = true;
             Games = new ObservableCollection<DataGameViewModel>();
             Program.LobbyClient.Connected += LobbyClient_Connected;
             Program.LobbyClient.Disconnected += LobbyClient_Disconnected;
@@ -225,17 +224,13 @@ namespace Octgn.Controls
                 this.Username = TextBoxUserName.Text;
                 var isLocalGame = CheckBoxIsLocalGame?.IsChecked ?? false;
 
-                if (!isLocalGame) {
+                if (isLocalGame) {
+                    Program.GameEngine = await GameEngine.HostLocal(Game, Gamename, Password, Username, Specators);
+                } else {
                     Username = Program.LobbyClient.User.DisplayName;
+
+                    Program.GameEngine = await GameEngine.HostOnline(Game, Gamename, Password, Specators);
                 }
-
-                var engine = new GameEngine(Game, Username, specator: false, Password, isLocalGame);
-
-                Program.CurrentHostedGame = await engine.Host(Gamename, Specators);
-
-                Program.GameEngine = engine;
-                Program.CurrentOnlineGameName = Gamename;
-                Program.IsHost = true;
 
                 SuccessfulHost = true;
 

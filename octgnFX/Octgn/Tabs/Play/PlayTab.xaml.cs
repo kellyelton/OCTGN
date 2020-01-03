@@ -250,7 +250,6 @@ namespace Octgn.Tabs.Play
                 var hostedGame = await VerifyCanJoinGame();
 
                 var spectate = hostedGame.Status == HostedGameStatus.GameInProgress && hostedGame.Spectator;
-                Program.IsHost = false;
                 var password = "";
                 if (hostedGame.HasPassword) {
                     var dlg = new InputDlg("Password", "Please enter this games password", "");
@@ -262,12 +261,7 @@ namespace Octgn.Tabs.Play
 
                 var game = GameManager.Get().GetById(hostedGame.GameId);
 
-                var engine = new GameEngine(game, username, spectate, password);
-
-                await engine.Join(hostedGame.IPAddress, hostedGame.Port);
-
-                Program.GameEngine = engine;
-                Program.CurrentOnlineGameName = hostedGame.Name;
+                Program.GameEngine = await GameEngine.Join(game, username, password, spectate, hostedGame.IPAddress, hostedGame.Port);
 
                 Log.Info($"{nameof(JoinGame)}: Launching {nameof(PlayWindow)}");
                 LaunchPlayWindow();
@@ -365,7 +359,7 @@ namespace Octgn.Tabs.Play
 
             Dispatcher.InvokeAsync(async () => {
                 await Dispatcher.Yield(DispatcherPriority.Background);
-                WindowManager.PlayWindow = new PlayWindow();
+                WindowManager.PlayWindow = new PlayWindow(Program.GameEngine);
                 WindowManager.PlayWindow.Show();
                 WindowManager.PlayWindow.Activate();
             });

@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Linq;
 using System.Windows;
 using System.ComponentModel;
@@ -53,12 +57,19 @@ namespace Octgn.Play.Gui
         private static bool _isDragging, _isMouseDown;
         private static Point _mousePt, _mouseOffset;
         private static Adorners.DragAdorner _adorner;
+        private readonly GameEngine _gameEngine;
 
-        public AdhocPileControl()
-        {
+        [Obsolete("Used in design mode")]
+        public AdhocPileControl() {
             InitializeComponent();
-            CardWidth = Program.GameEngine.Definition.CardSize.Width + Program.GameEngine.Definition.CardSize.Width * .5;
-            CardHeight = Program.GameEngine.Definition.CardSize.Height + Program.GameEngine.Definition.CardSize.Height * .5;
+        }
+
+        public AdhocPileControl(GameEngine gameEngine) {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
+            InitializeComponent();
+            CardWidth = _gameEngine.Definition.CardSize.Width + _gameEngine.Definition.CardSize.Width * .5;
+            CardHeight = _gameEngine.Definition.CardSize.Height + _gameEngine.Definition.CardSize.Height * .5;
         }
 
         protected override void OnCardDropped(object sender, CardsEventArgs e)
@@ -67,12 +78,10 @@ namespace Octgn.Play.Gui
             if (group.TryToManipulate())
             {
                 var cards = e.Cards.ToArray();
-                Card.MoveCardsTo(group, cards, 
+                Card.MoveCardsTo(group, cards,
                     Enumerable.Repeat(e.FaceUp ?? false,cards.Length).ToArray()
                     ,Enumerable.Repeat(0,cards.Length).ToArray(),false);
             }
-            //foreach (Card c in e.Cards)
-            //    c.MoveTo(group, e.FaceUp != null && e.FaceUp.Value, 0, false);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -101,7 +110,7 @@ namespace Octgn.Play.Gui
             Point pt = e.GetPosition(this);
             if (!_isDragging)
             {
-                // Check if the button was pressed over the marker, and was not release on another control in the meantime 
+                // Check if the button was pressed over the marker, and was not release on another control in the meantime
                 // (possible if the cursor is near the border of the marker)
                 if (_isMouseDown && Mouse.LeftButton == MouseButtonState.Pressed &&
                     // Check if has moved enough to start a drag and drop

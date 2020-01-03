@@ -1,35 +1,42 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using log4net;
+using System.Reflection;
 
 namespace Octgn.Play.Gui
 {
-    using System.Reflection;
-
-    using log4net;
-
     public partial class MarkerControl
     {
-        internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly GameEngine _gameEngine;
 
+        [Obsolete("Use other constructor, this is only for the editor")]
         public MarkerControl()
         {
             InitializeComponent();
+        }
 
-            if (DesignerProperties.GetIsInDesignMode(this)) return;
+#pragma warning disable CS0618 // Type or member is obsolete
+        public MarkerControl(GameEngine gameEngine) : this() {
+#pragma warning restore CS0618 // Type or member is obsolete
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
 
             AddHandler(TableControl.TableKeyEvent, new EventHandler<TableKeyEventArgs>(TableKeyDown));
-            int markerSize = Program.GameEngine.Definition.MarkerSize;
+            int markerSize = _gameEngine.Definition.MarkerSize;
             img1.Height = markerSize;
             textBorder.Margin = new Thickness(markerSize*0.2, markerSize*0.04, 0, markerSize*0.04);
             text.Margin = new Thickness(markerSize*0.3, 0, markerSize*0.3, 0);
             var es = markerSize * 0.8;
             if (es < 1)
             {
-                Program.GameMess.Warning("[MarkerSize] Marker size of {0} is too small.\n",Program.GameEngine.Definition.MarkerSize);
+                Program.GameMess.Warning("[MarkerSize] Marker size of {0} is too small.\n", _gameEngine.Definition.MarkerSize);
                 es = 8;
             }
             text.FontSize = es;
@@ -90,7 +97,7 @@ namespace Octgn.Play.Gui
             Point pt = e.GetPosition(this);
             if (!_isDragging)
             {
-                // Check if the button was pressed over the marker, and was not release on another control in the meantime 
+                // Check if the button was pressed over the marker, and was not release on another control in the meantime
                 // (possible if the cursor is near the border of the marker)
                 if (_isMouseDown && Mouse.LeftButton == MouseButtonState.Pressed &&
                     // Check if has moved enough to start a drag and drop
@@ -152,7 +159,7 @@ namespace Octgn.Play.Gui
                 Mouse.DirectlyOver.RaiseEvent(e);
                 if (Keyboard.IsKeyUp(Key.LeftAlt) && !e.Handled)
                 {
-                    Program.Client.Rpc.RemoveMarkerReq(marker.Card, marker.Model.Id, marker.Model.Name, count, marker.Count, false);
+                    _gameEngine.Client.Rpc.RemoveMarkerReq(marker.Card, marker.Model.Id, marker.Model.Name, count, marker.Count, false);
                     marker.Card.RemoveMarker(marker, count);
                 }
             }

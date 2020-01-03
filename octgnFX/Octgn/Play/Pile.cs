@@ -1,12 +1,13 @@
-using Octgn.Utils;
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-//using Octgn.Play.GUI;
+using System;
+using Octgn.Utils;
+using System.Collections.Generic;
 
 namespace Octgn.Play
 {
-    using System;
-    using System.Collections.Generic;
-
     public sealed class Pile : Group
     {
         #region Public interface
@@ -84,7 +85,7 @@ namespace Octgn.Play
                 // move own cards to new positions
                 DoShuffle(cardIds, posit);
                 // Inform other players
-                Program.Client.Rpc.Shuffled(Player.LocalPlayer, this, cardIds, posit);
+                GameEngine.Client.Rpc.Shuffled(Player.LocalPlayer, this, cardIds, posit);
             }
         }
 

@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using log4net;
-using Octgn.Core;
 using Octgn.Core.DataExtensionMethods;
 using Octgn.Core.Play;
 using Octgn.DataNew.Entities;
@@ -23,19 +21,13 @@ namespace Octgn.Play
 {
     public sealed class Player : INotifyPropertyChanged, IPlayPlayer
     {
-        internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Static members
 
-        // Contains all players in this game (TODO: Rename to All, then cleanup all the dependancies)
-        private static readonly ObservableCollection<Player> all = new ObservableCollection<Player>();
+        private static readonly Color _black = Color.FromRgb(0x00, 0x00, 0x00);
 
-        private static readonly ObservableCollection<Player> allExceptGlobal = new ObservableCollection<Player>();
-
-        private static readonly ObservableCollection<Player> spectators = new ObservableCollection<Player>();
-
-        private static Color _black = Color.FromRgb(0x00, 0x00, 0x00);
-
-        private static Color[] _playerColors =
+        private static readonly Color[] _playerColors =
         {
             Color.FromRgb(0x00, 0x80, 0x00),
             Color.FromRgb(0xcc, 0x00, 0x00),
@@ -54,53 +46,44 @@ namespace Octgn.Play
         };
 
         public static Player LocalPlayer;
+
         // May be null if there's no global lPlayer in the game definition
         public static Player GlobalPlayer;
 
+        // Contains all players in this game (TODO: Rename to All, then cleanup all the dependancies)
+
         // Get all players in the game
-        public static ObservableCollection<Player> All
-        {
-            get { return all; }
-        }
+        public static ObservableCollection<Player> All { get; } = new ObservableCollection<Player>();
 
         // Get all players in the game, except a possible Global lPlayer
-        public static ObservableCollection<Player> AllExceptGlobal
-        {
-            get
-            {
-                return allExceptGlobal;
-            }
-        }
+        public static ObservableCollection<Player> AllExceptGlobal { get; } = new ObservableCollection<Player>();
 
-        public static ObservableCollection<Player> Spectators
-        {
-            get { return spectators; }
-        }
+        public static ObservableCollection<Player> Spectators { get; } = new ObservableCollection<Player>();
 
         // Number of players
         internal static int Count
         {
-            get { return GlobalPlayer == null ? all.Count : all.Count - 1; }
+            get { return GlobalPlayer == null ? All.Count : All.Count - 1; }
         }
 
         // Find a lPlayer with his id
-        internal static Player Find(byte id)
+        internal static Player Find(GameEngine gameEngine, byte id)
         {
-            return all.FirstOrDefault(p => p.Id == id);
+            return All.FirstOrDefault(p => p.Id == id);
         }
 
-        internal static Player FindIncludingSpectators(byte id)
+        internal static Player FindIncludingSpectators(GameEngine gameEngine, byte id)
         {
-            return all.Union(spectators).FirstOrDefault(p => p.Id == id);
+            return All.Union(Spectators).FirstOrDefault(p => p.Id == id);
         }
 
         // Resets the lPlayer list
         internal static void Reset()
         {
-            lock (all)
+            lock (All)
             {
-                all.Clear();
-                spectators.Clear();
+                All.Clear();
+                Spectators.Clear();
                 LocalPlayer = GlobalPlayer = null;
             }
         }
@@ -121,14 +104,14 @@ namespace Octgn.Play
 
         static Player()
         {
-            all.CollectionChanged += (sender, args) =>
+            All.CollectionChanged += (sender, args) =>
             {
-                allExceptGlobal.Clear();
-                foreach (var p in all.ToArray().Where(x => !x.IsGlobal))
+                AllExceptGlobal.Clear();
+                foreach (var p in All.ToArray().Where(x => !x.IsGlobal))
                 {
-                    allExceptGlobal.Add(p);
+                    AllExceptGlobal.Add(p);
                 }
-                foreach (var p in all.Union(spectators))
+                foreach (var p in All.Union(Spectators))
                 {
                     p.OnPropertyChanged("All");
                     p.OnPropertyChanged("AllExceptGlobal");
@@ -147,18 +130,11 @@ namespace Octgn.Play
 
         internal readonly ulong PublicKey; // Public cryptographic key
         internal readonly double minHandSize;
-        private readonly Counter[] _counters; // Counters this lPlayer owns
-
-        private readonly Group[] _groups; // Groups this lPlayer owns
-        private readonly Hand _hand; // Hand of this lPlayer (may be null)
-        private Brush _solidBrush;
-        private Brush _transparentBrush;
         private bool _invertedTable;
         private string _name;
         private byte _id;
         private bool _ready;
         private bool _spectator;
-        private bool _subscriber;
         private int _disconnectPercent;
         private string _userIcon;
 
@@ -188,35 +164,25 @@ namespace Octgn.Play
             }
             set
             {
-                //if (value == _ready) return;
                 _ready = value;
                 Log.DebugFormat("Player {0} Ready = {1}", this.Name, value);
                 this.OnPropertyChanged("Ready");
-                foreach (var p in all)
+                foreach (var p in All)
                     p.OnPropertyChanged("WaitingOnPlayers");
-                foreach (var p in spectators)
+                foreach (var p in Spectators)
                     p.OnPropertyChanged("WaitingOnPlayers");
             }
         }
 
-        public Counter[] Counters
-        {
-            get { return _counters; }
-        }
+        public Counter[] Counters { get; }
 
-        public bool Subscriber
-        {
-            get { return _subscriber; }
-        }
+        public bool Subscriber { get; }
 
-        public Group[] IndexedGroups
-        {
-            get { return _groups; }
-        }
+        public Group[] IndexedGroups { get; }
 
         public IEnumerable<Group> Groups
         {
-            get { return _groups.Where(g => g != null); }
+            get { return IndexedGroups.Where(g => g != null); }
         }
 
         public IEnumerable<Group> BottomGroups
@@ -231,7 +197,7 @@ namespace Octgn.Play
         {
             get
             {
-                return _groups.Where(x => x.Name.Equals("library", StringComparison.InvariantCultureIgnoreCase));
+                return IndexedGroups.Where(x => x.Name.Equals("library", StringComparison.InvariantCultureIgnoreCase));
             }
         }
 
@@ -241,7 +207,7 @@ namespace Octgn.Play
         {
             get
             {
-                return (this == LocalPlayer) || Program.IsHost;
+                return (this == LocalPlayer) || GameEngine.IsHost;
             }
         }
 
@@ -250,7 +216,7 @@ namespace Octgn.Play
             get { return _spectator; }
             set
             {
-                if (Program.Client == null) return;
+                if (GameEngine.Client == null) return;
                 Log.InfoFormat("[Spectator]{0} {1}", this, value);
                 if (_spectator == value) return;
                 this.UpdateSettings(InvertedTable, value, true);
@@ -259,10 +225,7 @@ namespace Octgn.Play
 
         public Dictionary<string, string> GlobalVariables { get; private set; }
 
-        public Hand Hand
-        {
-            get { return _hand; }
-        }
+        public Hand Hand { get; }
 
         public byte Id // Identifier
         {
@@ -334,17 +297,9 @@ namespace Octgn.Play
         public Color ActualColor { get; set; }
 
         // Work around a WPF binding bug ? Borders don't seem to bind correctly to Color!
-        public Brush Brush
-        {
-            get { return _solidBrush; }
-            set { _solidBrush = value; }
-        }
+        public Brush Brush { get; set; }
 
-        public Brush TransparentBrush
-        {
-            get { return _transparentBrush; }
-            set { _transparentBrush = value; }
-        }
+        public Brush TransparentBrush { get; set; }
 
         public PlayerState State
         {
@@ -359,7 +314,7 @@ namespace Octgn.Play
                 this.state = value;
                 this.OnPropertyChanged("State");
                 this.OnPropertyChanged("Ready");
-                foreach (var p in all)
+                foreach (var p in All)
                     p.OnPropertyChanged("WaitingOnPlayers");
             }
         }
@@ -395,10 +350,10 @@ namespace Octgn.Play
                 return;
             }
             Color = playerColor;
-            _solidBrush = new SolidColorBrush(Color);
-            _solidBrush.Freeze();
-            _transparentBrush = new SolidColorBrush(Color) { Opacity = 0.4 };
-            _transparentBrush.Freeze();
+            Brush = new SolidColorBrush(Color);
+            Brush.Freeze();
+            TransparentBrush = new SolidColorBrush(Color) { Opacity = 0.4 };
+            TransparentBrush.Freeze();
 
             //Notify clients that this has changed
             OnPropertyChanged("Color");
@@ -420,8 +375,8 @@ namespace Octgn.Play
 
                 Color = (Color) convertFromString;
 
-                _solidBrush = new SolidColorBrush(Color);
-                _transparentBrush = new SolidColorBrush(Color) {Opacity = 0.4};
+                Brush = new SolidColorBrush(Color);
+                TransparentBrush = new SolidColorBrush(Color) {Opacity = 0.4};
 
                 OnPropertyChanged("Color");
                 OnPropertyChanged("Brush");
@@ -441,8 +396,9 @@ namespace Octgn.Play
         public bool IsLocal { get; }
 
         // C'tor
-        internal Player(DataNew.Entities.Game g, string name, string userId, byte id, ulong pkey, bool spectator, bool local, bool isReplay)
+        internal Player(GameEngine gameEngine, DataNew.Entities.Game g, string name, string userId, byte id, ulong pkey, bool spectator, bool local, bool isReplay)
         {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
             // Cannot access Program.GameEngine here, it's null.
 
             Id = id;
@@ -475,36 +431,36 @@ namespace Octgn.Play
             PublicKey = pkey;
             if (Spectator == false)
             {
-                all.Add(this);
+                All.Add(this);
             }
             else
             {
-                spectators.Add(this);
+                Spectators.Add(this);
             }
             // Assign subscriber status
-            _subscriber = SubscriptionModule.Get().IsSubscribed ?? false;
+            Subscriber = SubscriptionModule.Get().IsSubscribed ?? false;
             //Create the color brushes
             SetPlayerColor(id);
             // Create counters
-            _counters = new Counter[0];
+            Counters = new Counter[0];
             if (g.Player.Counters != null)
-                _counters = g.Player.Counters.Select(x => new Counter(this, x, isReplay)).ToArray();
+                Counters = g.Player.Counters.Select(x => new Counter(GameEngine, this, x, isReplay)).ToArray();
             // Create global variables
             GlobalVariables = new Dictionary<string, string>();
             foreach (var varD in g.Player.GlobalVariables)
                 GlobalVariables.Add(varD.Name, varD.Value);
             // Create a hand, if any
             if (g.Player.Hand != null)
-                _hand = new Hand(this, g.Player.Hand);
+                Hand = new Hand(this, g.Player.Hand);
             // Create groups
-            _groups = new Group[0];
+            IndexedGroups = new Group[0];
             if (g.Player.Groups != null)
             {
                 var tempGroups = g.Player.Groups.ToArray();
-                _groups = new Group[tempGroups.Length + 1];
-                _groups[0] = _hand;
+                IndexedGroups = new Group[tempGroups.Length + 1];
+                IndexedGroups[0] = Hand;
                 for (int i = 1; i < IndexedGroups.Length; i++)
-                    _groups[i] = new Pile(this, tempGroups[i - 1]);
+                    IndexedGroups[i] = new Pile(this, tempGroups[i - 1]);
             }
             minHandSize = 250;
             if (Spectator == false)
@@ -525,17 +481,20 @@ namespace Octgn.Play
         }
 
         public bool IsGlobal { get; }
+        internal GameEngine GameEngine { get; }
 
         // C'tor for global items
-        internal Player(DataNew.Entities.Game g, bool isReplay)
+        internal Player(GameEngine gameEngine, DataNew.Entities.Game g, bool isReplay)
         {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             IsGlobal = true;
             _spectator = false;
             SetupPlayer(false);
             var globalDef = g.GlobalPlayer;
             // Register the lPlayer
-            lock (all)
-                all.Add(this);
+            lock (All)
+                All.Add(this);
             // Init fields
             _name = "Global";
             Id = 0;
@@ -548,19 +507,19 @@ namespace Octgn.Play
                     GlobalVariables.Add(varD.Name, varD.Value);
             }
             // Create counters
-            _counters = new Counter[0];
+            Counters = new Counter[0];
             if (globalDef.Counters != null)
-                _counters = globalDef.Counters.Select(x => new Counter(this, x, isReplay)).ToArray();
+                Counters = globalDef.Counters.Select(x => new Counter(GameEngine, this, x, isReplay)).ToArray();
             // Create global's lPlayer groups
             // TODO: This could fail with a run-time exception on write, make it safe
             // I don't know if the above todo is still relevent - Kelly Elton - 3/18/2013
             if (globalDef.Groups != null)
             {
                 var tempGroups = globalDef.Groups.ToArray();
-                _groups = new Group[tempGroups.Length + 1];
-                _groups[0] = _hand;
+                IndexedGroups = new Group[tempGroups.Length + 1];
+                IndexedGroups[0] = Hand;
                 for (int i = 1; i < IndexedGroups.Length; i++)
-                    _groups[i] = new Pile(this, tempGroups[i - 1]);
+                    IndexedGroups[i] = new Pile(this, tempGroups[i - 1]);
             }
             OnPropertyChanged("All");
             OnPropertyChanged("AllExceptGlobal");
@@ -578,7 +537,7 @@ namespace Octgn.Play
             if (_spectator)
                 _invertedTable = false;
             if (this == Player.LocalPlayer)
-                Program.GameEngine.Spectator = _spectator;
+                GameEngine.Spectator = _spectator;
             OnPropertyChanged("InvertedTable");
             OnPropertyChanged("Spectator");
             OnPropertyChanged("All");
@@ -586,24 +545,24 @@ namespace Octgn.Play
             OnPropertyChanged("Count");
 
             if(notify) // used to prevent feedback loops
-                Program.Client.Rpc.PlayerSettings(this, _invertedTable, _spectator);
+                GameEngine.Client.Rpc.PlayerSettings(this, _invertedTable, _spectator);
         }
 
         public static void RefreshSpectators()
         {
-            lock (all)
+            lock (All)
             {
-                foreach (var p in all.Where(x => x.Spectator).ToArray())
+                foreach (var p in All.Where(x => x.Spectator).ToArray())
                 {
-                    all.Remove(p);
-                    spectators.Add(p);
+                    All.Remove(p);
+                    Spectators.Add(p);
                 }
-                foreach (var s in spectators.Where(x => x.Spectator == false).ToArray())
+                foreach (var s in Spectators.Where(x => x.Spectator == false).ToArray())
                 {
-                    spectators.Remove(s);
-                    all.Add(s);
+                    Spectators.Remove(s);
+                    All.Add(s);
                 }
-                foreach (var p in all.Union(spectators))
+                foreach (var p in All.Union(Spectators))
                 {
                     p.OnPropertyChanged("All");
                     p.OnPropertyChanged("AllExceptGlobal");
@@ -620,17 +579,17 @@ namespace Octgn.Play
         {
 
             // Remove from the list
-            lock (all)
+            lock (All)
             {
-                all.Remove(this);
-                spectators.Remove(this);
+                All.Remove(this);
+                Spectators.Remove(this);
             }
-            if (Program.GameEngine.ActivePlayer == this)
+            if (GameEngine.ActivePlayer == this)
             {
-                Program.GameEngine.ActivePlayer = null;
+                GameEngine.ActivePlayer = null;
             }
             this.OnPropertyChanged("Ready");
-            foreach (var p in all)
+            foreach (var p in All)
                 p.OnPropertyChanged("WaitingOnPlayers");
             // Raise the event
             if (PlayerRemoved != null) PlayerRemoved(null, new PlayerEventArgs(this));

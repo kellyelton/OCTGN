@@ -1,15 +1,12 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.ComponentModel;
-using System.Text;
-using Octgn.Data;
 
 namespace Octgn.Play
 {
-    using System.Threading;
-    using System.Threading.Tasks;
-
-    using Octgn.Utils;
-
     public class Marker : INotifyPropertyChanged
     {
         internal static readonly DefaultMarkerModel[] DefaultMarkers = new[]
@@ -55,15 +52,14 @@ namespace Octgn.Play
                                                                                                                0, 0, 0,
                                                                                                                0, 8))
                                                                            };
-
-        private readonly Card _card;
-        private readonly DataNew.Entities.Marker _model;
         private ushort _count = 1;
+
+        internal GameEngine GameEngine => Card.GameEngine;
 
         public Marker(Card card, DataNew.Entities.Marker model)
         {
-            _card = card;
-            _model = model;
+            Card = card ?? throw new ArgumentNullException(nameof(card));
+            Model = model;
         }
 
         public Marker(Card card, DataNew.Entities.Marker model, ushort count)
@@ -72,12 +68,7 @@ namespace Octgn.Play
             _count = count;
         }
 
-        public DataNew.Entities.Marker Model
-        {
-            get { return _model; }
-        }
-
-        // private readonly CompoundCall setCountNetworkCompoundCall = new CompoundCall();
+        public DataNew.Entities.Marker Model { get; }
 
         public ushort Count
         {
@@ -85,15 +76,16 @@ namespace Octgn.Play
             set
             {
                 int count = _count;
-				//setCountNetworkCompoundCall.Call(()=>
-				//{
-				    var val = value;
-                    if (val < count)
-                        Program.Client.Rpc.RemoveMarkerReq(_card, Model.Id, Model.Name, (ushort)(count - val), (ushort)count,false);
-                    else if (val > count)
-                        Program.Client.Rpc.AddMarkerReq(_card, Model.Id, Model.Name, (ushort)(val - count), (ushort)count,false);
-                //});
+
+                var val = value;
+
+                if (val < count)
+                    GameEngine.Client.Rpc.RemoveMarkerReq(Card, Model.Id, Model.Name, (ushort)(count - val), (ushort)count,false);
+                else if (val > count)
+                    GameEngine.Client.Rpc.AddMarkerReq(Card, Model.Id, Model.Name, (ushort)(val - count), (ushort)count,false);
+
                 if (value == _count) return;
+
                 SetCount(value);
             }
         }
@@ -103,10 +95,7 @@ namespace Octgn.Play
             get { return Model.Name + " (x" + Count + ")"; }
         }
 
-        public Card Card
-        {
-            get { return _card; }
-        }
+        public Card Card { get; }
 
         #region INotifyPropertyChanged Members
 
@@ -124,7 +113,7 @@ namespace Octgn.Play
         internal void SetCount(ushort value)
         {
             if (value == 0)
-                _card.RemoveMarker(this);
+                Card.RemoveMarker(this);
             else if (value != _count)
             {
                 _count = value;

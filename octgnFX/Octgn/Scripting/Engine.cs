@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,16 +9,13 @@ using System.Security;
 using System.Security.Permissions;
 using System.Text;
 using System.Threading;
-using System.Web;
 using System.Windows;
 
 using IronPython.Hosting;
 using Microsoft.Scripting;
 using Microsoft.Scripting.Hosting;
-using Microsoft.Scripting.Hosting.Providers;
 using Octgn.Networking;
 using Octgn.Play;
-using Octgn.Properties;
 using System.Reflection;
 
 using IronPython.Runtime;
@@ -35,10 +31,7 @@ using Octgn.Library;
 
 namespace Octgn.Scripting
 {
-
-    [Export]
-    public class Engine : IDisposable
-    {
+    public class Engine : IDisposable {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public ScriptScope ActionsScope;
         private ScriptEngine _engine;
@@ -51,15 +44,10 @@ namespace Octgn.Scripting
         // is an aweful and ugly mess.
         //private Sponsor _sponsor;
 
-        public Engine()
-            : this(false)
-        {
-        }
+        internal GameEngine GameEngine { get; }
 
-        public Engine(bool forTesting)
-        {
-            Program.GameEngine.ScriptEngine = this;
-            Program.GameEngine.EventProxy = new GameEventProxy(this, Program.GameEngine);
+        public Engine(GameEngine gameEngine) {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
         }
 
         public void SetupEngine(bool testing)
@@ -253,60 +241,6 @@ namespace Octgn.Scripting
                 }
             }
             ExecuteFunctionNoFormat(function, sb.ToString());
-            //}
-            //else
-            //{
-            //    if (!didMsg)
-            //    {
-            //        didMsg = true;
-            //        Program.Print(Player.LocalPlayer, "Using new event system");
-            //    }
-            //    if (efcache.ContainsKey(function) == false)
-            //    {
-            //        const string format = @"_api.RegisterEvent(""{0}"", {0})";
-            //        var str = string.Format(format, function);
-
-            //        var src = _engine.CreateScriptSourceFromString(str, SourceCodeKind.Statements);
-            //        StartExecution(src, ActionsScope, (x) =>
-            //        {
-            //            if (efcache.ContainsKey(function))
-            //            {
-            //                ExecuteFunction(function, args);
-            //                return;
-            //            }
-            //            Log.Error("The function should have been registered... " + function);
-            //        });
-            //        return;
-            //    }
-
-            //    if (_executionQueue.Count == 0)
-            //    {
-            //        var jerb = new InvokedScriptJob(() => ExecuteFunction(function, args));
-
-            //        //ExecuteFunction(function, args);
-            //        StartExecution(jerb);
-            //        return;
-            //    }
-
-            //    var fun = efcache[function];
-            //    //var con = HostingHelpers.GetLanguageContext(_engine);
-            //    try
-            //    {
-            //        // Get the args
-            //        var newArgList = new List<object>();
-            //        foreach (var arg in args)
-            //        {
-            //            var na = ConvertArgs(arg);
-            //            newArgList.Add(na);
-            //        }
-            //        _engine.Operations.Invoke(fun, newArgList.ToArray());
-
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Log.Error(e);
-            //    }
-            //}
         }
 
         public void ExecuteFunctionNoFormat(string function, string args)
@@ -499,7 +433,7 @@ namespace Octgn.Scripting
                 job.DispatcherSignal.WaitOne();
                 while (job.InvokedOperation != null)
                 {
-                    using (new Mute(job.Muted))
+                    using (new Mute(this.GameEngine.Client, job.Muted))
                         job.InvokeResult = job.InvokedOperation.DynamicInvoke();
                     job.InvokedOperation = null;
                     job.WorkerSignal.Set();
@@ -531,7 +465,7 @@ namespace Octgn.Scripting
                 var scriptResult = sj.Source.Execute(sj.Scope);
                 var hasResult = sj.Scope.TryGetVariable("result", out result.ReturnValue);
                 result.Output = Encoding.UTF8.GetString(_outputStream.ToArray(), 0, (int)_outputStream.Length);
-                // It looks like Python adds some \r in front of \n, which sometimes 
+                // It looks like Python adds some \r in front of \n, which sometimes
                 // (depending on the string source) results in doubled \r\r
                 result.Output = result.Output.Replace("\r\r", "\r");
                 _outputStream.SetLength(0);

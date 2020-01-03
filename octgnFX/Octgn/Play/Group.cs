@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +22,7 @@ namespace Octgn.Play
 
         private static readonly KeyGestureConverter KeyConverter = new KeyGestureConverter();
 
-        // List of cards in this group        
+        // List of cards in this group
 
         internal DataNew.Entities.Group Def;
 
@@ -55,6 +59,17 @@ namespace Octgn.Play
                 MoveToShortcut = (KeyGesture) KeyConverter.ConvertFromInvariantString(def.Shortcut);
         }
 
+        internal Group(GameEngine gameEngine, DataNew.Entities.Group def)
+            : base(gameEngine) {
+
+            Def = def;
+            ResetVisibility();
+            GroupShortcuts = CreateShortcuts(def.GroupActions);
+            CardShortcuts = CreateShortcuts(def.CardActions);
+            if (def.Shortcut != null)
+                MoveToShortcut = (KeyGesture) KeyConverter.ConvertFromInvariantString(def.Shortcut);
+        }
+
         public DataNew.Entities.Group Definition
         {
             get { return Def; }
@@ -68,7 +83,7 @@ namespace Octgn.Play
 
         public KeyGesture MoveToShortcut { get; private set; }
 
-        // Are cards visible when they arrive in this group ?                
+        // Are cards visible when they arrive in this group ?
         internal GroupVisibility Visibility
         {
             get { return visibility; }
@@ -96,7 +111,7 @@ namespace Octgn.Play
             {
                 lock (cards)
                 {
-                    if (cards.Count == 0) 
+                    if (cards.Count == 0)
                         return null;
                     return cards[idx];
                 }
@@ -117,10 +132,10 @@ namespace Octgn.Play
 
         }
 
-        internal new static Group Find(int id)
+        internal new static Group Find(GameEngine gameEngine, int id)
         {
-            if (id == 0x01000000) return Program.GameEngine.Table;
-            Player player = Player.Find((byte) (id >> 16));
+            if (id == 0x01000000) return gameEngine.Table;
+            Player player = Player.Find(gameEngine, (byte) (id >> 16));
             return player.IndexedGroups[(byte) id - 1];
         }
 
@@ -251,13 +266,13 @@ namespace Octgn.Play
         internal void FreezeCardsVisibility(bool notifyServer)
         {
             if (notifyServer)
-                Program.Client.Rpc.FreezeCardsVisibility(this);
+                GameEngine.Client.Rpc.FreezeCardsVisibility(this);
         }
 
         internal void SetVisibility(bool? visible, bool notifyServer)
         {
             if (notifyServer)
-                Program.Client.Rpc.GroupVisReq(this, visible.HasValue, visible.GetValueOrDefault());
+                GameEngine.Client.Rpc.GroupVisReq(this, visible.HasValue, visible.GetValueOrDefault());
             if (!visible.HasValue)
             {
                 visibility = GroupVisibility.Undefined;
@@ -277,7 +292,7 @@ namespace Octgn.Play
 
             lock (cards)
             {
-                foreach (Card c in cards.Where(c => !c.OverrideGroupVisibility)) 
+                foreach (Card c in cards.Where(c => !c.OverrideGroupVisibility))
                     c.SetVisibility(visibility, Viewers);
             }
             OnCardsChanged();
@@ -292,14 +307,14 @@ namespace Octgn.Play
             }
             else if (Viewers.Contains(player)) return;
             if (notifyServer)
-                Program.Client.Rpc.GroupVisAddReq(this, player);
+                GameEngine.Client.Rpc.GroupVisAddReq(this, player);
             visibility = GroupVisibility.Custom;
             Viewers.Add(player);
             lock (cards)
             {
                 foreach (Card c in cards.Where(c => !c.OverrideGroupVisibility))
                     c.SetVisibility(visibility, Viewers);
-                
+
             } OnCardsChanged();
         }
 
@@ -307,7 +322,7 @@ namespace Octgn.Play
         {
             if (!Viewers.Contains(player)) return;
             if (notifyServer)
-                Program.Client.Rpc.GroupVisRemoveReq(this, player);
+                GameEngine.Client.Rpc.GroupVisRemoveReq(this, player);
             Viewers.Remove(player);
             visibility = Viewers.Count == 0 ? GroupVisibility.Nobody : GroupVisibility.Custom;
             if (player == Player.LocalPlayer)
@@ -315,8 +330,8 @@ namespace Octgn.Play
                 {
                     foreach (Card c in cards)
                         c.SetFaceUp(false);
-                    
-                } 
+
+                }
             OnCardsChanged();
         }
 

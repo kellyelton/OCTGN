@@ -1,6 +1,7 @@
 ﻿/* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.Linq;
 using System.Net;
@@ -20,13 +21,13 @@ namespace Octgn.Networking
 
         public int Muted { get; set; }
 
-        public ClientSocket(IPAddress address, int port)
+        public ClientSocket(GameEngine gameEngine, IPAddress address, int port)
             : base(0, TimeSpan.Zero)
         {
             this.Setup(new IPEndPoint(address, port), new ClientMessageProcessor());
             this.Client.Client.SendTimeout = 4000;
-            Handler = new Handler();
-            Rpc = new BinarySenderStub(this);
+            Handler = new Handler(gameEngine);
+            Rpc = new BinarySenderStub(this, this);
         }
 
         public override void OnConnectionEvent(object sender, SocketConnectionEvent e)

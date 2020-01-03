@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -41,11 +45,15 @@ namespace Octgn.Controls
         public bool IsOnline { get; private set; }
         private readonly bool _isLocal;
 
+        private readonly GameEngine _gameEngine;
+
         public PreGameLobby()
         {
-            CanChangeSettings = Program.IsHost && !Program.GameEngine.IsReplay;
-            IsOnline = Program.GameEngine.IsLocal == false;
-            var isLocal = Program.GameEngine.IsLocal;
+            _gameEngine = Program.GameEngine;
+
+            CanChangeSettings = _gameEngine.IsHost && !_gameEngine.IsReplay;
+            IsOnline = _gameEngine.IsLocal == false;
+            var isLocal = _gameEngine.IsLocal;
             InitializeComponent();
             if (this.IsInDesignMode()) return;
             Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
@@ -65,13 +73,13 @@ namespace Octgn.Controls
                     "The following players have joined your game.\n\nClick 'Start' when everyone has joined. No one will be able to join once the game has started.";
                 if (isLocal)
                 {
-                    if (Program.Client is ClientSocket clientSocket) {
+                    if (_gameEngine.Client is ClientSocket clientSocket) {
                         descriptionLabel.Text += "\n\nHosting on port: " + clientSocket.EndPoint.Port;
                         GetIps();
 
                         // save game/port so a new client can start up and connect
                         Prefs.LastLocalHostedGamePort = clientSocket.EndPoint.Port;
-                        Prefs.LastHostedGameType = Program.GameEngine.Definition.Id;
+                        Prefs.LastHostedGameType = _gameEngine.Definition.Id;
                     }
                 }
             }
@@ -80,7 +88,7 @@ namespace Octgn.Controls
                 descriptionLabel.Text =
                     "The following players have joined the game.\nPlease wait until the game starts, or click 'Cancel' to leave this game.";
                 startBtn.Visibility = Visibility.Collapsed;
-                if (Program.GameEngine.IsReplay) {
+                if (_gameEngine.IsReplay) {
                     skipBtn.Visibility = Visibility.Visible;
                 } else {
                     skipBtn.Visibility = Visibility.Collapsed;
@@ -99,8 +107,8 @@ namespace Octgn.Controls
         private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
             Loaded -= OnLoaded;
-            Program.GameSettings.UseTwoSidedTable = Program.GameEngine.Definition.UseTwoSidedTable;
-            Program.GameSettings.ChangeTwoSidedTable = Program.GameEngine.Definition.ChangeTwoSidedTable;
+            Program.GameSettings.UseTwoSidedTable = _gameEngine.Definition.UseTwoSidedTable;
+            Program.GameSettings.ChangeTwoSidedTable = _gameEngine.Definition.ChangeTwoSidedTable;
 
             Program.Dispatcher = Dispatcher;
             Program.ServerError += HandshakeError;
@@ -110,8 +118,8 @@ namespace Octgn.Controls
             // Otherwise, messages notifying a disconnection may be lost
             try
             {
-                if (Program.GameEngine != null)
-                    Dispatcher.BeginInvoke(new Action(() => Program.GameEngine.Begin()));
+                if (_gameEngine != null)
+                    Dispatcher.BeginInvoke(new Action(() => _gameEngine.Begin()));
             }
             catch (Exception)
             {
@@ -185,10 +193,10 @@ namespace Octgn.Controls
         private void PlayerOnOnLocalPlayerWelcomed()
         {
             if (Player.LocalPlayer.Id == 255) return;
-            if (Player.LocalPlayer.Id == 1 && !Program.GameEngine.IsReplay)
+            if (Player.LocalPlayer.Id == 1 && !_gameEngine.IsReplay)
             {
                 Dispatcher.BeginInvoke(new Action(() => { startBtn.Visibility = Visibility.Visible; }));
-                Program.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
+                _gameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
             }
 			Player.LocalPlayer.SetPlayerColor(Player.LocalPlayer.Id);
             this.StartingGame = true;
@@ -198,7 +206,7 @@ namespace Octgn.Controls
         {
             if (DesignerProperties.GetIsInDesignMode(this)) return;
             if (Program.IsHost)
-                Program.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
+                _gameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
         }
 
         private bool calledStart = false;
@@ -228,7 +236,7 @@ namespace Octgn.Controls
             }
             if (callStartGame)
             {
-                Program.Client.Rpc.Start(); // I believe this is for table only mode - Kelly
+                _gameEngine.Client.Rpc.Start(); // I believe this is for table only mode - Kelly
             }
             this.StartingGame = true;
             Back();
@@ -293,7 +301,7 @@ namespace Octgn.Controls
             if (play == null) return;
             if (Program.IsHost == false) return;
 
-            Program.Client.Rpc.Boot(play, "The host has booted them from the game.");
+            _gameEngine.Client.Rpc.Boot(play, "The host has booted them from the game.");
         }
 
         private async void ProfileMouseUp(object sender, MouseButtonEventArgs e)
@@ -305,7 +313,7 @@ namespace Octgn.Controls
         }
 
         private void SkipClicked(object sender, RoutedEventArgs e) {
-            Program.GameEngine.ReplayEngine.FastForwardToStart();
+            _gameEngine.ReplayEngine.FastForwardToStart();
         }
     }
 }

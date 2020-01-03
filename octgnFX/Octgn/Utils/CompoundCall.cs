@@ -1,11 +1,14 @@
-﻿namespace Octgn.Utils
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
+using System.Threading;
+using Octgn.Library;
+using Octgn.Networking;
+
+namespace Octgn.Utils
 {
-    using System;
-    using System.Threading;
-
-    using Octgn.Library;
-    using Octgn.Networking;
-
     public class CompoundCall
     {
         private Action currentCall;
@@ -13,9 +16,16 @@
         private DateTime endTime;
         private int curMuted = 0;
 
+        private readonly GameEngine _gameEngine;
+
+        public CompoundCall(GameEngine gameEngine) {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+        }
+
         public void Call(Action call)
         {
-            curMuted = Program.Client.Muted;
+            curMuted = _gameEngine.Client.Muted;
+
             lock (this)
             {
                 currentCall = call;
@@ -42,13 +52,13 @@
                         if (DateTime.Now >= endTime)
                         {
 							// Do the shit
-                            using (new Mute(curMuted)) 
+                            using (new Mute(_gameEngine.Client, curMuted))
                                 X.Instance.Try(currentCall);
                             return;
                         }
                     }
                 }
-				
+
             }
             finally
             {

@@ -27,7 +27,6 @@ namespace Octgn.Play.Gui
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 #pragma warning disable 649   // Unassigned variable: it's initialized by MEF
 
-        [Import]
         protected Engine ScriptEngine;
 
 #pragma warning restore 649
@@ -65,7 +64,7 @@ namespace Octgn.Play.Gui
             Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (Program.GameEngine != null)
-                        Program.GameEngine.ComposeParts(this);
+                        ScriptEngine = Program.GameEngine.ScriptEngine;
                 }));
             DataContextChanged += delegate
                                       {
@@ -285,7 +284,7 @@ namespace Octgn.Play.Gui
             {
                 var actions = def.GroupActions;
                 var nGroupActions = actions.ToArray().Length;
-                
+
                 if (nGroupActions > 0)
                     items.AddRange(actions.Select(action => CreateActionMenuItem(action, GroupActionClicked, null)).Where(x => x.Visibility == Visibility.Visible));
                     items.Add(new Separator());
@@ -319,7 +318,7 @@ namespace Octgn.Play.Gui
 
             a.AddNote(a.ContextMenuNotesMousePosition.X, a.ContextMenuNotesMousePosition.Y);
         }
-        
+
         protected virtual List<Control> CreateCardMenuItems(Card card, DataNew.Entities.Group def)
         {
             var items = new List<Control>();
@@ -558,7 +557,7 @@ namespace Octgn.Play.Gui
             else if (action.BatchExecute != null)
                 ScriptEngine.ExecuteOnBatch(action.BatchExecute, Selection.ExtendToSelection(ContextCard));
         }
-        
+
         private Control CreateActionMenuItem(IGroupAction baseAction, RoutedEventHandler onClick, Card card)
         {
             var selection = card == null ? Enumerable.Empty<Card>() : Selection.ExtendToSelection(card);
@@ -591,7 +590,7 @@ namespace Octgn.Play.Gui
             //action is a proper action
             var action = baseAction as GroupAction;
             item.Tag = action;
-            
+
             if (action != null)
             {
                 item.InputGestureText = action.Shortcut;

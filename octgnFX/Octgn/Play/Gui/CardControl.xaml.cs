@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,7 +16,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using Octgn.DataNew.Entities;
 using Octgn.Extentions;
 using Octgn.Play.Gui.Adorners;
 using Octgn.Scripting;
@@ -20,7 +23,6 @@ using Octgn.Utils;
 using System.Reflection;
 using Octgn.Core.DataExtensionMethods;
 using log4net;
-using Octgn.Core.Play;
 
 namespace Octgn.Play.Gui
 {
@@ -28,10 +30,7 @@ namespace Octgn.Play.Gui
     public partial class CardControl : INotifyPropertyChanged
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-#pragma warning disable 649   // Unassigned variable: it's initialized by MEF
-        [Import]
-        protected Engine ScriptEngine;
-#pragma warning restore 649
+        protected readonly Engine ScriptEngine;
 
         #region Dependency properties
 
@@ -100,8 +99,10 @@ namespace Octgn.Play.Gui
         private readonly Window _mainWin;
         private ScaleTransform _invertTransform;
 
-        public CardControl()
-        {
+        private readonly GameEngine _gameEngine;
+
+        [Obsolete("Used only for designer")]
+        public CardControl() {
             InitializeComponent();
             if (mouseClickHandler == null)
                 mouseClickHandler = new MouseClickHandler(
@@ -109,17 +110,19 @@ namespace Octgn.Play.Gui
                     MouseButtonUpAction,
                     MouseButtonDoubleClickAction);
             if (DesignerProperties.GetIsInDesignMode(this)) return;
-            Program.GameEngine.ComposeParts(this);
+
+            _gameEngine = Program.GameEngine ?? throw new InvalidOperationException("GameEngine null");
+            ScriptEngine = _gameEngine.ScriptEngine;
 
             //fix MAINWINDOW bug
             _mainWin = WindowManager.PlayWindow;
-            int markerSize = Program.GameEngine.Definition.MarkerSize;
+            int markerSize = _gameEngine.Definition.MarkerSize;
             if (markerSize == 0) markerSize = 20;
             markers.Margin = new Thickness(markerSize / 8);
             peekEyeIcon.Width = peekers.MinHeight = markerSize;
             anchoredIcon.Width = markerSize;
             peekers.SetValue(TextBlock.FontSizeProperty, markerSize * 0.8);
-            //if (Program.GameEngine.Definition.CardCornerRadius > 0)
+            //if (_gameEngine.Definition.CardCornerRadius > 0)
             img.Clip = new RectangleGeometry();
             AddHandler(MarkerControl.MarkerDroppedEvent, new EventHandler<MarkerEventArgs>(MarkerDropped));
             AddHandler(TableControl.TableKeyEvent, new EventHandler<TableKeyEventArgs>(TableKeyDown));
@@ -132,21 +135,6 @@ namespace Octgn.Play.Gui
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            //Program.GameMess.GameDebug("OnSizeChanged");
-            // if only height is set, set width accordingly so that slight differences in scans size
-            // don't propagate to the layout
-            //if (double.IsNaN(Width) && !double.IsNaN(Height))
-            //{
-            //    var cs = Card == null ? Program.GameEngine.Definition.CardSize : Card.Size;
-            //    if (IsUp == false)
-            //    {
-            //        Width = cs.BackWidth*Height/cs.BackHeight;
-            //    }
-            //    else
-            //    {
-            //        Width = cs.Width*Height/cs.Height;
-            //    }
-            //}
             target.Height = target.Width = Math.Min(Height, Width);
             peekers.Margin = new Thickness(ActualWidth - 1, 8, -200, 0);
             contentCtrl.Height = this.ActualHeight;
@@ -212,29 +200,6 @@ namespace Octgn.Play.Gui
             private set { SetValue(DisplayedPictureProperty, value); }
         }
 
-        //private void SetDisplayedPicture(string value)
-        //{
-        //    if (value == null)
-        //    {
-        //        DisplayedPicture = null;
-        //        return;
-        //    }
-
-        //    // Shortcut: always reuse the same bitmap images for default face up and down
-        //    if (value == Card.DefaultFront)
-        //    {
-        //        DisplayedPicture = Program.GameEngine.CardFrontBitmap;
-        //        return;
-        //    }
-        //    if (value == Card.DefaultBack)
-        //    {
-        //        DisplayedPicture = Program.GameEngine.CardBackBitmap;
-        //        return;
-        //    }
-
-        //    ImageUtils.GetCardImage(new Uri(value), x => DisplayedPicture = x);
-        //}
-
         private void SetDisplayedPicture(ImageSource value)
         {
             DisplayedPicture = value;
@@ -247,13 +212,7 @@ namespace Octgn.Play.Gui
             var up = (bool)e.NewValue;
             ctrl.SetDisplayedPicture(ctrl.Card.GetBitmapImage(up));
             // Set the size depending on if up o not
-            //ctrl.InvalidateVisual();
-            //Program.GameMess.GameDebug("IsUpChanged");
             ctrl.InvalidateMeasure();
-            //ctrl.contentCtrl.InvalidateMeasure();
-            //ctrl.img.InvalidateMeasure();
-            //ctrl.Width = double.NaN;
-            //ctrl.OnSizeChanged(null, null);
         }
 
         private static void IsAlwaysUpChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -272,8 +231,8 @@ namespace Octgn.Play.Gui
             {
                 var clipRect = ((RectangleGeometry)img.Clip);
                 clipRect.Rect = new Rect(img.DesiredSize);
-                var cs = Card == null ? Program.GameEngine.Definition.CardSize : Card.Size;
-                //clipRect.RadiusX = clipRect.RadiusY = Program.GameEngine.Definition.CardCornerRadius * clipRect.Rect.Height / cs.Height;
+                var cs = Card == null ? _gameEngine.Definition.CardSize : Card.Size;
+                //clipRect.RadiusX = clipRect.RadiusY = _gameEngine.Definition.CardCornerRadius * clipRect.Rect.Height / cs.Height;
                 if (IsUp)
                 {
                     clipRect.RadiusX = clipRect.RadiusY = cs.CornerRadius * clipRect.Rect.Height / cs.Height;
@@ -300,7 +259,7 @@ namespace Octgn.Play.Gui
             if (Card == null) return;
             bool oldIsUp = IsUp;
             IsUp = IsAlwaysUp || Card.FaceUp;
-            // If IsUp changes, it automatically updates the picture. 
+            // If IsUp changes, it automatically updates the picture.
             // Otherwise do it explicitely
             if (oldIsUp == IsUp)
                 SetDisplayedPicture(Card.GetBitmapImage(IsUp));
@@ -321,7 +280,7 @@ namespace Octgn.Play.Gui
             if (Card == null) return;
 
             // Three cases are possible.
-            // 1. The container is unloaded (e.g. one closes a GroupWindow). 
+            // 1. The container is unloaded (e.g. one closes a GroupWindow).
             //    This case is recognizable because GroupControl.IsLoaded is false.
             //    We have to remove our listeners.
             // 2. The card is been moved to another group.
@@ -329,11 +288,11 @@ namespace Octgn.Play.Gui
             //    We have to remove our listeners.
             // 3. The card index changes (e.g. it's moved to top/bottom of a pile).
             //    In this case WPF seems to unload and then reload the control at the correct position.
-            //    But in some weird cases WPF seems to call Unload WITHOUT a matching Load, 
-            //    although the control ends up in the visual tree. E.g. when Moving several cards to the 
+            //    But in some weird cases WPF seems to call Unload WITHOUT a matching Load,
+            //    although the control ends up in the visual tree. E.g. when Moving several cards to the
             //    top of a pile at once, with the GroupWindow open.
             //    We can recognize this case because GroupControl.IsLoaded is true.
-            //    In this case we *keep* the listeners attached!			
+            //    In this case we *keep* the listeners attached!
             GroupControl groupCtrl = GroupControl;
             if (groupCtrl != null && groupCtrl.IsLoaded) return;
 
@@ -526,13 +485,13 @@ namespace Octgn.Play.Gui
             // Clear or modify selection
             if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
             {
-                if (Program.GameEngine == null || Program.GameEngine.Table == null)
+                if (_gameEngine == null || _gameEngine.Table == null)
                 {
                     return;
                 }
 
                 // Add/Remove from selection (currently only on table and hand)
-                if (Card.Group == Program.GameEngine.Table || Card.Group is Hand)
+                if (Card.Group == _gameEngine.Table || Card.Group is Hand)
                 {
                     if (Card.Anchored == false)
                     {
@@ -576,14 +535,14 @@ namespace Octgn.Play.Gui
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (Card == null) return;
-            if (Card.Controller != Player.LocalPlayer || Program.GameEngine.IsReplay) return;
+            if (Card.Controller != Player.LocalPlayer || _gameEngine.IsReplay) return;
             base.OnMouseMove(e);
             e.Handled = true;
             Point windowPt = e.GetPosition(Window.GetWindow(this));
             Point pt = e.GetPosition(this);
             if (!_isDragging)
             {
-                // Check if the button was pressed over the card, and was not release on another control in the meantime 
+                // Check if the button was pressed over the card, and was not release on another control in the meantime
                 // (possible if the cursor is near the border of the card)
                 if (Mouse.LeftButton == MouseButtonState.Pressed &&
                     // Check if has moved enough to start a drag and drop
@@ -644,9 +603,9 @@ namespace Octgn.Play.Gui
                         _dragSource = DragSource.None;
                         if (!_isDragging)
                         {
-                            Program.GameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
-                            Program.GameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
-                            Program.GameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
+                            _gameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
+                            _gameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
+                            _gameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
                         }
                         DragCardCompleted();
                         break;
@@ -685,9 +644,9 @@ namespace Octgn.Play.Gui
             }
             if (shouldFireEvent)
             {
-                Program.GameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
-                Program.GameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
-                Program.GameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
+                _gameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
+                _gameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
+                _gameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
             }
         }
 
@@ -695,15 +654,15 @@ namespace Octgn.Play.Gui
         {
             base.OnMouseDoubleClick(e);
 
-            // Double-click ends any manipulation which may be in progress. 
+            // Double-click ends any manipulation which may be in progress.
             // Otherwise bugs may happen (e.g. if the default action moves the card)
             if (IsMouseCaptured) ReleaseMouseCapture();
             _dragSource = DragSource.None;
 
 
-            Program.GameEngine.EventProxy.OnCardDoubleClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
-            Program.GameEngine.EventProxy.OnCardDoubleClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
-            Program.GameEngine.EventProxy.OnCardDoubleClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
+            _gameEngine.EventProxy.OnCardDoubleClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
+            _gameEngine.EventProxy.OnCardDoubleClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
+            _gameEngine.EventProxy.OnCardDoubleClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
             if (e.ChangedButton == MouseButton.Left)
             {
                 e.Handled = true;
@@ -714,7 +673,7 @@ namespace Octgn.Play.Gui
         protected void DragCardStarted()
         {
             DraggedCards.Clear();
-            // in theory draggedCards should already be empty, but it's better to recover if there was a problem during last DnD						
+            // in theory draggedCards should already be empty, but it's better to recover if there was a problem during last DnD
             if (!Selection.IsEmpty())
                 DraggedCards.AddRange(Selection.Cards);
             else if (_isOverCount)
@@ -735,10 +694,10 @@ namespace Octgn.Play.Gui
             // Hides the card view
             RaiseEvent(new CardEventArgs(CardHoveredEvent, this));
 
-            // Starts the drag-and-drop            
+            // Starts the drag-and-drop
             ScaleFactor = TransformToAncestor(_mainWin).TransformBounds(new Rect(0, 0, 1, 1)).Size;
             //bool rot90 = (Card.Orientation & CardOrientation.Rot90) != 0;
-            var cs = Card == null ? Program.GameEngine.Definition.CardSize : Card.Size;
+            var cs = Card == null ? _gameEngine.Definition.CardSize : Card.Size;
             if (IsUp)
             {
                 _mouseOffset = new Vector(_mousePt.X * cs.Width / ActualWidth, _mousePt.Y * cs.Height / ActualHeight);
@@ -755,7 +714,7 @@ namespace Octgn.Play.Gui
                 layer = AdornerLayer.GetAdornerLayer(mwn);
             double offset = 0;
             double step = ActualWidth * 1.05;
-            // HACK: if the selected card is in HandControl, its ContentPresenter has a RenderTransform, 
+            // HACK: if the selected card is in HandControl, its ContentPresenter has a RenderTransform,
             // which we must account for
             if (GroupControl is HandControl)
             {
@@ -765,7 +724,7 @@ namespace Octgn.Play.Gui
             }
             foreach (CardControl cardCtrl in Selection.GetCardControls(GroupControl, this))
             {
-                // Create an adorner                
+                // Create an adorner
                 if (Card.Group is Table)
                 {
                     var overlay = new CardDragAdorner(cardCtrl, _mouseOffset);
@@ -774,7 +733,7 @@ namespace Octgn.Play.Gui
                 }
                 else
                 {
-                    // If there are multiple cards but they don't come from the table, 
+                    // If there are multiple cards but they don't come from the table,
                     // layout the adorners properly
                     var overlay = new CardDragAdorner(this, cardCtrl, _mouseOffset);
                     OverlayElements.Add(overlay);
@@ -808,7 +767,7 @@ namespace Octgn.Play.Gui
         {
             if (!_isDragging) return;
             _isDragging = false;
-            if (Card.Controller != Player.LocalPlayer || Program.GameEngine.IsReplay) return;
+            if (Card.Controller != Player.LocalPlayer || _gameEngine.IsReplay) return;
             // Release the card and its group
             foreach (Card c in DraggedCards)
             {
@@ -851,7 +810,7 @@ namespace Octgn.Play.Gui
 
             // Restore full opacity
             // FIX (jods): if the cards have been moved to another group, groupCtrl is null.
-            //					 	 But in this case nothing has to be done opacity-wise since 
+            //					 	 But in this case nothing has to be done opacity-wise since
             //					   the CardControls have been unloaded.
             GroupControl groupCtrl = GroupControl;
             if (groupCtrl != null)
@@ -933,7 +892,7 @@ namespace Octgn.Play.Gui
                     overlay.CollapseTo(dx * ScaleFactor.Width, dy * ScaleFactor.Height);
                 }
             }
-            // Expand if we enter the table 			
+            // Expand if we enter the table
             else if (current is TableControl)
             {
                 foreach (CardDragAdorner overlay in OverlayElements)
@@ -1038,11 +997,11 @@ namespace Octgn.Play.Gui
                 switch (e.Key)
                 {
                     case Key.PageUp:
-                        Program.GameEngine.Table.BringToFront(Card);
+                        _gameEngine.Table.BringToFront(Card);
                         e.Handled = te.Handled = true;
                         break;
                     case Key.PageDown:
-                        Program.GameEngine.Table.SendToBack(Card);
+                        _gameEngine.Table.SendToBack(Card);
                         e.Handled = te.Handled = true;
                         break;
                     case Key.P:
@@ -1137,14 +1096,14 @@ namespace Octgn.Play.Gui
             if (e.Marker.Card == Card) return;
             if (Keyboard.IsKeyUp(Key.LeftAlt))
             {
-                Program.Client.Rpc.TransferMarkerReq(e.Marker.Card, Card, e.Marker.Model.Id, e.Marker.Model.Name,
+                _gameEngine.Client.Rpc.TransferMarkerReq(e.Marker.Card, Card, e.Marker.Model.Id, e.Marker.Model.Name,
                                                      e.Count, e.Marker.Count, false);
                 e.Marker.Card.RemoveMarker(e.Marker, e.Count);
                 Card.AddMarker(e.Marker.Model, e.Count);
             }
             else
             {
-                Program.Client.Rpc.AddMarkerReq(Card, e.Marker.Model.Id, e.Marker.Model.Name, e.Count, e.Marker.Count, false);
+                _gameEngine.Client.Rpc.AddMarkerReq(Card, e.Marker.Model.Id, e.Marker.Model.Name, e.Count, e.Marker.Count, false);
                 Card.AddMarker(e.Marker.Model, e.Count);
             }
         }
@@ -1294,7 +1253,7 @@ namespace Octgn.Play.Gui
 
             if (!color.HasValue)
                 return Brushes.White;
-            // White should never appear on screen -> the card is neither selected nor has a highlight      
+            // White should never appear on screen -> the card is neither selected nor has a highlight
             var brush = new SolidColorBrush(color.Value);
             brush.Freeze();
             return brush;
@@ -1319,7 +1278,7 @@ namespace Octgn.Play.Gui
 
             if (!color.HasValue)
                 return Brushes.White;
-            // White should never appear on screen -> the card is neither selected nor has a filter      
+            // White should never appear on screen -> the card is neither selected nor has a filter
             var brush = new SolidColorBrush(color.Value);
             brush.Freeze();
             return brush;

@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Globalization;
@@ -6,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -44,13 +47,9 @@ namespace Octgn.Play
     public partial class PlayWindow : INotifyPropertyChanged
     {
         private bool _isLocal;
-#pragma warning disable 649   // Unassigned variable: it's initialized by MEF
 
-        [Import]
-        protected Engine ScriptEngine;
+        protected readonly Engine ScriptEngine;
         internal new static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-#pragma warning restore 649
 
         #region Dependency Properties
 
@@ -129,23 +128,31 @@ namespace Octgn.Play
 
         public ReplayEngine ReplayEngine { get; }
 
+        private readonly GameEngine _gameEngine;
+
+        [Obsolete("Used only when in design mode")]
         public PlayWindow()
-            : base()
-        {
+            : base() {
+            InitializeComponent();
+        }
+
+        public PlayWindow(GameEngine gameEngine) {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             GameSettings = Program.GameSettings;
             IsHost = Program.IsHost;
             GameMessages = new ObservableCollection<IGameMessage>();
             _gameMessageReader = new GameMessageDispatcherReader(Program.GameMess);
-            var isLocal = Program.GameEngine.IsLocal;
+            var isLocal = _gameEngine.IsLocal;
             Program.Dispatcher = Dispatcher;
-            DataContext = Program.GameEngine;
+            DataContext = _gameEngine;
 
-            ReplayEngine = Program.GameEngine.ReplayEngine;
+            ReplayEngine = _gameEngine.ReplayEngine;
 
             InitializeComponent();
 
 
-            if (Program.GameEngine.IsReplay) {
+            if (_gameEngine.IsReplay) {
                 foreach (var eve in ReplayEngine.AllEvents) {
                     if (eve.Type == ReplayEventType.NextTurn) {
                         ReplaySlider.Ticks.Add(eve.Time.Ticks);
@@ -160,9 +167,9 @@ namespace Octgn.Play
             _isLocal = isLocal;
             //Application.Current.MainWindow = this;
             Version oversion = Assembly.GetExecutingAssembly().GetName().Version;
-            Title = "Octgn  version : " + oversion + " : " + Program.GameEngine.Definition.Name;
-            Program.GameEngine.ComposeParts(this);
-            if (Program.GameEngine.AllPhases.Count() < 1) PhaseControl.Visibility = Visibility.Collapsed;
+            Title = "Octgn  version : " + oversion + " : " + _gameEngine.Definition.Name;
+            ScriptEngine = _gameEngine.ScriptEngine;
+            if (_gameEngine.AllPhases.Count() < 1) PhaseControl.Visibility = Visibility.Collapsed;
             this.Loaded += OnLoaded;
             this.chat.MouseEnter += ChatOnMouseEnter;
             this.chat.MouseLeave += ChatOnMouseLeave;
@@ -173,21 +180,21 @@ namespace Octgn.Play
                 if (this.PreGameLobby.StartingGame)
                 {
                     PreGameLobby.Visibility = Visibility.Collapsed;
-                    if (Player.LocalPlayer.Spectator == false && Program.GameEngine.IsReplay == false)
-                        Program.GameEngine.ScriptEngine.SetupEngine(false);
+                    if (Player.LocalPlayer.Spectator == false && _gameEngine.IsReplay == false)
+                        _gameEngine.ScriptEngine.SetupEngine(false);
 
 
-                    table = new TableControl { DataContext = Program.GameEngine.Table, IsTabStop = true };
+                    table = new TableControl { DataContext = _gameEngine.Table, IsTabStop = true };
                     KeyboardNavigation.SetIsTabStop(table, true);
                     TableHolder.Child = table;
 
                     table.UpdateSided();
                     Keyboard.Focus(table);
 
-					Dispatcher.BeginInvoke(new Action(Program.GameEngine.Ready), DispatcherPriority.ContextIdle);
+					Dispatcher.BeginInvoke(new Action(_gameEngine.Ready), DispatcherPriority.ContextIdle);
 
-                    //Program.GameEngine.Ready();
-                    if (Program.DeveloperMode && Player.LocalPlayer.Spectator == false && Program.GameEngine.IsReplay == false)
+                    //_gameEngine.Ready();
+                    if (Program.DeveloperMode && Player.LocalPlayer.Spectator == false && _gameEngine.IsReplay == false)
                     {
                         MenuConsole.Visibility = Visibility.Visible;
                         var wnd = new DeveloperWindow() { Owner = this };
@@ -197,7 +204,7 @@ namespace Octgn.Play
                         {
                             if (Program.IsHost)
                             {
-                                Program.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable,
+                                _gameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable,
                                                             Program.GameSettings.AllowSpectators,
                                                             Program.GameSettings.MuteSpectators);
                             }
@@ -315,8 +322,8 @@ namespace Octgn.Play
             _fadeOut = (Storyboard)Resources["ImageFadeOut"];
 
             // I think this is the thing that previews a card if you hover it.
-            cardViewer.Source = StringExtensionMethods.BitmapFromUri(new Uri(Program.GameEngine.Definition.CardSize.Back));
-            //if (Program.GameEngine.Definition.CardCornerRadius > 0)
+            cardViewer.Source = StringExtensionMethods.BitmapFromUri(new Uri(_gameEngine.Definition.CardSize.Back));
+            //if (_gameEngine.Definition.CardCornerRadius > 0)
             cardViewer.Clip = new RectangleGeometry();
             AddHandler(CardControl.CardHoveredEvent, new CardEventHandler(CardHovered));
             AddHandler(CardRun.ViewCardModelEvent, new EventHandler<CardModelEventArgs>(ViewCardModel));
@@ -334,17 +341,17 @@ namespace Octgn.Play
             // Apply game defined fonts
             if (Prefs.UseGameFonts)
             {
-                chat.output.SetFont(Program.GameEngine.Definition.ChatFont);
-                chat.watermark.SetFont(Program.GameEngine.Definition.ContextFont);
+                chat.output.SetFont(_gameEngine.Definition.ChatFont);
+                chat.watermark.SetFont(_gameEngine.Definition.ContextFont);
 
                 GroupControl.groupFont = new FontFamily(chat.watermark.FontFamily.Source);
-                if (Program.GameEngine.Definition.ContextFont?.Size > 0)
+                if (_gameEngine.Definition.ContextFont?.Size > 0)
                 {
-                    GroupControl.fontsize = Program.GameEngine.Definition.ContextFont.Size;
+                    GroupControl.fontsize = _gameEngine.Definition.ContextFont.Size;
                 }
             }
             Log.Info(string.Format("Checking if the loaded game has boosters for limited play."));
-            int setsWithBoosterCount = Program.GameEngine.Definition.Sets().Where(x => x.Packs.Count() > 0).Count();
+            int setsWithBoosterCount = _gameEngine.Definition.Sets().Where(x => x.Packs.Count() > 0).Count();
             Log.Info(string.Format("Found #{0} sets with boosters.", setsWithBoosterCount));
             if (setsWithBoosterCount == 0)
             {
@@ -352,7 +359,7 @@ namespace Octgn.Play
                 Log.Info("Hiding limited play in the menu.");
             }
             Log.Info("Checking if the loaded game has a Decks folder for prebuilt decks.");
-            if (!Directory.Exists(Path.Combine(Program.GameEngine.Definition.InstallPath, "Decks")))
+            if (!Directory.Exists(Path.Combine(_gameEngine.Definition.InstallPath, "Decks")))
             {
                 Log.Info("No Decks folder found, hiding Load Prebuilt Decks in the menu.");
                 PrebuiltDeckMenuItem.Visibility = Visibility.Collapsed;
@@ -381,11 +388,11 @@ namespace Octgn.Play
             string format;
             if (player != null && player.IsGlobalPlayer)
             {
-                format = Program.GameEngine.Definition.GlobalPlayer.IndicatorsFormat;
+                format = _gameEngine.Definition.GlobalPlayer.IndicatorsFormat;
             }
             else
             {
-                format = Program.GameEngine.Definition.Player.IndicatorsFormat;
+                format = _gameEngine.Definition.Player.IndicatorsFormat;
             }
 
             if (format == null)
@@ -466,16 +473,12 @@ namespace Octgn.Play
             base.OnClosed(e);
             WindowManager.PlayWindow = null;
             Program.GameMess.Clear();
-			X.Instance.Try(()=>Program.Client?.Rpc?.Leave(Player.LocalPlayer));
-            if (Program.Client != null)
-            {
-                //TODO: Probably don't need to null check
-                Program.Client.Shutdown();
-                Program.Client = null;
-            }
-            if (Program.GameEngine != null)
-                Program.GameEngine.End();
-            Program.GameEngine = null;
+			X.Instance.Try(()=>_gameEngine.Client?.Rpc?.Leave(Player.LocalPlayer));
+
+            _gameEngine.Client.Shutdown();
+
+            _gameEngine.End();
+
             Program.IsGameRunning = false;
         }
 
@@ -496,20 +499,20 @@ namespace Octgn.Play
         private void Open(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            LoadDeck(Program.GameEngine.Definition.GetDefaultDeckPath());
+            LoadDeck(_gameEngine.Definition.GetDefaultDeckPath());
         }
 
         private void OpenPrebuilt(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            LoadDeck(Path.Combine(Program.GameEngine.Definition.InstallPath, "Decks"));
+            LoadDeck(Path.Combine(_gameEngine.Definition.InstallPath, "Decks"));
         }
 
         private void LoadDeck(string path)
         {
 
             if (this.PreGameLobby.Visibility == Visibility.Visible) return;
-            if (Player.LocalPlayer.Spectator || Program.GameEngine.IsReplay) return;
+            if (Player.LocalPlayer.Spectator || _gameEngine.IsReplay) return;
 
             // Show the dialog to choose the file
 
@@ -524,12 +527,12 @@ namespace Octgn.Play
             // Try to load the file contents
             try
             {
-                var game = GameManager.Get().GetById(Program.GameEngine.Definition.Id);
+                var game = GameManager.Get().GetById(_gameEngine.Definition.Id);
                 var newDeck = new Deck().Load(game, deckpath.FileName);
                 //DataNew.Entities.Deck newDeck = Deck.Load(ofd.FileName,
                 //                         Program.GamesRepository.Games.First(g => g.Id == Program.Game.Definition.Id));
                 // Load the deck into the game
-                Program.GameEngine.LoadDeck(newDeck, false);
+                _gameEngine.LoadDeck(newDeck, false);
                 if (!String.IsNullOrWhiteSpace(newDeck.Notes))
                 {
                     this.table.AddNote(100, 0, newDeck.Notes);
@@ -551,7 +554,7 @@ namespace Octgn.Play
             e.Handled = true;
             if (this.PreGameLobby.Visibility == Visibility.Visible) return;
             if (LimitedDialog.Singleton == null)
-                new LimitedDialog { Owner = this }.Show();
+                new LimitedDialog(_gameEngine) { Owner = this }.Show();
             else
                 LimitedDialog.Singleton.Activate();
         }
@@ -586,9 +589,9 @@ namespace Octgn.Play
         private void ResetGame(object sender, RoutedEventArgs e)
         {
             if (this.PreGameLobby.Visibility == Visibility.Visible) return;
-            if (Program.GameEngine.Definition.Events.ContainsKey("OverrideGameReset") )
+            if (_gameEngine.Definition.Events.ContainsKey("OverrideGameReset") )
             {
-                Program.GameEngine.EventProxy.OverrideGameReset_3_1_0_2();
+                _gameEngine.EventProxy.OverrideGameReset_3_1_0_2();
                 return;
             }
             // Prompt for a confirmation
@@ -596,7 +599,7 @@ namespace Octgn.Play
                 TopMostMessageBox.Show("The current game will end. Are you sure you want to continue?",
                                 "Confirmation", MessageBoxButton.YesNo))
             {
-                Program.Client.Rpc.ResetReq();
+                _gameEngine.Client.Rpc.ResetReq();
             }
         }
 
@@ -668,7 +671,7 @@ namespace Octgn.Play
         protected override void OnKeyUp(KeyEventArgs e)
         {
             if(e.Key == Key.F9) {
-                Program.GameEngine.DeckStats.IsVisible = !Program.GameEngine.DeckStats.IsVisible;
+                _gameEngine.DeckStats.IsVisible = !_gameEngine.DeckStats.IsVisible;
 
                 e.Handled = true;
 
@@ -749,7 +752,7 @@ namespace Octgn.Play
             double height = Math.Min(cardViewer2.MaxHeight, cardViewer2.Height);
             double width = cardViewer2.Width * height / cardViewer2.Height;
             clipRect.Rect = new Rect(new Size(width, height));
-            //clipRect.RadiusX = clipRect.RadiusY = Program.GameEngine.Definition.CardCornerRadius * height / card.Size.Height;
+            //clipRect.RadiusX = clipRect.RadiusY = _gameEngine.Definition.CardCornerRadius * height / card.Size.Height;
             clipRect.RadiusX = clipRect.RadiusY = card.RealCornerRadius * height / card.RealHeight;
         }
 
@@ -786,7 +789,7 @@ namespace Octgn.Play
             clipRect.Rect = new Rect(new Size(width, height));
 
             if (card == null)
-                clipRect.RadiusX = clipRect.RadiusY = Program.GameEngine.Definition.CardSize.CornerRadius * height / Program.GameEngine.Definition.CardSize.Height;
+                clipRect.RadiusX = clipRect.RadiusY = _gameEngine.Definition.CardSize.CornerRadius * height / _gameEngine.Definition.CardSize.Height;
             else
             {
                 clipRect.RadiusX = clipRect.RadiusY = card.RealCornerRadius*height/card.RealHeight;
@@ -799,19 +802,19 @@ namespace Octgn.Play
         {
             var btn = (Button)sender;
             var targetPlayer = (Player)btn.DataContext;
-            if (Program.GameEngine.ActivePlayer == null || Program.GameEngine.ActivePlayer == Player.LocalPlayer)
+            if (_gameEngine.ActivePlayer == null || _gameEngine.ActivePlayer == Player.LocalPlayer)
             {
-                if (Program.GameEngine.Definition.Events.ContainsKey("OverrideTurnPassed"))
+                if (_gameEngine.Definition.Events.ContainsKey("OverrideTurnPassed"))
                 {
-                    Program.GameEngine.EventProxy.OverrideTurnPassed_3_1_0_2(targetPlayer);
+                    _gameEngine.EventProxy.OverrideTurnPassed_3_1_0_2(targetPlayer);
                     return;
                 }
-                Program.Client.Rpc.NextTurn(targetPlayer, true, false);
+                _gameEngine.Client.Rpc.NextTurn(targetPlayer, true, false);
             }
             else
             {
-                Program.GameEngine.StopTurn = !Program.GameEngine.StopTurn;
-                Program.Client.Rpc.StopTurnReq(Program.GameEngine.TurnNumber, Program.GameEngine.StopTurn);
+                _gameEngine.StopTurn = !_gameEngine.StopTurn;
+                _gameEngine.Client.Rpc.StopTurnReq(_gameEngine.TurnNumber, _gameEngine.StopTurn);
             }
         }
 
@@ -819,13 +822,13 @@ namespace Octgn.Play
         {
             var btn = (Button)sender;
             var phase = (Phase)btn.DataContext;
-            if (Program.GameEngine.Definition.Events.ContainsKey("OverridePhaseClicked"))
+            if (_gameEngine.Definition.Events.ContainsKey("OverridePhaseClicked"))
             {
-                Program.GameEngine.EventProxy.OverridePhaseClicked_3_1_0_2(phase.Name, phase.Id);
+                _gameEngine.EventProxy.OverridePhaseClicked_3_1_0_2(phase.Name, phase.Id);
                 return;
             }
             phase.Hold = !phase.Hold;
-            Program.Client.Rpc.StopPhaseReq(phase.Id, phase.Hold);
+            _gameEngine.Client.Rpc.StopPhaseReq(phase.Id, phase.Hold);
         }
 
         private bool LockPhaseList = false;
@@ -873,7 +876,7 @@ namespace Octgn.Play
         {
             e.Handled = true;
             if (this.PreGameLobby.Visibility == Visibility.Visible) return;
-            if (Player.LocalPlayer.Spectator == true || Program.GameEngine.IsReplay) return;
+            if (Player.LocalPlayer.Spectator == true || _gameEngine.IsReplay) return;
 
             if (Program.DeveloperMode)
             {
@@ -924,7 +927,7 @@ namespace Octgn.Play
                           {
                               AddExtension = true,
                               Filter = "Octgn decks|*.o8d",
-                              InitialDirectory = Program.GameEngine.Definition.GetDefaultDeckPath()
+                              InitialDirectory = _gameEngine.Definition.GetDefaultDeckPath()
                           };
             if (!sfd.ShowDialog().GetValueOrDefault()) return;
 
@@ -932,9 +935,9 @@ namespace Octgn.Play
             try
             {
                 if (dlg != null)
-                    dlg.LimitedDeck.Save(GameManager.Get().GetById(Program.GameEngine.Definition.Id), sfd.FileName);
+                    dlg.LimitedDeck.Save(GameManager.Get().GetById(_gameEngine.Definition.Id), sfd.FileName);
                 else
-                    Program.GameEngine.LoadedCards.Save(GameManager.Get().GetById(Program.GameEngine.Definition.Id), sfd.FileName);
+                    _gameEngine.LoadedCards.Save(GameManager.Get().GetById(_gameEngine.Definition.Id), sfd.FileName);
 
             }
             catch (UserMessageException ex)
@@ -945,13 +948,13 @@ namespace Octgn.Play
 
         protected void LimitedOkClicked(object sender, EventArgs e)
         {
-            if (backstage.Child is PickCardsDialog dlg) Program.GameEngine.LoadDeck(dlg.LimitedDeck, true);
+            if (backstage.Child is PickCardsDialog dlg) _gameEngine.LoadDeck(dlg.LimitedDeck, true);
             HideBackstage();
         }
 
         protected void LimitedCancelClicked(object sender, EventArgs e)
         {
-            Program.Client.Rpc.CancelLimitedReq();
+            _gameEngine.Client.Rpc.CancelLimitedReq();
             HideBackstage();
         }
         private void LimitedAddPacks(object sender, RoutedEventArgs e)
@@ -960,7 +963,7 @@ namespace Octgn.Play
             e.Handled = true;
             if (LimitedDialog.Singleton == null)
             {
-                ld = new LimitedDialog { Owner = this };
+                ld = new LimitedDialog(_gameEngine) { Owner = this };
                 ld.Show();
             }
             else
@@ -974,7 +977,7 @@ namespace Octgn.Play
         {
             e.Handled = true;
             var dlg = backstage.Child as PickCardsDialog;
-            var loadDirectory = Program.GameEngine.Definition.GetDefaultDeckPath();
+            var loadDirectory = _gameEngine.Definition.GetDefaultDeckPath();
 
 
             var ofd = new OpenFileDialog
@@ -986,7 +989,7 @@ namespace Octgn.Play
             // Try to load the file contents
             try
             {
-                var game = GameManager.Get().GetById(Program.GameEngine.Definition.Id);
+                var game = GameManager.Get().GetById(_gameEngine.Definition.Id);
                 var newDeck = new Deck().Load(game, ofd.FileName);
                 dlg.OpenCardPool(newDeck);
             }
@@ -1023,12 +1026,12 @@ namespace Octgn.Play
             if (s == null) return;
             var player = s.DataContext as Player;
             if (player == null) return;
-            if (Program.GameEngine.IsReplay) return;
+            if (_gameEngine.IsReplay) return;
             if (player == Player.LocalPlayer)
             {
                 throw new UserMessageException("You cannot kick yourself.");
             }
-            Program.Client.Rpc.Boot(player, "The host has booted them from the game.");
+            _gameEngine.Client.Rpc.Boot(player, "The host has booted them from the game.");
         }
 
         private bool chatIsMaxed = false;
@@ -1109,7 +1112,7 @@ namespace Octgn.Play
         }
 
         private void CardList_Click(object sender, RoutedEventArgs e) {
-            Program.GameEngine.DeckStats.IsVisible = !Program.GameEngine.DeckStats.IsVisible;
+            _gameEngine.DeckStats.IsVisible = !_gameEngine.DeckStats.IsVisible;
         }
 
         private bool replayDragStarted = false;

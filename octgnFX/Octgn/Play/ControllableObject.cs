@@ -1,15 +1,12 @@
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using Octgn.Controls;
 
 namespace Octgn.Play
 {
-    public abstract class ControllableObject : INotifyPropertyChanged
-    {
+    public abstract class ControllableObject : INotifyPropertyChanged {
         #region Private fields
 
-        private readonly Player _owner;
         private Player _controller; // The player who controlls this object (null for the table)
         private byte _keepControl; // > 0 if this object should not be passed to someone else
 
@@ -17,16 +14,24 @@ namespace Octgn.Play
 
         #region Public interface
 
-        // Id of this object 
+        internal GameEngine GameEngine { get; }
+
+        // Id of this object
         protected ControllableObject(Player owner)
         {
-            _owner = Controller = owner;
+            Owner = Controller = owner ?? throw new ArgumentNullException(nameof(owner));
+            GameEngine = Owner.GameEngine;
+            _keepControl = 0;
+        }
+
+        protected ControllableObject(GameEngine engine) {
+            GameEngine = engine ?? throw new ArgumentNullException(nameof(engine));
             _keepControl = 0;
         }
 
         internal abstract int Id { get; }
 
-        // Name of this object 
+        // Name of this object
         public abstract string Name { get; }
 
         // Name of this object, including owner
@@ -36,10 +41,7 @@ namespace Octgn.Play
         }
 
         // Player who owns this object (if any)
-        public Player Owner
-        {
-            get { return _owner; }
-        }
+        public Player Owner { get; }
 
         // Get the controller of this object
         public Player Controller
@@ -54,24 +56,22 @@ namespace Octgn.Play
             }
         }
 
-        public static ControllableObject Find(int id)
+        public static ControllableObject Find(GameEngine gameEngine, int id)
         {
             switch ((byte) (id >> 24))
             {
                 case 0:
-                    return Card.Find(id);
+                    return Card.Find(gameEngine, id);
                 case 1:
-                    return Group.Find(id);
+                    return Group.Find(gameEngine, id);
                 case 2:
-                    //TODO: make counters controllable objects    
+                    //TODO: make counters controllable objects
                     //return Counter.Find(id);
                     return null;
                 default:
                     return null;
             }
         }
-
-        // C'tor
 
         // Pass control to player p exclusively
         public void PassControlTo(Player p)
@@ -82,7 +82,7 @@ namespace Octgn.Play
         public void TakeControl()
         {
             if (Controller == Player.LocalPlayer || Program.GameEngine.IsReplay) return;
-            Program.Client.Rpc.TakeFromReq(this, Controller);
+            GameEngine.Client.Rpc.TakeFromReq(this, Controller);
         }
 
         #endregion
@@ -96,7 +96,7 @@ namespace Octgn.Play
         internal void TakingControl(Player p)
         {
             if (_keepControl > 0)
-                Program.Client.Rpc.DontTakeReq(this, p);
+                GameEngine.Client.Rpc.DontTakeReq(this, p);
             else
                 PassControlTo(p, Player.LocalPlayer, true, true);
         }
@@ -108,7 +108,7 @@ namespace Octgn.Play
             {
                 // Can't pass control if I don't own it
                 if (Controller != Player.LocalPlayer || Program.GameEngine.IsReplay) return;
-                Program.Client.Rpc.PassToReq(this, p, requested);
+                GameEngine.Client.Rpc.PassToReq(this, p, requested);
             }
             Controller = p;
             if (requested)

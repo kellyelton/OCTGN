@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,21 +13,12 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using Octgn.Controls;
-using Octgn.Data;
 using Octgn.Utils;
 using Octgn.Core;
-
+using Octgn.Play;
 
 namespace Octgn.Scripting.Controls
 {
-    using System.Linq.Expressions;
-
-    using Octgn.Core.DataExtensionMethods;
-    using Octgn.Core.DataManagers;
-    using Octgn.Play;
-
     public partial class SelectMultiCardsDlg
     {
         public static readonly DependencyProperty AllowSelectProperty = DependencyProperty.Register(
@@ -45,8 +40,12 @@ namespace Octgn.Scripting.Controls
                     .Where(p => !p.IgnoreText)
                     .Select(p => p.Name);
 
-        public SelectMultiCardsDlg(List<int> cardList, List<int> cardList2, string prompt, string title, int? minValue, int? maxValue, string boxLabel, string boxLabel2)
+        private readonly GameEngine _gameEngine;
+
+        public SelectMultiCardsDlg(GameEngine gameEngine, List<int> cardList, List<int> cardList2, string prompt, string title, int? minValue, int? maxValue, string boxLabel, string boxLabel2)
         {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             InitializeComponent();
             slider.Value = Prefs.GetGameSetting(Program.GameEngine.Definition, "sliderValue", 175);
             Title = title;
@@ -68,7 +67,7 @@ namespace Octgn.Scripting.Controls
 
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
- 
+
 
                     allList.ItemsSource = allCards;
                     allList2.ItemsSource = allCards2;
@@ -121,7 +120,7 @@ namespace Octgn.Scripting.Controls
             get { return (bool)GetValue(AllowSelectProperty); }
             set { SetValue(AllowSelectProperty, value); }
         }
-        
+
         public double SliderHeight
         {
             get { return (double)GetValue(SliderHeightProperty); }
@@ -151,7 +150,7 @@ namespace Octgn.Scripting.Controls
 
             foreach (int item in allList.SelectedItems)
                 selectedCards.Add(item);
-                        
+
             DialogResult = true;
         }
 
@@ -165,7 +164,7 @@ namespace Octgn.Scripting.Controls
             e.Handled = true;
             AllowSelect = (_min <= allList.SelectedItems.Count && allList.SelectedItems.Count <= _max);
         }
-        
+
         private string getFilterText(bool secondBox)
         {
             if (secondBox) return _filter2Text;
@@ -210,8 +209,8 @@ namespace Octgn.Scripting.Controls
                                         List<int> filtered =
                                             getCards(secondBox).Where(
                                                 m =>
-                                                Card.Find(m).RealName.IndexOf(search, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                                textProperties.Select(property => Card.Find(m).GetProperty(property)).
+                                                Card.Find(_gameEngine, m).RealName.IndexOf(search, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
+                                                textProperties.Select(property => Card.Find(_gameEngine, m).GetProperty(property)).
                                                 Where(propertyValue => propertyValue != null).Any(
                                                 propertyValue => propertyValue.ToString().IndexOf(search, StringComparison.CurrentCultureIgnoreCase) >= 0)
                                                 )
@@ -233,7 +232,7 @@ namespace Octgn.Scripting.Controls
         {
             var img = sender as Image;
             if (img == null) return;
-            var model = Card.Find((int)img.DataContext).Type.Model;
+            var model = Card.Find(_gameEngine, (int)img.DataContext).Type.Model;
             if (model != null) ImageUtils.GetCardImage(model, x => img.Source = x);
         }
 
@@ -270,7 +269,7 @@ namespace Octgn.Scripting.Controls
             {
                 this.draggedData = (int)this.sourceItem.DataContext;
             }
-            
+
         }
 
         private void DragDropUp(object sender, MouseButtonEventArgs e)
@@ -305,7 +304,7 @@ namespace Octgn.Scripting.Controls
                 }
             }
         }
-        
+
         private void DragDropEnter(object sender, DragEventArgs e)
         {
             this.targetBox = (ListBox)sender;
@@ -343,7 +342,7 @@ namespace Octgn.Scripting.Controls
         {
             if (sender is ListBox && e.Data.GetDataPresent(typeof(int)))
             {
-                Dispatcher.Invoke(new Action(() => 
+                Dispatcher.Invoke(new Action(() =>
                 {
                     var source = (int)e.Data.GetData(typeof(int));
                     var sourceList = allCards;
@@ -426,7 +425,7 @@ namespace Octgn.Scripting.Controls
         {
             if (this.targetItem != null)
             {
-                // Here, I need to get adorner layer from targetItemContainer and not targetItemsControl. 
+                // Here, I need to get adorner layer from targetItemContainer and not targetItemsControl.
                 // This way I get the AdornerLayer within ScrollContentPresenter, and not the one under AdornerDecorator (Snoop is awesome).
                 // If I used targetItemsControl, the adorner would hang out of ItemsControl when there's a horizontal scroll bar.
                 var adornerLayer = AdornerLayer.GetAdornerLayer(this.targetItem);
@@ -554,7 +553,7 @@ namespace Octgn.Scripting.Controls
                 this.location = location;
                 this.InvalidateVisual();
             }
-            
+
             protected override void OnRender(DrawingContext dc)
             {
                 var p = location;

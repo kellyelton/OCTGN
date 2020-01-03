@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -8,9 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using Octgn.Data;
 using Octgn.Extentions;
-using Octgn.Utils;
 
 namespace Octgn.Play.Gui
 {
@@ -26,10 +28,12 @@ namespace Octgn.Play.Gui
         private readonly Group _group;
         private readonly int _id;
         private readonly PilePosition _position;
+        private readonly GameEngine _gameEngine;
         private int _count;
         private bool _shouldNotifyClose;
         private bool _shouldShuffleOnClose;
 
+        [Obsolete("Used in design mode")]
         public GroupWindow()
         {
             InitializeComponent();
@@ -37,13 +41,17 @@ namespace Octgn.Play.Gui
         }
 
         public GroupWindow(Group group, PilePosition position, int count)
-            : this()
         {
+            _group = group ?? throw new ArgumentNullException(nameof(group));
+            _gameEngine = group.GameEngine;
+
+            InitializeComponent();
+
             _shouldShuffleOnClose = false;
-            _id = Program.GameEngine.GetUniqueId();
+            _id = _gameEngine.GetUniqueId();
             _position = position;
             _count = count;
-            DataContext = _group = group;
+            DataContext = _group;
 
             switch (position)
             {
@@ -97,13 +105,13 @@ namespace Octgn.Play.Gui
             switch (_position)
             {
                 case PilePosition.All:
-                    Program.Client.Rpc.LookAtReq(_id, _group, look);
+                    _gameEngine.Client.Rpc.LookAtReq(_id, _group, look);
                     break;
                 case PilePosition.Top:
-                    Program.Client.Rpc.LookAtTopReq(_id, _group, _count, look);
+                    _gameEngine.Client.Rpc.LookAtTopReq(_id, _group, _count, look);
                     break;
                 case PilePosition.Bottom:
-                    Program.Client.Rpc.LookAtBottomReq(_id, _group, _count, look);
+                    _gameEngine.Client.Rpc.LookAtBottomReq(_id, _group, _count, look);
                     break;
             }
         }
@@ -131,7 +139,7 @@ namespace Octgn.Play.Gui
             }
             else
             {
-                IEnumerable<string> textProperties = Program.GameEngine.Definition.CustomProperties
+                IEnumerable<string> textProperties = _gameEngine.Definition.CustomProperties
                     .Where(p => !p.IgnoreText)
                     .Select(p => p.Name);
                 watermark.Visibility = Visibility.Hidden;

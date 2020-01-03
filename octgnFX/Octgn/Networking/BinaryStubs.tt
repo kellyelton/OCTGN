@@ -24,8 +24,15 @@ namespace Octgn.Networking
 {
 	public abstract class BaseBinaryStub : IServerCalls
 	{
-		private static ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 		protected abstract void Send(byte[] data);
+
+		private readonly IClient _client;
+
+        public BaseBinaryStub(IClient client) {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
 <#
   int msgId = -1;
   foreach (var msg in doc.Root.Elements("msg"))
@@ -40,12 +47,11 @@ namespace Octgn.Networking
 <# if(msgName != "Ping"){ #>
 			Log.Debug($"OCTGN OUT: {nameof(<#= msgName #>)}");
 <# } #>
-		    if(Program.Client == null)return;
 			MemoryStream stream = new MemoryStream(512);
 			stream.Seek(4, SeekOrigin.Begin);
 			BinaryWriter writer = new BinaryWriter(stream);
 
-			writer.Write(Program.Client.Muted);
+			writer.Write(_client.Muted);
 			writer.Write((byte)<#= msgId #>);
 <#
   PushIndent("\t\t\t");
@@ -68,14 +74,14 @@ namespace Octgn.Networking
 
 	public class BinarySenderStub : BaseBinaryStub
 	{
-		private ISocket to;
+		private readonly ISocket _to;
 
-		public BinarySenderStub(ISocket to)
-		{ this.to = to; }
+		public BinarySenderStub(IClient client, ISocket to) : base(client)
+		{ _to = to ?? throw new ArgumentNullException(nameof(to)); }
 
 		protected override void Send(byte[] data)
 		{
-			to.Send(data);
+			_to.Send(data);
 		}
 	}
 }

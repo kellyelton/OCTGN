@@ -1,3 +1,8 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using Octgn.Utils;
@@ -8,21 +13,24 @@ namespace Octgn.Play
     {
         #region Private fields
 
-        private readonly DataNew.Entities.Counter _defintion;
         private readonly byte _id;
-        private readonly Player _player; // Player who owns this counter, if any        
         private int _state; // Value of this counter
+        private readonly GameEngine _gameEngine;
+        private readonly CompoundCall _setCounterNetworkCompoundCall;
 
         #endregion
         #region Public interface
 
-        public Counter(Player player, DataNew.Entities.Counter def, bool isReplay)
+        public Counter(GameEngine gameEngine, Player player, DataNew.Entities.Counter def, bool isReplay)
         {
-            _player = player;
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+            _setCounterNetworkCompoundCall = new CompoundCall(_gameEngine);
+
+            Owner = player;
             _state = def.Start;
             Name = def.Name;
             _id = def.Id;
-            _defintion = def;
+            Definition = def;
 
             if (!isReplay) {
                 Player localPlayer = null;
@@ -46,13 +54,7 @@ namespace Octgn.Play
             }
         }
 
-        public Player Owner
-        {
-            get
-            {
-                return _player;
-            }
-        }
+        public Player Owner { get; }
 
         public string Name { get; }
 
@@ -73,14 +75,11 @@ namespace Octgn.Play
             set { SetValue(value, Player.LocalPlayer, true, false); }
         }
 
-        public DataNew.Entities.Counter Definition
-        {
-            get { return _defintion; }
-        }
+        public DataNew.Entities.Counter Definition { get; }
 
-        public static Counter Find(int id)
+        public static Counter Find(GameEngine gameEngine, int id)
         {
-            Player p = Player.Find((byte) (id >> 16));
+            Player p = Player.Find(gameEngine, (byte) (id >> 16));
             if (p == null || (byte) id > p.Counters.Length || (byte) id == 0)
                 return null;
             return p.Counters[(byte) id - 1];
@@ -90,7 +89,7 @@ namespace Octgn.Play
 
         public override string ToString()
         {
-            return (_player != null ? _player.Name + "'s " : "Global ") + Name;
+            return (Owner != null ? Owner.Name + "'s " : "Global ") + Name;
         }
 
         #endregion
@@ -102,10 +101,8 @@ namespace Octgn.Play
         // Get the id of this counter
         internal int Id
         {
-            get { return 0x02000000 | (_player == null ? 0 : _player.Id << 16) | _id; }
+            get { return 0x02000000 | (Owner == null ? 0 : Owner.Id << 16) | _id; }
         }
-
-        private readonly CompoundCall setCounterNetworkCompoundCall = new CompoundCall();
 
         // Set the counter's value
         internal void SetValue(int value, Player who, bool notifyServer, bool isScriptChange)
@@ -117,7 +114,7 @@ namespace Octgn.Play
             // Notify the server if needed
             if (notifyServer)
             {
-                setCounterNetworkCompoundCall.Call(() => Program.Client.Rpc.CounterReq(this, value, isScriptChange));
+                _setCounterNetworkCompoundCall.Call(() => _gameEngine.Client.Rpc.CounterReq(this, value, isScriptChange));
             }
             // Set the new value
             _state = value;
@@ -127,12 +124,12 @@ namespace Octgn.Play
             Program.GameMess.PlayerEvent(who, "sets {0} counter to {1} ({2})", this, value, deltaString);
             if (notifyServer || who != Player.LocalPlayer)
             {
-                Program.GameEngine.EventProxy.OnChangeCounter_3_1_0_0(who, this, oldValue);
-                Program.GameEngine.EventProxy.OnChangeCounter_3_1_0_1(who, this, oldValue);
+                _gameEngine.EventProxy.OnChangeCounter_3_1_0_0(who, this, oldValue);
+                _gameEngine.EventProxy.OnChangeCounter_3_1_0_1(who, this, oldValue);
             }
             if (notifyServer)
             {
-                Program.GameEngine.EventProxy.OnCounterChanged_3_1_0_2(who, this, oldValue, isScriptChange);
+                _gameEngine.EventProxy.OnCounterChanged_3_1_0_2(who, this, oldValue, isScriptChange);
             }
         }
 

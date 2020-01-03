@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -11,16 +15,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Timers;
-using System.Windows.Controls;
 using System.Windows.Data;
-
 using Microsoft.Win32;
-
 using Octgn.Annotations;
 using Octgn.Core.DataExtensionMethods;
-
 using log4net;
-
 using Octgn.Core.Play;
 using Octgn.Extentions;
 using Octgn.Library;
@@ -75,7 +74,7 @@ namespace Octgn.Play.Gui
                 this.OnPropertyChanged("DevMode");
             }
         }
-        
+
         public bool HideErrors
         {
             get
@@ -142,8 +141,17 @@ namespace Octgn.Play.Gui
 
         private System.Timers.Timer chatTimer2;
 
-        public ChatControl()
+        private readonly GameEngine _gameEngine;
+
+        [Obsolete("Use only for Design mode")]
+        public ChatControl() {
+            InitializeComponent();
+        }
+
+        public ChatControl(GameEngine gameEngine)
         {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             AutoScroll = true;
             InitializeComponent();
             if (DesignerProperties.GetIsInDesignMode(this)) return;
@@ -166,17 +174,17 @@ namespace Octgn.Play.Gui
             };
 
             Program.GameSettings.PropertyChanged += (a, b) => {
-                if (Program.GameEngine.Spectator) {
+                if (_gameEngine.Spectator) {
                     ShowInput = Program.GameSettings.MuteSpectators == false;
                 } else {
-                    ShowInput = Program.GameEngine.IsReplay == false;
+                    ShowInput = _gameEngine.IsReplay == false;
                 }
             };
 
-            if (Program.GameEngine.Spectator) {
+            if (_gameEngine.Spectator) {
                 ShowInput = Program.GameSettings.MuteSpectators == false;
             } else {
-                ShowInput = Program.GameEngine.IsReplay == false;
+                ShowInput = _gameEngine.IsReplay == false;
             }
         }
 
@@ -299,7 +307,7 @@ namespace Octgn.Play.Gui
                 var b = new GameMessageBlock(m);
                 b.TextAlignment = TextAlignment.Center;
                 b.Margin = new Thickness(2);
-                
+
                 var chatRun = new Run(string.Format(m.Message, m.Arguments));
                 chatRun.Foreground = brush;
                 chatRun.FontWeight = FontWeights.Bold;
@@ -312,7 +320,7 @@ namespace Octgn.Play.Gui
                 p.Inlines.Add(prun);
 
                 b.Blocks.Add(p);
-                
+
                 return b;
             }
             else if (m is TurnMessage)
@@ -361,7 +369,7 @@ namespace Octgn.Play.Gui
 
                 b.Blocks.Add(p);
 
-                //if (((Paragraph)output.Document.Blocks.LastBlock).Inlines.Count == 0) 
+                //if (((Paragraph)output.Document.Blocks.LastBlock).Inlines.Count == 0)
                 //    output.Document.Blocks.Remove(output.Document.Blocks.LastBlock);
 
                 return b;
@@ -594,7 +602,7 @@ namespace Octgn.Play.Gui
                         input.Clear();
                         if (string.IsNullOrEmpty(msg)) return;
 
-                        Program.Client.Rpc.ChatReq(msg);
+                        _gameEngine.Client.Rpc.ChatReq(msg);
                     }
                     break;
                 case Key.Escape:

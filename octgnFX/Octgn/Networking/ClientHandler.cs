@@ -32,9 +32,16 @@ namespace Octgn.Networking
 
 
         private readonly BinaryParser _binParser;
+        private readonly IClient _client;
 
-        public Handler()
+        public GameEngine GameEngine { get; }
+
+        public Handler(GameEngine gameEngine)
         {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
+            _client = GameEngine.Client;
+
             _binParser = new BinaryParser(this);
         }
 
@@ -42,11 +49,6 @@ namespace Octgn.Networking
 
         public void ReceiveMessage(byte[] data)
         {
-            // Fix: because ReceiveMessage is called through the Dispatcher queue, we may be called
-            // just after the Client has already been closed. In that case we should simply drop the message
-            // (otherwise NRE may occur)
-            if (Program.Client == null) return;
-
             try
             {
                 _data = data;
@@ -58,7 +60,7 @@ namespace Octgn.Networking
             }
             finally
             {
-                if (Program.Client != null) Program.Client.Muted = 0;
+                _client.Muted = 0;
             }
 
             if (Program.GameEngine.IsWelcomed)
@@ -96,6 +98,10 @@ namespace Octgn.Networking
             });
         }
 
+        public void SetMuted(int muted) {
+            _client.Muted = muted;
+        }
+
         public void Binary()
         {
         }
@@ -111,7 +117,7 @@ namespace Octgn.Networking
             WriteReplayAction();
             Program.GameMess.Warning("You have been kicked: {0}", reason);
             Program.InPreGame = false;
-            Program.Client.Shutdown();
+            _client.Shutdown();
         }
 
         public void Start()
@@ -137,7 +143,7 @@ namespace Octgn.Networking
                         continue;
                     }
                     Log.DebugFormat("Start Sending Request to {0}", p.Name);
-                    Program.Client.Rpc.GameStateReq(p);
+                    _client.Rpc.GameStateReq(p);
                 }
             }
         }
@@ -269,20 +275,20 @@ namespace Octgn.Networking
             WriteReplayAction(id);
             Program.InPreGame = true;
             Player.LocalPlayer.Id = id;
-            if (Program.Client is ClientSocket cs) {
+            if (_client is ClientSocket cs) {
                 cs.StartPings();
             }
             Player.FireLocalPlayerWelcomed();
-            Program.GameEngine.OnWelcomed(gameSessionId, gameName, waitForGameState);
+            GameEngine.OnWelcomed(gameSessionId, gameName, waitForGameState);
         }
 
         public void NewPlayer(byte id, string nick, string userId, ulong pkey, bool invertedTable, bool spectator)
         {
             WriteReplayAction(id);
-            var p = Player.FindIncludingSpectators(id);
+            var p = Player.FindIncludingSpectators(GameEngine, id);
             if (p == null)
             {
-                var player = new Player(Program.GameEngine.Definition, nick, userId, id, pkey, spectator, false, Program.GameEngine.IsReplay);
+                var player = new Player(GameEngine, GameEngine.Definition, nick, userId, id, pkey, spectator, false, GameEngine.IsReplay);
                 Program.GameMess.System("{0} has joined the game", player);
                 player.UpdateSettings(invertedTable, spectator, false);
                 if (Program.InPreGame == false)
@@ -290,8 +296,8 @@ namespace Octgn.Networking
                     GameStateReq(player);
                     if (player.Spectator == false)
                     {
-                        Program.GameEngine.EventProxy.OnPlayerConnect_3_1_0_1(player);
-                        Program.GameEngine.EventProxy.OnPlayerConnected_3_1_0_2(player);
+                        GameEngine.EventProxy.OnPlayerConnect_3_1_0_1(player);
+                        GameEngine.EventProxy.OnPlayerConnected_3_1_0_2(player);
                     }
                 }
                 else
@@ -326,7 +332,7 @@ namespace Octgn.Networking
 
             if (id.Length == 0) return;   // Loading an empty deck --> do nothing
 
-            var who = Player.Find((byte)(id[0] >> 16));
+            var who = Player.Find(GameEngine, (byte)(id[0] >> 16));
             if (who == null)
             {
                 Program.GameMess.Warning("[LoadDeck] Player not found.");
@@ -353,7 +359,7 @@ namespace Octgn.Networking
                 }
             }
 
-            CreateCard(id, type, group, size);
+            CreateCard(GameEngine, id, type, group, size);
             Log.Info("LoadDeck Starting Task to Fire Event");
             Program.GameEngine.EventProxy.OnLoadDeck_3_1_0_0(who, @group.Distinct().ToArray());
             Program.GameEngine.EventProxy.OnLoadDeck_3_1_0_1(who, @group.Distinct().ToArray());
@@ -365,10 +371,10 @@ namespace Octgn.Networking
         /// <param name="type">An array containing the corresponding CardModel guids (encrypted)</param>
         /// <param name="groups">An array indicating the group the cards must be loaded into.</param>
         /// <seealso cref="CreateCard(int[], ulong[], Group)"> for a more efficient way to insert cards inside one group.</seealso>
-        private static void CreateCard(IList<int> id, IList<Guid> type, IList<Group> groups, IList<string> sizes)
+        private static void CreateCard(GameEngine gameEngine, IList<int> id, IList<Guid> type, IList<Group> groups, IList<string> sizes)
         {
             // Ignore cards created by oneself
-            var who = Player.Find((byte)(id[0] >> 16));
+            var who = Player.Find(gameEngine, (byte)(id[0] >> 16));
 
             if (IsLocalPlayer(who)) return;
             for (var i = 0; i < id.Count; i++)
@@ -381,7 +387,7 @@ namespace Octgn.Networking
                     continue;
                 }
 
-                var c = new Card(owner, id[i], Program.GameEngine.Definition.GetCardById(type[i]), false, sizes[i]);
+                var c = new Card(owner, id[i], Program.GameEngine.Definition.GetCardById(type[i]), sizes[i]);
                 group.AddAt(c, group.Count);
             }
         }
@@ -393,7 +399,7 @@ namespace Octgn.Networking
         /// <seealso cref="CreateCard(int[], ulong[], Group[])"> to add cards to several groups</seealso>
         public void CreateCard(int[] id, Guid[] type, string[] size, Group group)
         {
-            var who = Player.Find((byte)(id[0] >> 16));
+            var who = Player.Find(GameEngine, (byte)(id[0] >> 16));
             WriteReplayAction(who.Id);
             if (IsLocalPlayer(who)) return;
             for (var i = 0; i < id.Length; i++)
@@ -404,12 +410,12 @@ namespace Octgn.Networking
                     Program.GameMess.Warning("[CreateCard] Player not found.");
                     return;
                 }
-                var c = Card.Find(id[0]);
+                var c = Card.Find(GameEngine, id[0]);
 
                 Program.GameMess.PlayerEvent(owner, "{0} creates {1} {2} in {3}'s {4}", owner.Name, id.Length, c == null ? "card" : (object)c, group.Owner.Name, group.Name);
                 // Ignore cards created by oneself
 
-                var card = new Card(owner, id[i], Program.GameEngine.Definition.GetCardById(type[i]), false, size[i]); group.AddAt(card, group.Count);
+                var card = new Card(owner, id[i], Program.GameEngine.Definition.GetCardById(type[i]), size[i]); group.AddAt(card, group.Count);
             }
         }
 
@@ -433,7 +439,7 @@ namespace Octgn.Networking
                 Program.GameMess.Warning("[CreateCardAt] Inconsistent parameters length.");
                 return;
             }
-            var owner = Player.Find((byte)(id[0] >> 16));
+            var owner = Player.Find(GameEngine, (byte)(id[0] >> 16));
             if (owner == null)
             {
                 Program.GameMess.Warning("[CreateCardAt] Player not found.");
@@ -446,7 +452,7 @@ namespace Octgn.Networking
             {
                 for (var i = id.Length - 1; i >= 0; --i)
                 {
-                    var card = Card.Find(id[i]);
+                    var card = Card.Find(GameEngine, id[i]);
                     if (card == null)
                     {
                         Program.GameMess.Warning("[CreateCardAt] Card not found.");
@@ -487,7 +493,7 @@ namespace Octgn.Networking
         {
             WriteReplayAction(player.Id);
             // Ignore cards moved by the local player (already done, for responsiveness)
-            var cards = card.Select(Card.Find).Where(x=>x != null).ToArray();
+            var cards = card.Select(x => Card.Find(GameEngine, x)).Where(x=>x != null).ToArray();
             if (!IsLocalPlayer(player))
                 new MoveCards(player, cards, to, idx, faceUp, isScriptMove).Do();
         }
@@ -500,7 +506,7 @@ namespace Octgn.Networking
 
             var playCards = cards
                 .Select( cardId => {
-                    var playCard = Card.Find( cardId );
+                    var playCard = Card.Find(GameEngine, cardId);
                     if( playCard == null ) {
                         Program.GameMess.Warning( "Inconsistent state. Player {0} tried to move a card that does not exist.", player );
                         Program.GameMess.GameDebug( "Missing Card ID={0}", cardId );
@@ -916,7 +922,7 @@ namespace Octgn.Networking
             Program.GameMess.System("{0} starts a limited game.", player);
             if (Player.LocalPlayer.Spectator == false)
             {
-                var wnd = new Play.Dialogs.PickCardsDialog();
+                var wnd = new Play.Dialogs.PickCardsDialog(GameEngine);
                 WindowManager.PlayWindow.ShowBackstage(wnd);
                 wnd.OpenPacks(packs);
             }
@@ -1088,7 +1094,7 @@ namespace Octgn.Networking
 
                 var str = JsonConvert.SerializeObject(ps, Formatting.None);
 
-                Program.Client.Rpc.GameState(fromPlayer, str);
+                _client.Rpc.GameState(fromPlayer, str);
             }
             catch (Exception e)
             {

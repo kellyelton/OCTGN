@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,15 +15,9 @@ using Octgn.Play.Actions;
 using Octgn.Play.Gui;
 using Octgn.Utils;
 using System.Reflection;
-using Exceptionless.Json;
 using Octgn.Core.DataExtensionMethods;
-using Octgn.Core.Util;
 using Octgn.DataNew.Entities;
-
 using log4net;
-using Octgn.Site.Api;
-using Octgn.Library;
-using Octgn.Core;
 
 namespace Octgn.Play
 {
@@ -41,17 +39,7 @@ namespace Octgn.Play
 
         private static readonly Dictionary<int, Card> All = new Dictionary<int, Card>();
 
-        //public static string DefaultFront
-        //{
-        //    get { return Program.GameEngine.Definition.DefaultSize.Front; }
-        //}
-
-        //public static string DefaultBack
-        //{
-        //    get { return Program.GameEngine.Definition.DefaultSize.Back; }
-        //}
-
-        internal new static Card Find(int id)
+        internal new static Card Find(GameEngine gameEngine, int id)
         {
             Card res;
             lock (All)
@@ -113,17 +101,17 @@ namespace Octgn.Play
                 }
                 if (to.Visibility != GroupVisibility.Undefined) lFaceUp = c.FaceUp;
             }
-            if (Program.GameEngine.Definition.Events.ContainsKey("OverrideCardsMoved") && !isScriptMove)
+            if (to.GameEngine.Definition.Events.ContainsKey("OverrideCardsMoved") && !isScriptMove)
             {
                 var xy = Enumerable.Repeat(0, cards.Count()).ToArray();
                 var tos = Enumerable.Repeat(to, cards.Count()).ToArray();
-                Program.GameEngine.EventProxy.OverrideCardsMoved_3_1_0_2(cards, tos, idxs, xy, xy, faceups);
+                to.GameEngine.EventProxy.OverrideCardsMoved_3_1_0_2(cards, tos, idxs, xy, xy, faceups);
                 return;
             }
-            Program.Client.Rpc.MoveCardReq(cards.Select(x => x.Id).ToArray(), to, idxs, faceups, isScriptMove);
+            to.GameEngine.Client.Rpc.MoveCardReq(cards.Select(x => x.Id).ToArray(), to, idxs, faceups, isScriptMove);
             new MoveCards(Player.LocalPlayer, cards, to, idxs, faceups, isScriptMove).Do();
             foreach (var c in cards.Where(x => notMoved.Contains(x) == false))
-                Program.Client.Rpc.CardSwitchTo(Player.LocalPlayer, c, c.Alternate());
+                to.GameEngine.Client.Rpc.CardSwitchTo(Player.LocalPlayer, c, c.Alternate());
         }
 
         internal static void MoveCardsTo(Group to, Card[] cards, Action<MoveCardsArgs> it, bool isScriptMove)
@@ -140,23 +128,24 @@ namespace Octgn.Play
                 idxs[i] = cur.Index;
                 fups[i] = cur.FaceUp;
             }
-//            MoveCardsTo(to, cards, fups, idxs, isScriptMove);
         }
 
         public static void MoveCardsToTable(Card[] cards, int[] x, int[] y, bool[] lFaceUp, int[] idx, bool isScriptMove)
         {
             if( cards.Length == 0 ) return;
 
-            if (Program.GameEngine.Definition.Events.ContainsKey("OverrideCardsMoved") && !isScriptMove)
+            var gameEngine = cards[0].GameEngine;
+
+            if (gameEngine.Definition.Events.ContainsKey("OverrideCardsMoved") && !isScriptMove)
             {
-                var tos = Enumerable.Repeat(Program.GameEngine.Table, cards.Count()).ToArray();
-                Program.GameEngine.EventProxy.OverrideCardsMoved_3_1_0_2(cards, tos, idx, x, y, lFaceUp);
+                var tos = Enumerable.Repeat(gameEngine.Table, cards.Count()).ToArray();
+                gameEngine.EventProxy.OverrideCardsMoved_3_1_0_2(cards, tos, idx, x, y, lFaceUp);
                 return;
             }
-            Program.Client.Rpc.MoveCardAtReq(cards.Select(a => a.Id).ToArray(), x, y, idx, isScriptMove, lFaceUp);
+            gameEngine.Client.Rpc.MoveCardAtReq(cards.Select(a => a.Id).ToArray(), x, y, idx, isScriptMove, lFaceUp);
             new MoveCards(Player.LocalPlayer, cards, x, y, idx, lFaceUp, isScriptMove).Do();
             foreach (var c in cards)
-                Program.Client.Rpc.CardSwitchTo(Player.LocalPlayer, c, c.Alternate());
+                gameEngine.Client.Rpc.CardSwitchTo(Player.LocalPlayer, c, c.Alternate());
         }
 
         public static void MoveCardsToTable(Card[] cards, Action<MoveCardsArgs> it, bool isScriptMove)
@@ -213,39 +202,33 @@ namespace Octgn.Play
 															   face down although it should still be up. */
 
 
-        //private CardDef _definition;
         private bool _faceUp;
         private Group _group;
         private Color? _highlight;
         private Color? _filter;
-        //private bool _isAlternateImage;
         internal Octgn.DataNew.Entities.Card _alternateOf;
-        //private int numberOfSwitchWithAlternatesNotPerformed = 0;
 
         private CardOrientation _rot;
         private bool _selected;
         private CardIdentity _type;
         private double _x, _y;
         private bool? _isProxy;
-        private bool _cardMoved;
 
         #endregion Private fields
 
-        internal Card(Player owner, int id, DataNew.Entities.Card model, bool mySecret, string cardsize)            : base(owner)
+        internal Card(Player owner, int id, DataNew.Entities.Card model, string cardsize)
+            : base(owner)
         {
             _id = id;
             Type = new CardIdentity(id) { Model = model.Clone() };
-            // var _definition = def;
             lock (All)
             {
                 if (All.ContainsKey(id)) All[id] = this;
                 else All.Add(id, this);
             }
             _alternateOf = null;
-            //numberOfSwitchWithAlternatesNotPerformed = 0;
-            //_isAlternateImage = false;
-            _cardMoved = false;
-            Size = Program.GameEngine.Definition.CardSizes[cardsize];
+            CardMoved = false;
+            Size = owner.GameEngine.Definition.CardSizes[cardsize];
         }
 
         internal override int Id
@@ -262,14 +245,7 @@ namespace Octgn.Play
         {
             get { return _type.Model != null ? _type.Model.PropertyName() : "Card"; }
         }
-        public bool CardMoved
-        {
-            get { return _cardMoved; }
-            set
-            {
-                _cardMoved = value;
-            }
-        }
+        public bool CardMoved { get; set; }
 
         public CardSize Size { get; set; }
 
@@ -350,7 +326,7 @@ namespace Octgn.Play
             set
             {
                 if (_faceUp == value) return;
-                Program.Client.Rpc.TurnReq(this, value);
+                GameEngine.Client.Rpc.TurnReq(this, value);
                 if (_faceUp) MayBeConsideredFaceUp = true; // See comment for mayBeConsideredFaceUp
                 new Turn(Player.LocalPlayer, this, value).Do();
             }
@@ -386,22 +362,19 @@ namespace Octgn.Play
             set
             {
                 if (value == _rot) return;
-                Program.Client.Rpc.RotateReq(this, value);
+                GameEngine.Client.Rpc.RotateReq(this, value);
                 new Rotate(Player.LocalPlayer, this, value).Do();
             }
         }
 
-        public bool Anchored
-        {
-            get { return _anchored; }
-        }
+        public bool Anchored { get; private set; }
 
         public void SetAnchored(bool networked, bool anchored)
         {
-            if (anchored == _anchored) return;
+            if (anchored == Anchored) return;
             if (!networked)
-                Program.Client.Rpc.AnchorCard(this, Player.LocalPlayer, anchored);
-            _anchored = anchored;
+                GameEngine.Client.Rpc.AnchorCard(this, Player.LocalPlayer, anchored);
+            Anchored = anchored;
             OnPropertyChanged("Anchored");
         }
 
@@ -452,7 +425,7 @@ namespace Octgn.Play
             set
             {
                 SetHighlight(value);
-                Program.Client.Rpc.Highlight(this, value);
+                GameEngine.Client.Rpc.Highlight(this, value);
             }
         }
         public string HighlightColorString
@@ -477,7 +450,7 @@ namespace Octgn.Play
             set
             {
                 SetFilter(value);
-                Program.Client.Rpc.Filter(this, value);
+                GameEngine.Client.Rpc.Filter(this, value);
             }
         }
         public string FilterColorString
@@ -522,14 +495,14 @@ namespace Octgn.Play
         public void Target(bool isScriptChange)
         {
             if (TargetedBy == Player.LocalPlayer) return;
-            Program.Client.Rpc.TargetReq(this, isScriptChange);
+            GameEngine.Client.Rpc.TargetReq(this, isScriptChange);
             new Target(Player.LocalPlayer, this, null, true, isScriptChange).Do();
         }
 
         public void Untarget(bool isScriptChange)
         {
             if (TargetedBy == null && !TargetsOtherCards) return;
-            Program.Client.Rpc.UntargetReq(this, isScriptChange);
+            GameEngine.Client.Rpc.UntargetReq(this, isScriptChange);
             new Target(Player.LocalPlayer, this, null, false, isScriptChange).Do();
         }
 
@@ -540,7 +513,7 @@ namespace Octgn.Play
                 Target(isScriptChange);
                 return;
             }
-            Program.Client.Rpc.TargetArrowReq(this, otherCard, isScriptChange);
+            GameEngine.Client.Rpc.TargetArrowReq(this, otherCard, isScriptChange);
             new Target(Player.LocalPlayer, this, otherCard, true, isScriptChange).Do();
         }
 
@@ -566,7 +539,7 @@ namespace Octgn.Play
             if (_type.Model.Alternate.ToLower() == alternate.ToLower()) return;
             if (player.Id == Player.LocalPlayer.Id)
                 if (notifyServer)
-                    Program.Client.Rpc.CardSwitchTo(player, this, alternate);
+                    GameEngine.Client.Rpc.CardSwitchTo(player, this, alternate);
             _type.Model.SetPropertySet(alternate);
             Size = _type.Model.Size;
             this.OnPropertyChanged("Picture");
@@ -613,7 +586,7 @@ namespace Octgn.Play
             PropertyOverrides[name][Alternate()] = val;
             if (notifyServer)
             {
-                Program.Client.Rpc.SetCardProperty(this,Player.LocalPlayer,name, val, val.GetType().FullName);
+                GameEngine.Client.Rpc.SetCardProperty(this,Player.LocalPlayer,name, val, val.GetType().FullName);
             }
         }
 
@@ -622,7 +595,7 @@ namespace Octgn.Play
             PropertyOverrides.Clear();
             if (notifyServer)
             {
-                Program.Client.Rpc.ResetCardProperties(this, Player.LocalPlayer);
+                GameEngine.Client.Rpc.ResetCardProperties(this, Player.LocalPlayer);
             }
         }
 
@@ -664,7 +637,7 @@ namespace Octgn.Play
             if (FaceUp) return;
             if (!PeekingPlayers.Contains(Player.LocalPlayer))
                 PeekingPlayers.Add(Player.LocalPlayer);
-            Program.Client.Rpc.PeekReq(this);
+            GameEngine.Client.Rpc.PeekReq(this);
             Program.GameMess.PlayerEvent(Player.LocalPlayer, "peeked at {0}.", this.Type.Model);
         }
 
@@ -673,19 +646,19 @@ namespace Octgn.Play
             if (!up)
             {
                 if (Owner.SleeveImage == null) {
-                    return Program.GameEngine.GetCardBack(this.Size.Name);
+                    return GameEngine.GetCardBack(this.Size.Name);
                 } else {
                     return Owner.SleeveImage;
                 }
             }
-            if (Type == null || Type.Model == null) return Program.GameEngine.GetCardFront(this.Size.Name);
+            if (Type == null || Type.Model == null) return GameEngine.GetCardFront(this.Size.Name);
             BitmapImage bmpo = null;
             Octgn.Library.X.Instance.Try(() =>
             {
                 ImageUtils.GetCardImage(Type.Model, x => bmpo = x,proxyOnly);
             });
 
-            return bmpo ?? Program.GameEngine.GetCardFront(this.Size.Name);
+            return bmpo ?? GameEngine.GetCardFront(this.Size.Name);
         }
 
         internal void SetOrientation(CardOrientation value)
@@ -763,7 +736,7 @@ namespace Octgn.Play
 
         protected override void OnControllerChanged()
         {
-            if (Selected && (Controller != Player.LocalPlayer || Program.GameEngine.IsReplay))
+            if (Selected && (Controller != Player.LocalPlayer || GameEngine.IsReplay))
                 Selection.Remove(this);
         }
 
@@ -819,7 +792,6 @@ namespace Octgn.Play
 
         private readonly ObservableCollection<Marker> _markers = new ObservableCollection<Marker>();
         private readonly List<Marker> _removedMarkers = new List<Marker>();
-        private bool _anchored;
 
         public IList<Marker> Markers
         {
@@ -846,22 +818,7 @@ namespace Octgn.Play
                 return sb.ToString();
             }
         }
-        //public Dictionary<Tuple<string,string>,int> MarkersDict
-        //{
-        //    get
-        //    {
-        //        Dictionary<Tuple<string, string>, int> markertuple = new Dictionary<Tuple<string,string>,int>();
-        //        if (_markers.Count > 0)
-        //        {
-        //            foreach (Marker m in _markers)
-        //            {
-        //                Tuple<string, string> key = Tuple.Create<string, string>(m.Model.Name, m.Model.Id.ToString());
-        //                markertuple.Add(key, m.Count);
-        //            }
-        //        }
-        //        return markertuple;
-        //    }
-        //}
+
         internal void AddMarker(DataNew.Entities.Marker model, ushort count)
         {
             Marker marker = _markers.FirstOrDefault(m => m.Model.Equals(model));
@@ -923,7 +880,7 @@ namespace Octgn.Play
             }
             else if (count > 0)
             {
-                DataNew.Entities.Marker model = Program.GameEngine.GetMarkerModel(lId);
+                DataNew.Entities.Marker model = GameEngine.GetMarkerModel(lId);
                 model.Name = name;
                 AddMarker(model, (ushort)count);
             }

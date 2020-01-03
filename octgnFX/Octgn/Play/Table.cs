@@ -2,8 +2,8 @@ namespace Octgn.Play
 {
     public class Table : Group
     {
-        public Table(DataNew.Entities.Group def)
-            : base(null, def)
+        public Table(GameEngine gameEngine,  DataNew.Entities.Group def)
+            : base(gameEngine, def)
         {
         }
 
