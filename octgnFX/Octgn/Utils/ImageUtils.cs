@@ -1,7 +1,10 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Reflection;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Octgn.Core.DataExtensionMethods;
 using Octgn.DataNew.Entities;
 
@@ -22,10 +25,10 @@ namespace Octgn.Utils
                 Delegate.CreateDelegate(typeof (Func<Uri, BitmapImage>), ReflectionBitmapImage, methodInfo);
         }
 
-        public static void GetCardImage(ICard card, Action<BitmapImage> action, bool proxyOnly = false)
+        public static void GetCardImage(GameEngine gameEngine, ICard card, Action<BitmapImage> action, bool proxyOnly = false)
         {
 			//var uri = new Uri(card.GetPicture());
-            var uri = proxyOnly ? 
+            var uri = proxyOnly ?
                 new Uri(card.GetProxyPicture()) : new Uri(card.GetPicture());
             BitmapImage bmp = GetImageFromCache(uri);
             if (bmp != null)
@@ -33,36 +36,32 @@ namespace Octgn.Utils
                 action(bmp);
                 return;
             }
-            action(CreateFrozenBitmap(uri));
-            return;
-            // If the bitmap is not in cache, display the default face up picture and load the correct one async.
-            //action(Program.GameEngine.CardFrontBitmap);
-            //Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>{action(CreateFrozenBitmap(uri));}),DispatcherPriority.Input);
+            action(CreateFrozenBitmap(gameEngine, uri));
         }
 
-        public static BitmapImage CreateFrozenBitmap(string source)
+        public static BitmapImage CreateFrozenBitmap(GameEngine gameEngine, string source)
         {
-            return CreateFrozenBitmap(new Uri(source));
+            return CreateFrozenBitmap(gameEngine, new Uri(source));
         }
 
-        public static BitmapImage CreateFrozenBitmap(Uri uri)
+        public static BitmapImage CreateFrozenBitmap(GameEngine gameEngine, Uri uri)
         {
             var imgsrc = new BitmapImage();
             imgsrc.BeginInit();
             imgsrc.CacheOption = BitmapCacheOption.OnLoad;
             // catch bad Uri's and load Front Bitmap "?"
             try
-            {                                               
+            {
                 imgsrc.UriSource = uri;
-                imgsrc.EndInit();                
+                imgsrc.EndInit();
             }
             catch (Exception)
             {
                 imgsrc = new BitmapImage();
                 imgsrc.BeginInit();
                 imgsrc.CacheOption = BitmapCacheOption.None;
-                imgsrc.UriSource = Program.GameEngine.GetCardFront("Default").UriSource;
-                imgsrc.EndInit();              
+                imgsrc.UriSource = gameEngine.GetCardFront("Default").UriSource;
+                imgsrc.EndInit();
             }
 			if(imgsrc.CanFreeze)
 				imgsrc.Freeze();

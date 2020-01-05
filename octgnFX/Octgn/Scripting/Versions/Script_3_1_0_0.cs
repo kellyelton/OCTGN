@@ -880,7 +880,7 @@ namespace Octgn.Scripting.Versions
             return QueueAction<int?>(() =>
             {
                 var cardList = idList.Select(x => Card.Find(GameEngine, x)).ToList();
-                var dlg = new SelectCardsDlg(cardList, question, title) { Owner = WindowManager.PlayWindow };
+                var dlg = new SelectCardsDlg(GameEngine, cardList, question, title) { Owner = WindowManager.PlayWindow };
                 if (!dlg.ShowDialog().GetValueOrDefault()) return null;
                 return dlg.returnIndex;
             });
@@ -893,7 +893,7 @@ namespace Octgn.Scripting.Versions
             return QueueAction<Tuple<string, int>>(() =>
             {
                 //fix MAINWINDOW bug
-                var dlg = new CardDlg(properties, op, title) { Owner = WindowManager.PlayWindow };
+                var dlg = new CardDlg(GameEngine, properties, op, title) { Owner = WindowManager.PlayWindow };
                 if (!dlg.ShowDialog().GetValueOrDefault()) return null;
                 return Tuple.Create(dlg.SelectedCard.Id.ToString(),
                                     dlg.Quantity);
@@ -953,8 +953,8 @@ namespace Octgn.Scripting.Versions
 
                     string pictureUri = model.GetPicture();
                     Dispatcher.CurrentDispatcher.BeginInvoke(
-                        new Func<string, BitmapImage>(ImageUtils.CreateFrozenBitmap),
-                        DispatcherPriority.Background, pictureUri);
+                        new Func<GameEngine, string, BitmapImage>(ImageUtils.CreateFrozenBitmap),
+                        DispatcherPriority.Background, GameEngine, pictureUri);
 
                     GameEngine.Client.Rpc.CreateCard(ids, keys, sizes, group);
 
@@ -1026,8 +1026,8 @@ namespace Octgn.Scripting.Versions
                     }
                     string pictureUri = model.GetPicture();
                     Dispatcher.CurrentDispatcher.BeginInvoke(
-                        new Func<string, BitmapImage>(ImageUtils.CreateFrozenBitmap),
-                        DispatcherPriority.Background, pictureUri);
+                        new Func<GameEngine, string, BitmapImage>(ImageUtils.CreateFrozenBitmap),
+                        DispatcherPriority.Background, GameEngine, pictureUri);
                     GameEngine.Client.Rpc.CreateCardAt(ids, models, xs, ys, faceDown != true, persist);
                 }
             });

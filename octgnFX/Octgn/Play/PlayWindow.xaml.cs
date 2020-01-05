@@ -728,7 +728,7 @@ namespace Octgn.Play
                 }
                 else
                 {
-                    var img = ImageUtils.CreateFrozenBitmap(new Uri(e.CardModel.GetPicture()));
+                    var img = ImageUtils.CreateFrozenBitmap(GameEngine, new Uri(e.CardModel.GetPicture()));
                     this.ShowCardPicture(e.Card, img);
                 }
             }
@@ -766,7 +766,7 @@ namespace Octgn.Play
             if (e.CardModel == null)
                 _fadeOut.Begin(outerCardViewer, HandoffBehavior.SnapshotAndReplace);
             else
-                ShowCardPicture(e.CardModel.GameCard, ImageUtils.CreateFrozenBitmap(new Uri(e.CardModel.Card.GetPicture())));
+                ShowCardPicture(e.CardModel.GameCard, ImageUtils.CreateFrozenBitmap(GameEngine, new Uri(e.CardModel.Card.GetPicture())));
         }
 
         private double ShowCardPicture(Card card, BitmapSource img)

@@ -132,7 +132,7 @@ namespace Octgn.Play.Gui
             ModelId = card.Type.Model.Id;
             Name = card.Type.Model.Name;
 
-            ImageUtils.GetCardImage(card.Type.Model, x => Image = x, false);
+            ImageUtils.GetCardImage(card.GameEngine, card.Type.Model, x => Image = x, false);
         }
 
         public void AddCard(Card card) {

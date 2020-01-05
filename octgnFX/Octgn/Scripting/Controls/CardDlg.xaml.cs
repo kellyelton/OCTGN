@@ -9,32 +9,39 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Octgn.Controls;
-using Octgn.Data;
 using Octgn.Utils;
+using Octgn.Core.DataExtensionMethods;
+using Octgn.Core.DataManagers;
+using Octgn.DataNew.Entities;
 
 namespace Octgn.Scripting.Controls
 {
-    using System.Linq.Expressions;
-
-    using Octgn.Core.DataExtensionMethods;
-    using Octgn.Core.DataManagers;
-    using Octgn.DataNew.Entities;
-
     public partial class CardDlg
     {
         public static readonly DependencyProperty IsCardSelectedProperty = DependencyProperty.Register(
             "IsCardSelected", typeof(bool), typeof(CardDlg), new UIPropertyMetadata(false));
 
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for GameEngine.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(CardDlg), new PropertyMetadata(null));
+
         private List<DataNew.Entities.Card> _allCards;
         private string _filterText = "";
 
-        public CardDlg(Dictionary<string, List<string>> properties, string op, string title)
+        public CardDlg(GameEngine gameEngine, Dictionary<string, List<string>> properties, string op, string title)
         {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             InitializeComponent();
             Title = title;
             Task.Factory.StartNew(() =>
             {
-                var game = GameManager.Get().GetById(Program.GameEngine.Definition.Id);
+                var game = GameManager.Get().GetById(GameEngine.Definition.Id);
                 if (op == null) op = "";
                 op = op.ToLower().Trim();
                 if (String.IsNullOrWhiteSpace(op)) op = "and";
@@ -89,20 +96,22 @@ namespace Octgn.Scripting.Controls
                 }
                 Dispatcher.BeginInvoke(new Action(() => allList.ItemsSource = _allCards));
             });
-            recentList.ItemsSource = Program.GameEngine.RecentCards;
+            recentList.ItemsSource = GameEngine.RecentCards;
         }
 
-        public CardDlg(Dictionary<string, string> properties, string op)
+        public CardDlg(GameEngine gameEngine, Dictionary<string, string> properties, string op)
         {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             InitializeComponent();
             Task.Factory.StartNew(() =>
               {
-                  var game = GameManager.Get().GetById(Program.GameEngine.Definition.Id);
+                  var game = GameManager.Get().GetById(GameEngine.Definition.Id);
                   if (op == null) op = "";
                   op = op.ToLower().Trim();
                   if (String.IsNullOrWhiteSpace(op)) op = "and";
                   if (properties == null) properties = new Dictionary<string, string>();
-                  
+
                   switch (op)
                   {
                       case "or":
@@ -111,7 +120,7 @@ namespace Octgn.Scripting.Controls
                           {
                               var tlist = game.AllCards()
                                   .Where(x => x.Properties.SelectMany(y=>y.Value.Properties)
-                                      .Any(y => y.Key.Name.ToLower() == p.Key.ToLower() 
+                                      .Any(y => y.Key.Name.ToLower() == p.Key.ToLower()
                                           && y.Value.ToString().ToLower() == p.Value.ToLower())).ToList();
                               _allCards.AddRange(tlist);
                           }
@@ -123,7 +132,7 @@ namespace Octgn.Scripting.Controls
                               query = query
                                   .Where(
                                   x => x.Properties.SelectMany(y=>y.Value.Properties)
-                                      .Any(y => y.Key.Name.ToLower() == p.Key.ToLower() 
+                                      .Any(y => y.Key.Name.ToLower() == p.Key.ToLower()
                                           && y.Value.ToString().ToLower() == p.Value.ToLower()));
                           }
                           _allCards = query.ToList();
@@ -132,7 +141,7 @@ namespace Octgn.Scripting.Controls
                   }
                   Dispatcher.BeginInvoke(new Action(() => allList.ItemsSource = _allCards));
               });
-            recentList.ItemsSource = Program.GameEngine.RecentCards;
+            recentList.ItemsSource = GameEngine.RecentCards;
         }
 
         public bool IsCardSelected
@@ -169,7 +178,7 @@ namespace Octgn.Scripting.Controls
                 return;
             }
 
-            Program.GameEngine.AddRecentCard(SelectedCard);
+            GameEngine.AddRecentCard(SelectedCard);
             DialogResult = true;
         }
 
@@ -221,13 +230,13 @@ namespace Octgn.Scripting.Controls
             var img = sender as Image;
             if (img == null) return;
             var model = img.DataContext as DataNew.Entities.Card;
-            if (model != null) ImageUtils.GetCardImage(model, x => img.Source = x);
+            if (model != null) ImageUtils.GetCardImage(GameEngine, model, x => img.Source = x);
         }
 
         private void ComputeChildWidth(object sender, RoutedEventArgs e)
         {
             var panel = sender as VirtualizingWrapPanel;
-            if (panel != null) panel.ChildWidth = panel.ChildHeight * Program.GameEngine.Definition.CardSize.Width / Program.GameEngine.Definition.CardSize.Height;
+            if (panel != null) panel.ChildWidth = panel.ChildHeight * GameEngine.Definition.CardSize.Width / GameEngine.Definition.CardSize.Height;
         }
     }
 }

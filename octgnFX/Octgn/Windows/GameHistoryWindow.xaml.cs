@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using Octgn.DataNew;
 using Octgn.Play;
 using Octgn.Tabs.GameHistory;
@@ -35,6 +39,7 @@ namespace Octgn.Windows
         }
         private string _gameName;
 
+        [Obsolete("Used for designed only")]
         public GameHistoryWindow()
         {
             InitializeComponent();
@@ -98,19 +103,19 @@ namespace Octgn.Windows
                 return;
             }
 
-            Program.GameEngine = GameEngine.Replay(game, History.ReplayFile);
+            var gameEngine = GameEngine.Replay(game, History.ReplayFile);
 
-            LaunchPlayWindow();
+            LaunchPlayWindow(gameEngine);
         }
 
-        private void LaunchPlayWindow() {
+        private void LaunchPlayWindow(GameEngine gameEngine) {
             Dispatcher.VerifyAccess();
 
             if (WindowManager.PlayWindow != null) throw new InvalidOperationException($"Can't run more than one game at a time.");
 
             Dispatcher.InvokeAsync(async () => {
                 await Dispatcher.Yield(DispatcherPriority.Background);
-                WindowManager.PlayWindow = new PlayWindow(Program.GameEngine);
+                WindowManager.PlayWindow = new PlayWindow(gameEngine);
                 WindowManager.PlayWindow.Show();
                 WindowManager.PlayWindow.Activate();
             });

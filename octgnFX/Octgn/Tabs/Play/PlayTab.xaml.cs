@@ -207,7 +207,7 @@ namespace Octgn.Tabs.Play
 
                 if (dialogResult == DialogResult.OK) {
                     if (dialog.SuccessfulHost) {
-                        LaunchPlayWindow();
+                        LaunchPlayWindow(dialog.GameEngine);
                     }
                 }
             }
@@ -261,10 +261,10 @@ namespace Octgn.Tabs.Play
 
                 var game = GameManager.Get().GetById(hostedGame.GameId);
 
-                Program.GameEngine = await GameEngine.Join(game, username, password, spectate, hostedGame.IPAddress, hostedGame.Port);
+                var gameEngine = await GameEngine.Join(game, username, password, spectate, hostedGame.IPAddress, hostedGame.Port);
 
                 Log.Info($"{nameof(JoinGame)}: Launching {nameof(PlayWindow)}");
-                LaunchPlayWindow();
+                LaunchPlayWindow(gameEngine);
             } catch (Exception ex) {
                 HandleException(ex);
             } finally {
@@ -341,25 +341,23 @@ namespace Octgn.Tabs.Play
 
                 if (dialogResult == DialogResult.OK) {
                     if (dialog.Successful) {
-                        LaunchPlayWindow();
+                        LaunchPlayWindow(dialog.GameEngine);
                         return;
                     }
                 }
-
-                Program.GameEngine?.End();
             }
         }
 
         #endregion Join Offline Game
 
-        private void LaunchPlayWindow() {
+        private void LaunchPlayWindow(GameEngine gameEngine) {
             Dispatcher.VerifyAccess();
 
             if (WindowManager.PlayWindow != null) throw new InvalidOperationException($"Can't run more than one game at a time.");
 
             Dispatcher.InvokeAsync(async () => {
                 await Dispatcher.Yield(DispatcherPriority.Background);
-                WindowManager.PlayWindow = new PlayWindow(Program.GameEngine);
+                WindowManager.PlayWindow = new PlayWindow(gameEngine);
                 WindowManager.PlayWindow.Show();
                 WindowManager.PlayWindow.Activate();
             });

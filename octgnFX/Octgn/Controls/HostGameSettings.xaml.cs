@@ -47,6 +47,8 @@ namespace Octgn.Controls
         public DataNew.Entities.Game Game { get; private set; }
         public bool SuccessfulHost { get; private set; }
 
+        public GameEngine GameEngine { get; private set; }
+
         private Decorator Placeholder;
         private Guid lastHostedGameType;
 
@@ -225,11 +227,11 @@ namespace Octgn.Controls
                 var isLocalGame = CheckBoxIsLocalGame?.IsChecked ?? false;
 
                 if (isLocalGame) {
-                    Program.GameEngine = await GameEngine.HostLocal(Game, Gamename, Password, Username, Specators);
+                    GameEngine = await GameEngine.HostLocal(Game, Gamename, Password, Username, Specators);
                 } else {
                     Username = Program.LobbyClient.User.DisplayName;
 
-                    Program.GameEngine = await GameEngine.HostOnline(Game, Gamename, Password, Specators);
+                    GameEngine = await GameEngine.HostOnline(Game, Gamename, Password, Specators);
                 }
 
                 SuccessfulHost = true;

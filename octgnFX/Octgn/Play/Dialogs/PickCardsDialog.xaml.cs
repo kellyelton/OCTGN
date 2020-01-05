@@ -184,7 +184,7 @@ namespace Octgn.Play.Dialogs
             if (img == null) return;
             var model = img.DataContext as ObservableMultiCard;
             if (model == null) return;
-            ImageUtils.GetCardImage(model, x => img.Source = x);
+            ImageUtils.GetCardImage(_gameEngine, model, x => img.Source = x);
         }
 
         private void PickPoolCard(object sender, RoutedEventArgs e)

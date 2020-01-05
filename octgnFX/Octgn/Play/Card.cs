@@ -655,7 +655,7 @@ namespace Octgn.Play
             BitmapImage bmpo = null;
             Octgn.Library.X.Instance.Try(() =>
             {
-                ImageUtils.GetCardImage(Type.Model, x => bmpo = x,proxyOnly);
+                ImageUtils.GetCardImage(GameEngine, Type.Model, x => bmpo = x,proxyOnly);
             });
 
             return bmpo ?? GameEngine.GetCardFront(this.Size.Name);

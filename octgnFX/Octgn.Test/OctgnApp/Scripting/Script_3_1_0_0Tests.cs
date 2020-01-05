@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.IO;
 using NuGet;
 using NUnit.Framework;
@@ -13,21 +17,22 @@ namespace Octgn.Test.OctgnApp.Scripting
 		[Test]
 		public void DoWebRequest()
 		{
-			var s = new Script_3_1_0_0();
-
-			var result = s.DoWebRequest("asdf", 100);
-			Assert.AreEqual(Tuple.Create("URL is in an invalid format", 0), result);
-
 			var def = new Game() {
 				Name = "Test",
 				Version = new Version(1, 0, 0, 0),
 				ScriptVersion = new Version(1, 0, 0, 0)
 			};
-#pragma warning disable CS0618 // Type or member is obsolete
-            Program.GameEngine = new GameEngine();
-#pragma warning restore CS0618 // Type or member is obsolete
-            Program.GameEngine.Definition = def;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+            var engine = new GameEngine {
+                Definition = def
+            };
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            var s = new Script_3_1_0_0(engine);
+
+			var result = s.DoWebRequest("asdf", 100);
+			Assert.AreEqual(Tuple.Create("URL is in an invalid format", 0), result);
 
 			result = s.DoWebRequest("http://httpstat.us/200", 0);
 			Assert.AreEqual(Tuple.Create("200 OK", 200), result);
@@ -80,21 +85,21 @@ namespace Octgn.Test.OctgnApp.Scripting
 			[Test]
 			public void DoWebRequest()
 			{
-				var s = new Script_3_1_0_1();
-
-				var result = s.DoWebRequest("asdf", 100);
-				Assert.AreEqual(Tuple.Create("URL is in an invalid format", 0), result);
-
 				var def = new Game() {
 					Name = "Test",
 					Version = new Version(1, 0, 0, 0),
 					ScriptVersion = new Version(1, 0, 0, 0)
 				};
-#pragma warning disable CS0618 // Type or member is obsolete
-                Program.GameEngine = new GameEngine();
-#pragma warning restore CS0618 // Type or member is obsolete
-                Program.GameEngine.Definition = def;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+                var engine = new GameEngine() {
+                    Definition = def
+                };
+#pragma warning restore CS0618 // Type or member is obsolete
+				var s = new Script_3_1_0_1(engine);
+
+				var result = s.DoWebRequest("asdf", 100);
+				Assert.AreEqual(Tuple.Create("URL is in an invalid format", 0), result);
 
 				result = s.DoWebRequest("http://httpstat.us/200", 0);
 				Assert.AreEqual(Tuple.Create("200 OK", 200), result);
@@ -148,21 +153,22 @@ namespace Octgn.Test.OctgnApp.Scripting
 			[Test]
 			public void DoWebRequest()
 			{
-				var s = new Script_3_1_0_2();
-
-				var result = s.DoWebRequest("asdf", 100);
-				Assert.AreEqual(Tuple.Create("URL is in an invalid format", 0), result);
-
 				var def = new Game() {
 					Name = "Test",
 					Version = new Version(1, 0, 0, 0),
 					ScriptVersion = new Version(1, 0, 0, 0)
 				};
-#pragma warning disable CS0618 // Type or member is obsolete
-                Program.GameEngine = new GameEngine();
-#pragma warning restore CS0618 // Type or member is obsolete
-                Program.GameEngine.Definition = def;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+                var engine = new GameEngine() {
+                    Definition = def
+                };
+#pragma warning restore CS0618 // Type or member is obsolete
+
+				var s = new Script_3_1_0_2(engine);
+
+				var result = s.DoWebRequest("asdf", 100);
+				Assert.AreEqual(Tuple.Create("URL is in an invalid format", 0), result);
 
 				result = s.DoWebRequest("http://httpstat.us/200", 0);
 				Assert.AreEqual(Tuple.Create("200 OK", 200), result);

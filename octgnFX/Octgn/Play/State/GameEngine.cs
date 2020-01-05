@@ -195,8 +195,8 @@ namespace Octgn
             ActivePlayer = null;
 
             foreach (var size in Definition.CardSizes) {
-                var front = ImageUtils.CreateFrozenBitmap(new Uri(size.Value.Front));
-                var back = ImageUtils.CreateFrozenBitmap(new Uri(size.Value.Back));
+                var front = ImageUtils.CreateFrozenBitmap(this, new Uri(size.Value.Front));
+                var back = ImageUtils.CreateFrozenBitmap(this, new Uri(size.Value.Back));
                 _cardFrontsBacksCache.Add(size.Key, new Tuple<BitmapImage, BitmapImage>(front, back));
             }
 
@@ -301,8 +301,8 @@ namespace Octgn
 
             foreach (var size in Definition.CardSizes)
             {
-                var front = ImageUtils.CreateFrozenBitmap(new Uri(size.Value.Front));
-                var back = ImageUtils.CreateFrozenBitmap(new Uri(size.Value.Back));
+                var front = ImageUtils.CreateFrozenBitmap(this, new Uri(size.Value.Front));
+                var back = ImageUtils.CreateFrozenBitmap(this, new Uri(size.Value.Back));
                 _cardFrontsBacksCache.Add(size.Key, new Tuple<BitmapImage, BitmapImage>(front, back));
             }
 
@@ -539,8 +539,8 @@ namespace Octgn
         public void OnWelcomed(Guid gameSessionId, string gameName, bool waitForGameState) {
             IsWelcomed = true;
 
-            Program.GameEngine.SessionId = gameSessionId;
-            Program.GameEngine.WaitForGameState = waitForGameState;
+            SessionId = gameSessionId;
+            WaitForGameState = waitForGameState;
             _gameName = gameName;
         }
 
@@ -549,7 +549,7 @@ namespace Octgn
                 return;
             }
 
-            Program.GameEngine.History.Name = DateTime.Now.Ticks.ToString();
+            History.Name = DateTime.Now.Ticks.ToString();
 
             if (_historyPath == null) {
                 var dir = new DirectoryInfo(Config.Instance.Paths.GameHistoryPath);
@@ -588,7 +588,7 @@ namespace Octgn
 
                 var stream = File.Open(_replayPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
 
-                Program.GameEngine.ReplayWriter.Start(replay, stream);
+                ReplayWriter.Start(replay, stream);
 
                 var logStream = File.Open(_logPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
 
@@ -839,7 +839,7 @@ namespace Octgn
             Version oversion = Const.OctgnVersion;
             Client.Rpc.Hello(this.Nickname, Player.LocalPlayer.UserId, Player.LocalPlayer.PublicKey,
                                      Const.ClientName, oversion, oversion,
-                                     Program.GameEngine.Definition.Id, Program.GameEngine.Definition.Version, this.Password
+                                     Definition.Id, Definition.Version, this.Password
                                      , Spectator);
             Program.IsGameRunning = true;
 
@@ -856,7 +856,7 @@ namespace Octgn
             Version oversion = Const.OctgnVersion;
             Client.Rpc.HelloAgain(Player.LocalPlayer.Id, this.Nickname, Player.LocalPlayer.UserId, Player.LocalPlayer.PublicKey,
                                      Const.ClientName, oversion, oversion,
-                                     Program.GameEngine.Definition.Id, Program.GameEngine.Definition.Version, this.Password);
+                                     Definition.Id, Definition.Version, this.Password);
         }
 
         public void Reset()
@@ -904,7 +904,6 @@ namespace Octgn
             ReplayEngine?.Dispose();
             _logStream?.Dispose();
 
-            Program.GameEngine = null;
             Player.Reset();
             Card.Reset();
             CardIdentity.Reset();
@@ -927,7 +926,7 @@ namespace Octgn
         }
 
         public int GetUniqueCardId() {
-            return (Player.LocalPlayer.Id) << 16 | Program.GameEngine.GetUniqueId();
+            return (Player.LocalPlayer.Id) << 16 | GetUniqueId();
         }
 
 
@@ -936,7 +935,7 @@ namespace Octgn
 
         public void LoadDeck(IDeck deck, bool limited)
         {
-            var def = Program.GameEngine.Definition;
+            var def = Definition;
             int nCards = deck.CardCount();
             var ids = new int[nCards];
             var keys = new Guid[nCards];
@@ -1011,8 +1010,8 @@ namespace Octgn
                     // Load images in the background
                     string pictureUri = element.GetPicture();
                     Dispatcher.CurrentDispatcher.BeginInvoke(
-                        new Func<string, BitmapImage>(ImageUtils.CreateFrozenBitmap),
-                        DispatcherPriority.Background, pictureUri);
+                        new Func<GameEngine, string, BitmapImage>(ImageUtils.CreateFrozenBitmap),
+                        DispatcherPriority.Background, this, pictureUri);
                 }
             }
 

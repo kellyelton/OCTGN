@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,24 +10,25 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
 using Octgn.Controls;
-using Octgn.Data;
 using Octgn.Utils;
+using Octgn.Core.DataManagers;
+using Octgn.Play;
 
 namespace Octgn.Scripting.Controls
 {
-    using System.Linq.Expressions;
-
-    using Octgn.Core.DataExtensionMethods;
-    using Octgn.Core.DataManagers;
-    using Octgn.Play;
-
     public partial class SelectCardsDlg
     {
         public static readonly DependencyProperty IsCardSelectedProperty = DependencyProperty.Register(
             "IsCardSelected", typeof(bool), typeof(SelectCardsDlg), new UIPropertyMetadata(false));
+
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
+
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(SelectCardsDlg), new PropertyMetadata(null));
 
         private List<Card> _allCards;
         private string _filterText = "";
@@ -31,9 +36,12 @@ namespace Octgn.Scripting.Controls
                     .Where(p => !p.IgnoreText)
                     .Select(p => p.Name);
 
-        public SelectCardsDlg(List<Card> cardList, string prompt, string title)
+        public SelectCardsDlg(GameEngine gameEngine, List<Card> cardList, string prompt, string title)
         {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             InitializeComponent();
+
             Title = title;
             this.Height = Math.Min(System.Windows.SystemParameters.PrimaryScreenHeight * 0.80, 660);
             this.Width = Math.Min(System.Windows.SystemParameters.PrimaryScreenWidth * 0.80, 660);
@@ -44,7 +52,7 @@ namespace Octgn.Scripting.Controls
                 if (cardList == null) cardList = new List<Card>();
 
                 _allCards = cardList;
- 
+
                 Dispatcher.BeginInvoke(new Action(() => allList.ItemsSource = _allCards));
             });
         }
@@ -73,7 +81,7 @@ namespace Octgn.Scripting.Controls
             returnIndex = allList.SelectedIndex;
 
             if (SelectedCard == null) return;
-            
+
             DialogResult = true;
         }
 
@@ -127,7 +135,7 @@ namespace Octgn.Scripting.Controls
             var img = sender as Image;
             if (img == null) return;
             var model = (img.DataContext as Card).Type.Model;
-            if (model != null) ImageUtils.GetCardImage(model, x => img.Source = x);
+            if (model != null) ImageUtils.GetCardImage(GameEngine, model, x => img.Source = x);
         }
 
         private void ComputeChildWidth(object sender, RoutedEventArgs e)

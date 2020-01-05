@@ -59,6 +59,8 @@ namespace Octgn.Controls
         public string Password { get; private set; }
         public bool Spectator { get; private set; }
 
+        public GameEngine GameEngine { get; private set; }
+
         public ObservableCollection<DataGameViewModel> Games { get; private set; }
         public ConnectOfflineGame()
         {
@@ -107,7 +109,7 @@ namespace Octgn.Controls
             var port = -1;
             this.ValidateFields(username, game, userhost, userport, password, out var host, out port);
 
-            Program.GameEngine = await GameEngine.Join(game.GetGame(), username, password, Spectator, host, port).ConfigureAwait(false);
+            GameEngine = await GameEngine.Join(game.GetGame(), username, password, Spectator, host, port).ConfigureAwait(false);
 
             Successful = true;
         }
@@ -197,10 +199,11 @@ namespace Octgn.Controls
                 ProgressBar.Visibility = Visibility.Visible;
                 ProgressBar.IsIndeterminate = true;
 
-                await this.Connect(username, game, strHost, strPort, password);
-
                 this.Game = (ComboBoxGame.SelectedItem as DataGameViewModel).GetGame();
                 this.Password = TextBoxPassword.Password ?? "";
+
+                await this.Connect(username, game, strHost, strPort, password);
+
                 this.Close(DialogResult.OK);
 
             } catch (UserMessageException ex) {

@@ -233,7 +233,7 @@ namespace Octgn.Scripting.Controls
             var img = sender as Image;
             if (img == null) return;
             var model = Card.Find(_gameEngine, (int)img.DataContext).Type.Model;
-            if (model != null) ImageUtils.GetCardImage(model, x => img.Source = x);
+            if (model != null) ImageUtils.GetCardImage(_gameEngine, model, x => img.Source = x);
         }
 
         private void SliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
