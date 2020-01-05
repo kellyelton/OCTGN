@@ -501,19 +501,6 @@ namespace Octgn.Play.Gui
             }
         }
 
-        //private bool IsCardAtInvertedPosition(double y, CardEventArgs e)
-        //{
-        //    //var cardCtrl = e.OriginalSource as CardControl;
-        //    double offset = e.MouseOffset.Y;
-        //    if (Player.LocalPlayer.InvertedTable)
-        //    {
-        //        y -= GameEngine.Definition.DefaultSize.Height;
-        //        offset = -offset;
-        //    }
-        //    y -= offset;
-        //    return IsInInvertedZone(y);
-        //}
-
         public void AddNote(double x, double y)
         {
             AddNote(x, y, "");
@@ -521,7 +508,7 @@ namespace Octgn.Play.Gui
 
         public void AddNote(double x, double y, string message)
         {
-            var nc = new NoteControl(message);
+            var nc = new NoteControl(GameEngine, message);
             NoteCanvas.Children.Add(nc);
             Canvas.SetLeft(nc, x);
             Canvas.SetTop(nc, y);

@@ -1,40 +1,39 @@
-﻿using System.Net.NetworkInformation;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System.Windows;
 using System.Windows.Controls;
 using Octgn.Core;
+using System;
+using System.Reflection;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using log4net;
+using Octgn.Play.Gui.Adorners;
+using Octgn.Extentions;
 
 namespace Octgn.Play.Gui
 {
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Animation;
-
-    using log4net;
-
-    using Octgn.Play.Gui.Adorners;
-    using DataNew;
-    using Extentions;
-
-    /// <summary>
-    /// Interaction logic for NoteControl.xaml
-    /// </summary>
     public partial class NoteControl : IDisposable
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly DoubleAnimation hideAnimation;
         private readonly DoubleAnimation showAnimation;
 
-        public NoteControl():this("")
+        [Obsolete("Only to be used in the designer")]
+        public NoteControl()
         {
-
+            InitializeComponent();
         }
 
-        public NoteControl(string message)
+        private readonly GameEngine _gameEngine;
+
+        public NoteControl(GameEngine gameEngine, string message = "")
         {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             this.hideAnimation = new DoubleAnimation();
             hideAnimation.From = 1;
             hideAnimation.To = 0;
@@ -51,7 +50,7 @@ namespace Octgn.Play.Gui
             TextBox.Text = message;
             this.Loaded += OnLoaded;
             this.MouseEnter += OnMouseEnter;
-            this.MouseLeave += NoteControl_MouseLeave;            
+            this.MouseLeave += NoteControl_MouseLeave;
         }
 
         void NoteControl_MouseLeave(object sender, MouseEventArgs e)
@@ -70,15 +69,15 @@ namespace Octgn.Play.Gui
         private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
             this.Loaded -= OnLoaded;
-            this.MainGrid.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(Program.GameEngine.Definition.NoteBackgroundColor));
-            this.TextBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(Program.GameEngine.Definition.NoteForegroundColor));
+            this.MainGrid.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_gameEngine.Definition.NoteBackgroundColor));
+            this.TextBox.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_gameEngine.Definition.NoteForegroundColor));
 
             this.TextBox.FontFamily = new FontFamily("Segoe UI");
             this.TextBox.FontSize = Prefs.NoteFontSize;
 
             if (Prefs.UseGameFonts)
             {
-                this.TextBox.SetFont(Program.GameEngine.Definition.NoteFont);
+                this.TextBox.SetFont(_gameEngine.Definition.NoteFont);
             }
             this.BeginAnimation(OpacityProperty,showAnimation);
         }
@@ -124,7 +123,6 @@ namespace Octgn.Play.Gui
                 }
                 e.Handled = true;
             }
-            //e.Handled = true;
         }
     }
 }
