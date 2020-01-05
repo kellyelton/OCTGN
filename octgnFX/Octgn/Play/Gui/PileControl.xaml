@@ -5,7 +5,7 @@
 
   <UserControl.Resources>
     <DataTemplate x:Key="CardTemplate">
-      <gui:CardControl />
+      <gui:CardControl GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:PileControl}, Mode=OneWay}"/>
     </DataTemplate>
   </UserControl.Resources>
 
@@ -42,7 +42,8 @@
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
-      <gui:CardControl x:Name="cardsCtrl" DataContext="{Binding TopCard}" DataContextChanged="cardsCtrl_DataContextChanged" CardImageStretch="Uniform">
+      <gui:CardControl x:Name="cardsCtrl" DataContext="{Binding TopCard}" DataContextChanged="cardsCtrl_DataContextChanged" CardImageStretch="Uniform"
+                       GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:PileControl}, Mode=OneWay}">
         <gui:CardControl.Style>
           <Style>
             <Style.Triggers>

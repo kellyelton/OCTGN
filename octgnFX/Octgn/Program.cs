@@ -12,7 +12,6 @@ using System.Windows;
 using System.Windows.Threading;
 using Octgn.Data;
 using Octgn.DataNew.Entities;
-using Octgn.Library;
 using Octgn.Networking;
 using Octgn.Play;
 using Octgn.Scripting;
@@ -38,10 +37,6 @@ namespace Octgn
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static GameEngine GameEngine;
-        //internal static IClient Client;
-
-        public static string CurrentOnlineGameName => GameEngine?.HostedGameName;
         public static Client LobbyClient;
 
         public static GameSettings GameSettings { get; set; }
@@ -56,14 +51,11 @@ namespace Octgn
         internal static event EventHandler<ServerErrorEventArgs> ServerError;
 #pragma warning restore 67
 
-        internal static bool IsHost => GameEngine?.IsHost ?? false;
         internal static GameMode GameMode { get; set; }
 
         internal static Dispatcher Dispatcher;
 
         private static SSLValidationHelper SSLHelper;
-
-        public static GameMessageDispatcher GameMess { get; internal set; }
 
         public static bool DeveloperMode { get; private set; }
 
@@ -74,7 +66,6 @@ namespace Octgn
 
         public static string SessionKey { get; set; }
         public static string UserId { get; set; }
-        public static HostedGame CurrentHostedGame => GameEngine?.HostedGame;
 
         private static bool shutDown = false;
 
@@ -87,12 +78,6 @@ namespace Octgn
         {
             Log.Info("Start");
             IsReleaseTest = isTestRelease;
-            GameMessage.MuteChecker = () =>
-            {
-                var client = GameEngine?.Client;
-                if (client == null) return false;
-                return client.Muted != 0;
-            };
 
             Log.Info("Setting SSL Validation Helper");
             SSLHelper = new SSLValidationHelper();
@@ -137,42 +122,6 @@ namespace Octgn
             //Trace.Listeners.Add(DebugListener);
             //ChatLog = new CacheTraceListener();
             //Trace.Listeners.Add(ChatLog);
-            Log.Info("Creating Game Message Dispatcher");
-            GameMess = new GameMessageDispatcher();
-            GameMess.ProcessMessage(
-                x =>
-                {
-                    for (var i = 0; i < x.Arguments.Length; i++)
-                    {
-                        var arg = x.Arguments[i];
-                        var cardModel = arg as DataNew.Entities.Card;
-                        var cardId = arg as CardIdentity;
-                        var card = arg as Card;
-                        if (card != null && (card.FaceUp || card.MayBeConsideredFaceUp))
-                            cardId = card.Type;
-
-                        if (cardId != null || cardModel != null)
-                        {
-                            ChatCard chatCard = null;
-                            if (cardId != null)
-                            {
-                                chatCard = new ChatCard(cardId);
-                            }
-                            else
-                            {
-                                chatCard = new ChatCard(cardModel);
-                            }
-                            if (card != null)
-                                chatCard.SetGameCard(card);
-                            x.Arguments[i] = chatCard;
-                        }
-                        else
-                        {
-                            x.Arguments[i] = arg == null ? "[?]" : arg.ToString();
-                        }
-                    }
-                    return x;
-                });
 
             Log.Info("Registering versioned stuff");
 
@@ -312,14 +261,6 @@ namespace Octgn
                 Log.Error( "SSLHelper Dispose Exception", e );
             };
             Sounds.Close();
-            try
-            {
-                GameEngine?.Client?.Rpc?.Leave(Player.LocalPlayer);
-            }
-            catch (Exception e)
-            {
-                Log.Error( "Exit() Player leave exception", e );
-            }
             UpdateManager.Instance.Stop();
             LogManager.Shutdown();
             Application.Current.Dispatcher.Invoke(new Action(() =>

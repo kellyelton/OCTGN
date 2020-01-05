@@ -43,8 +43,6 @@ namespace Octgn.Play.Gui
             }
         }
 
-
-
         public GameEngine GameEngine {
             get { return (GameEngine)GetValue(GameEngineProperty); }
             set { SetValue(GameEngineProperty, value); }
@@ -53,8 +51,6 @@ namespace Octgn.Play.Gui
         // Using a DependencyProperty as the backing store for GameEngine.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty GameEngineProperty =
             DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(TableControl), new PropertyMetadata(null));
-
-
 
         private readonly int _defaultHeight;
         private readonly int _defaultWidth;
@@ -987,17 +983,17 @@ namespace Octgn.Play.Gui
         {
             var action = (DataNew.Entities.GroupAction)((MenuItem)sender).Tag;
             if (action.Execute != null)
-                ScriptEngine.ExecuteOnGroup(action.Execute, group, ContextMenuPosition);
+                GameEngine.ScriptEngine.ExecuteOnGroup(action.Execute, group, ContextMenuPosition);
         }
 
         protected override void CardActionClicked(object sender, RoutedEventArgs e)
         {
             var action = (DataNew.Entities.GroupAction)((MenuItem)sender).Tag;
             if (action.Execute != null)
-                ScriptEngine.ExecuteOnCards(action.Execute, Selection.ExtendToSelection(ContextCard),
+                GameEngine.ScriptEngine.ExecuteOnCards(action.Execute, Selection.ExtendToSelection(ContextCard),
                                             ContextMenuPosition);
             else if (action.BatchExecute != null)
-                ScriptEngine.ExecuteOnBatch(action.BatchExecute, Selection.ExtendToSelection(ContextCard),
+                GameEngine.ScriptEngine.ExecuteOnBatch(action.BatchExecute, Selection.ExtendToSelection(ContextCard),
                                             ContextMenuPosition);
         }
 

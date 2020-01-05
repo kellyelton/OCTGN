@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -18,19 +17,17 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Octgn.Extentions;
 using Octgn.Play.Gui.Adorners;
-using Octgn.Scripting;
 using Octgn.Utils;
 using System.Reflection;
 using Octgn.Core.DataExtensionMethods;
 using log4net;
+using Octgn.DataNew.Entities;
 
 namespace Octgn.Play.Gui
 {
-
     public partial class CardControl : INotifyPropertyChanged
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        protected readonly Engine ScriptEngine;
 
         #region Dependency properties
 
@@ -94,14 +91,27 @@ namespace Octgn.Play.Gui
             set { SetValue(CardImageStretchProperty, value); }
         }
 
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
+
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(CardControl), new PropertyMetadata(GameEngine_Changed));
+
+        private static void GameEngine_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            var cardControl = (CardControl)d;
+
+            var gameEngine = (GameEngine)e.NewValue;
+
+            cardControl.UpdateMarkersMargins(gameEngine);
+        }
+
         #endregion
 
         private readonly Window _mainWin;
         private ScaleTransform _invertTransform;
 
-        private readonly GameEngine _gameEngine;
-
-        [Obsolete("Used only for designer")]
         public CardControl() {
             InitializeComponent();
             if (mouseClickHandler == null)
@@ -111,18 +121,11 @@ namespace Octgn.Play.Gui
                     MouseButtonDoubleClickAction);
             if (DesignerProperties.GetIsInDesignMode(this)) return;
 
-            _gameEngine = Program.GameEngine ?? throw new InvalidOperationException("GameEngine null");
-            ScriptEngine = _gameEngine.ScriptEngine;
+            UpdateMarkersMargins(null);
 
             //fix MAINWINDOW bug
             _mainWin = WindowManager.PlayWindow;
-            int markerSize = _gameEngine.Definition.MarkerSize;
-            if (markerSize == 0) markerSize = 20;
-            markers.Margin = new Thickness(markerSize / 8);
-            peekEyeIcon.Width = peekers.MinHeight = markerSize;
-            anchoredIcon.Width = markerSize;
-            peekers.SetValue(TextBlock.FontSizeProperty, markerSize * 0.8);
-            //if (_gameEngine.Definition.CardCornerRadius > 0)
+
             img.Clip = new RectangleGeometry();
             AddHandler(MarkerControl.MarkerDroppedEvent, new EventHandler<MarkerEventArgs>(MarkerDropped));
             AddHandler(TableControl.TableKeyEvent, new EventHandler<TableKeyEventArgs>(TableKeyDown));
@@ -131,6 +134,22 @@ namespace Octgn.Play.Gui
             Loaded += RestoreCardHandler;
             Loaded += AnimateLoad;
             SizeChanged += OnSizeChanged;
+        }
+
+        private void UpdateMarkersMargins(GameEngine gameEngine) {
+            int markerSize = 0;
+            if (gameEngine != null) {
+                markerSize = gameEngine.Definition.MarkerSize;
+            }
+
+            if (markerSize == 0) markerSize = 20;
+
+            markers.Margin = new Thickness(markerSize / 8);
+
+            peekEyeIcon.Width = peekers.MinHeight = markerSize;
+            anchoredIcon.Width = markerSize;
+            peekers.SetValue(TextBlock.FontSizeProperty, markerSize * 0.8);
+
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -221,9 +240,32 @@ namespace Octgn.Play.Gui
             cardCtrl.IsUp = (bool)e.NewValue || cardCtrl.Card != null && cardCtrl.Card.FaceUp;
         }
 
+        private readonly static DataNew.Entities.CardSize DefaultCardSize = new DataNew.Entities.CardSize() {
+            Height = 100,
+            Width = 50,
+            BackHeight = 100,
+            BackWidth = 50,
+            CornerRadius = 3,
+            BackCornerRadius = 3
+        };
+
+        protected CardSize CardSize {
+            get {
+                CardSize cardSize;
+                if(Card != null) {
+                    cardSize = Card.Size;
+                } else if (GameEngine != null) {
+                    cardSize = GameEngine.Definition.CardSize;
+                } else {
+                    cardSize = DefaultCardSize;
+                }
+
+                return cardSize;
+            }
+        }
+
         protected override Size MeasureOverride(Size constraint)
         {
-            //Program.GameMess.GameDebug("MeasureOverride " + constraint);
             if (img == null)
                 return constraint;
             img.Measure(constraint);
@@ -231,15 +273,16 @@ namespace Octgn.Play.Gui
             {
                 var clipRect = ((RectangleGeometry)img.Clip);
                 clipRect.Rect = new Rect(img.DesiredSize);
-                var cs = Card == null ? _gameEngine.Definition.CardSize : Card.Size;
-                //clipRect.RadiusX = clipRect.RadiusY = _gameEngine.Definition.CardCornerRadius * clipRect.Rect.Height / cs.Height;
+
+                var cardSize = CardSize;
+
                 if (IsUp)
                 {
-                    clipRect.RadiusX = clipRect.RadiusY = cs.CornerRadius * clipRect.Rect.Height / cs.Height;
+                    clipRect.RadiusX = clipRect.RadiusY = cardSize.CornerRadius * clipRect.Rect.Height / cardSize.Height;
                 }
                 else
                 {
-                    clipRect.RadiusX = clipRect.RadiusY = cs.BackCornerRadius * clipRect.Rect.Height / cs.BackHeight;
+                    clipRect.RadiusX = clipRect.RadiusY = cardSize.BackCornerRadius * clipRect.Rect.Height / cardSize.BackHeight;
                 }
             }
             return img.DesiredSize;
@@ -485,13 +528,13 @@ namespace Octgn.Play.Gui
             // Clear or modify selection
             if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
             {
-                if (_gameEngine == null || _gameEngine.Table == null)
+                if (GameEngine == null || GameEngine.Table == null)
                 {
                     return;
                 }
 
                 // Add/Remove from selection (currently only on table and hand)
-                if (Card.Group == _gameEngine.Table || Card.Group is Hand)
+                if (Card.Group == GameEngine.Table || Card.Group is Hand)
                 {
                     if (Card.Anchored == false)
                     {
@@ -535,7 +578,7 @@ namespace Octgn.Play.Gui
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (Card == null) return;
-            if (Card.Controller != Player.LocalPlayer || _gameEngine.IsReplay) return;
+            if (Card.Controller != Player.LocalPlayer || GameEngine.IsReplay) return;
             base.OnMouseMove(e);
             e.Handled = true;
             Point windowPt = e.GetPosition(Window.GetWindow(this));
@@ -603,9 +646,9 @@ namespace Octgn.Play.Gui
                         _dragSource = DragSource.None;
                         if (!_isDragging)
                         {
-                            _gameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
-                            _gameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
-                            _gameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
+                            GameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
+                            GameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
+                            GameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
                         }
                         DragCardCompleted();
                         break;
@@ -644,9 +687,9 @@ namespace Octgn.Play.Gui
             }
             if (shouldFireEvent)
             {
-                _gameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
-                _gameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
-                _gameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
+                GameEngine.EventProxy.OnCardClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
+                GameEngine.EventProxy.OnCardClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
+                GameEngine.EventProxy.OnCardClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
             }
         }
 
@@ -660,9 +703,9 @@ namespace Octgn.Play.Gui
             _dragSource = DragSource.None;
 
 
-            _gameEngine.EventProxy.OnCardDoubleClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
-            _gameEngine.EventProxy.OnCardDoubleClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
-            _gameEngine.EventProxy.OnCardDoubleClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
+            GameEngine.EventProxy.OnCardDoubleClick_3_1_0_0(Card, (int)e.ChangedButton, downKeys);
+            GameEngine.EventProxy.OnCardDoubleClick_3_1_0_1(Card, (int)e.ChangedButton, downKeys);
+            GameEngine.EventProxy.OnCardDoubleClicked_3_1_0_2(Card, (int)e.ChangedButton, downKeys);
             if (e.ChangedButton == MouseButton.Left)
             {
                 e.Handled = true;
@@ -697,14 +740,15 @@ namespace Octgn.Play.Gui
             // Starts the drag-and-drop
             ScaleFactor = TransformToAncestor(_mainWin).TransformBounds(new Rect(0, 0, 1, 1)).Size;
             //bool rot90 = (Card.Orientation & CardOrientation.Rot90) != 0;
-            var cs = Card == null ? _gameEngine.Definition.CardSize : Card.Size;
+            var cardSize = CardSize;
+
             if (IsUp)
             {
-                _mouseOffset = new Vector(_mousePt.X * cs.Width / ActualWidth, _mousePt.Y * cs.Height / ActualHeight);
+                _mouseOffset = new Vector(_mousePt.X * cardSize.Width / ActualWidth, _mousePt.Y * cardSize.Height / ActualHeight);
             }
             else
             {
-                _mouseOffset = new Vector(_mousePt.X * cs.BackWidth / ActualWidth, _mousePt.Y * cs.BackHeight / ActualHeight);
+                _mouseOffset = new Vector(_mousePt.X * cardSize.BackWidth / ActualWidth, _mousePt.Y * cardSize.BackHeight / ActualHeight);
             }
 
             // Create adorners
@@ -767,7 +811,7 @@ namespace Octgn.Play.Gui
         {
             if (!_isDragging) return;
             _isDragging = false;
-            if (Card.Controller != Player.LocalPlayer || _gameEngine.IsReplay) return;
+            if (Card.Controller != Player.LocalPlayer || GameEngine.IsReplay) return;
             // Release the card and its group
             foreach (Card c in DraggedCards)
             {
@@ -997,11 +1041,11 @@ namespace Octgn.Play.Gui
                 switch (e.Key)
                 {
                     case Key.PageUp:
-                        _gameEngine.Table.BringToFront(Card);
+                        GameEngine.Table.BringToFront(Card);
                         e.Handled = te.Handled = true;
                         break;
                     case Key.PageDown:
-                        _gameEngine.Table.SendToBack(Card);
+                        GameEngine.Table.SendToBack(Card);
                         e.Handled = te.Handled = true;
                         break;
                     case Key.P:
@@ -1032,9 +1076,9 @@ namespace Octgn.Play.Gui
                                              ? ((TableControl)GroupControl).MousePosition()
                                              : (Point?)null;
                             if (match.ActionDef.AsAction().Execute != null)
-                                ScriptEngine.ExecuteOnCards(match.ActionDef.AsAction().Execute, targets, pos);
+                                GameEngine.ScriptEngine.ExecuteOnCards(match.ActionDef.AsAction().Execute, targets, pos);
                             else if (match.ActionDef.AsAction().BatchExecute != null)
-                                ScriptEngine.ExecuteOnBatch(match.ActionDef.AsAction().BatchExecute, targets, pos);
+                                GameEngine.ScriptEngine.ExecuteOnBatch(match.ActionDef.AsAction().BatchExecute, targets, pos);
                             e.Handled = te.Handled = true;
                             break;
                         }
@@ -1096,14 +1140,14 @@ namespace Octgn.Play.Gui
             if (e.Marker.Card == Card) return;
             if (Keyboard.IsKeyUp(Key.LeftAlt))
             {
-                _gameEngine.Client.Rpc.TransferMarkerReq(e.Marker.Card, Card, e.Marker.Model.Id, e.Marker.Model.Name,
+                GameEngine.Client.Rpc.TransferMarkerReq(e.Marker.Card, Card, e.Marker.Model.Id, e.Marker.Model.Name,
                                                      e.Count, e.Marker.Count, false);
                 e.Marker.Card.RemoveMarker(e.Marker, e.Count);
                 Card.AddMarker(e.Marker.Model, e.Count);
             }
             else
             {
-                _gameEngine.Client.Rpc.AddMarkerReq(Card, e.Marker.Model.Id, e.Marker.Model.Name, e.Count, e.Marker.Count, false);
+                GameEngine.Client.Rpc.AddMarkerReq(Card, e.Marker.Model.Id, e.Marker.Model.Name, e.Count, e.Marker.Count, false);
                 Card.AddMarker(e.Marker.Model, e.Count);
             }
         }

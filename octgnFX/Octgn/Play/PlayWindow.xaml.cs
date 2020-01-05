@@ -79,7 +79,7 @@ namespace Octgn.Play
         private SolidColorBrush _offBackBrush = new SolidColorBrush(Color.FromArgb(55, 33, 33, 33));
         private Storyboard _fadeIn, _fadeOut;
         private static System.Collections.ArrayList fontName = new System.Collections.ArrayList();
-        private GameMessageDispatcherReader _gameMessageReader;
+        private GameLogReader _gameMessageReader;
 
         private Card _currentCard;
         private bool _currentCardUpStatus;
@@ -147,7 +147,7 @@ namespace Octgn.Play
             GameSettings = Program.GameSettings;
             IsHost = Program.IsHost;
             GameMessages = new ObservableCollection<IGameMessage>();
-            _gameMessageReader = new GameMessageDispatcherReader(Program.GameMess);
+            _gameMessageReader = new GameLogReader(Program.GameMess);
             var isLocal = GameEngine.IsLocal;
             Program.Dispatcher = Dispatcher;
             DataContext = GameEngine;

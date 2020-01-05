@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -106,6 +104,13 @@ namespace Octgn
             }
         }
 
+        public bool IsMuted {
+            get {
+                if (Client == null) return false;
+                return Client.Muted != 0;
+            }
+        }
+
         public History History { get; }
 
         public bool IsReplay { get; }
@@ -117,6 +122,8 @@ namespace Octgn
         public HostedGame HostedGame { get; }
         public string HostedGameName { get; }
         public bool IsHost { get; }
+
+        public GameLog GameLog { get; }
 
         public ushort CurrentUniqueId;
 
@@ -149,20 +156,23 @@ namespace Octgn
             DeckStats = new DeckStatsViewModel();
 
             Spectator = false;
-            Program.GameMess.Clear();
+
+            GameLog = new GameLog(() => IsMuted);
+            GameLog.LogAdded += GameLog_LogAdded;
+
             if (def.ScriptVersion.Equals(new Version(0, 0, 0, 0))) {
-                Program.GameMess.Warning("This game doesn't have a Script Version specified. Please contact the game developer.\n\n\nYou can get in contact of the game developer here {0}", def.GameUrl);
+                GameLog.Warning("This game doesn't have a Script Version specified. Please contact the game developer.\n\n\nYou can get in contact of the game developer here {0}", def.GameUrl);
                 def.ScriptVersion = new Version(3, 1, 0, 0);
             }
             if (Versioned.ValidVersion(def.ScriptVersion) == false) {
-                Program.GameMess.Warning(
+                GameLog.Warning(
                     "Can't find API v{0}. Loading the latest version.\n\nIf you have problems, get in contact of the developer of the game to get an update.\nYou can get in contact of them here {1}",
                     def.ScriptVersion, def.GameUrl);
                 def.ScriptVersion = Versioned.LowestVersion;
             } else {
                 var vmeta = Versioned.GetVersion(def.ScriptVersion);
                 if (vmeta.DeleteDate <= DateTime.Now) {
-                    Program.GameMess.Warning("This game requires an API version {0} which is no longer supported by OCTGN.\nYou can still play, however some aspects of the game may no longer function as expected, and it may be removed at any time.\nYou may want to contact the developer of this game and ask for an update.\n\nYou can find more information about this game at {1}."
+                    GameLog.Warning("This game requires an API version {0} which is no longer supported by OCTGN.\nYou can still play, however some aspects of the game may no longer function as expected, and it may be removed at any time.\nYou may want to contact the developer of this game and ask for an update.\n\nYou can find more information about this game at {1}."
                         , def.ScriptVersion, def.GameUrl);
                 }
             }
@@ -224,8 +234,8 @@ namespace Octgn
             IsHost = isHost;
 
             History = new History(def.Id);
-            if (Program.IsHost) {
-                History.Name = Program.CurrentOnlineGameName;
+            if (IsHost) {
+                History.Name = HostedGameName;
             }
 
             ReplayWriter = new ReplayWriter();
@@ -236,15 +246,18 @@ namespace Octgn
             DeckStats = new DeckStatsViewModel();
 
             Spectator = specator;
-            Program.GameMess.Clear();
+
+            GameLog = new GameLog(() => IsMuted);
+            GameLog.LogAdded += GameLog_LogAdded;
+
             if (def.ScriptVersion.Equals(new Version(0, 0, 0, 0)))
             {
-                Program.GameMess.Warning("This game doesn't have a Script Version specified. Please contact the game developer.\n\n\nYou can get in contact of the game developer here {0}", def.GameUrl);
+                GameLog.Warning("This game doesn't have a Script Version specified. Please contact the game developer.\n\n\nYou can get in contact of the game developer here {0}", def.GameUrl);
                 def.ScriptVersion = new Version(3, 1, 0, 0);
             }
             if (Versioned.ValidVersion(def.ScriptVersion) == false)
             {
-                Program.GameMess.Warning(
+                GameLog.Warning(
                     "Can't find API v{0}. Loading the latest version.\n\nIf you have problems, get in contact of the developer of the game to get an update.\nYou can get in contact of them here {1}",
                     def.ScriptVersion, def.GameUrl);
                 def.ScriptVersion = Versioned.LowestVersion;
@@ -254,11 +267,11 @@ namespace Octgn
                 var vmeta = Versioned.GetVersion(def.ScriptVersion);
                 if (vmeta.DeleteDate <= DateTime.Now)
                 {
-                    Program.GameMess.Warning("This game requires an API version {0} which is no longer supported by OCTGN.\nYou can still play, however some aspects of the game may no longer function as expected, and it may be removed at any time.\nYou may want to contact the developer of this game and ask for an update.\n\nYou can find more information about this game at {1}."
+                    GameLog.Warning("This game requires an API version {0} which is no longer supported by OCTGN.\nYou can still play, however some aspects of the game may no longer function as expected, and it may be removed at any time.\nYou may want to contact the developer of this game and ask for an update.\n\nYou can find more information about this game at {1}."
                         , def.ScriptVersion, def.GameUrl);
                 }
             }
-            //Program.ChatLog.ClearEvents();
+
             IsLocal = isLocal;
             this.Password = password;
             Definition = def;
@@ -593,31 +606,7 @@ namespace Octgn
                 var logStream = File.Open(_logPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
 
                 _logStream = new StreamWriter(logStream);
-
-                Program.GameMess.OnMessage += GameMess_OnMessage;
             }
-        }
-
-        private void GameMess_OnMessage(Core.Play.IGameMessage obj) {
-            if (_logStream == null) return;
-
-            if (obj is DebugMessage) return;
-
-            string blockString = null;
-
-            Program.Dispatcher.InvokeAsync(() => {
-                var block = ChatControl.GameMessageToBlock(obj);
-
-                blockString = BlockToString(block);
-
-                try {
-                    _logStream.Write(blockString);
-
-                    _logStream.Flush();
-                } catch (ObjectDisposedException) {
-
-                }
-            });
         }
 
         private string BlockToString(System.Windows.Documents.Block block) {
@@ -897,8 +886,6 @@ namespace Octgn
 
         public void End()
         {
-            Program.GameMess.OnMessage -= GameMess_OnMessage;
-
             SaveHistory();
             ReplayWriter?.Dispose();
             ReplayEngine?.Dispose();
@@ -908,6 +895,8 @@ namespace Octgn
             Card.Reset();
             CardIdentity.Reset();
             Selection.Clear();
+
+            GameLog.LogAdded -= GameLog_LogAdded;
         }
 
         public BitmapImage GetCardFront(string name)
@@ -1036,7 +1025,7 @@ namespace Octgn
 
                             Log.Warn("Not authorized to use deck sleeve.");
 
-                            Program.GameMess.Warning($"Deck sleeve can not be used, you're not a subscriber.");
+                            GameLog.Warning($"Deck sleeve can not be used, you're not a subscriber.");
                         }
                     }
 
@@ -1050,7 +1039,7 @@ namespace Octgn
                 } catch (Exception ex) {
                     Log.Warn(ex.Message, ex);
 
-                    Program.GameMess.Warning($"There was an error loading the decks sleeve.");
+                    GameLog.Warning($"There was an error loading the decks sleeve.");
                 }
             }
 
@@ -1124,7 +1113,7 @@ namespace Octgn
             // Try to find the marker model
             if (!_markersById.TryGetValue(id, out model))
             {
-                Program.GameMess.GameDebug("Marker model '{0}' not found, using default marker instead", id);
+                GameLog.GameDebug("Marker model '{0}' not found, using default marker instead", id);
                 DefaultMarkerModel defaultModel = Marker.DefaultMarkers[Crypto.Random(7)];
                 model = (DefaultMarkerModel)defaultModel.Clone();
                 model.Id = id;
@@ -1227,6 +1216,51 @@ namespace Octgn
                 WaitForGameState = false;
                 Ready();
             }
+        }
+
+        private void GameLog_LogAdded(object sender, IGameMessage message) {
+            for (var i = 0; i < message.Arguments.Length; i++) {
+                var arg = message.Arguments[i];
+                var cardModel = arg as DataNew.Entities.Card;
+                var cardId = arg as CardIdentity;
+                var card = arg as Card;
+                if (card != null && (card.FaceUp || card.MayBeConsideredFaceUp))
+                    cardId = card.Type;
+
+                if (cardId != null || cardModel != null) {
+                    ChatCard chatCard = null;
+                    if (cardId != null) {
+                        chatCard = new ChatCard(cardId);
+                    } else {
+                        chatCard = new ChatCard(cardModel);
+                    }
+                    if (card != null)
+                        chatCard.SetGameCard(card);
+                    message.Arguments[i] = chatCard;
+                } else {
+                    message.Arguments[i] = arg == null ? "[?]" : arg.ToString();
+                }
+            }
+
+            if (_logStream == null) return;
+
+            if (message is DebugMessage) return;
+
+            string blockString = null;
+
+            Program.Dispatcher.InvokeAsync(() => {
+                var block = ChatControl.GameMessageToBlock(message);
+
+                blockString = BlockToString(block);
+
+                try {
+                    _logStream.Write(blockString);
+
+                    _logStream.Flush();
+                } catch (ObjectDisposedException) {
+
+                }
+            });
         }
     }
 }

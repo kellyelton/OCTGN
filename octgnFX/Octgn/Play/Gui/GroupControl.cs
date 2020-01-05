@@ -1,35 +1,27 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Threading.Tasks;
-
+using System.Reflection;
+using Octgn.Core.DataExtensionMethods;
+using Octgn.DataNew.Entities;
+using log4net;
 using Octgn.Scripting;
 
 namespace Octgn.Play.Gui
 {
-    using System.Reflection;
-    using Octgn.Core.DataExtensionMethods;
-    using Octgn.DataNew.Entities;
-
-    using log4net;
-    using Card = Octgn.Play.Card;
-    using Group = Octgn.Play.Group;
-    using Player = Octgn.Play.Player;
-
     public class GroupControl : UserControl
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-#pragma warning disable 649   // Unassigned variable: it's initialized by MEF
-
-        protected Engine ScriptEngine;
-
-#pragma warning restore 649
 
         protected Group group;
 
@@ -49,6 +41,13 @@ namespace Octgn.Play.Gui
             get { return group; }
         }
 
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
+
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(GroupControl), new PropertyMetadata(null));
 
         public GroupControl()
         {
@@ -61,11 +60,6 @@ namespace Octgn.Play.Gui
             AddHandler(CardControl.CardDroppedEvent, new CardsEventHandler(OnCardDropped));
             AddHandler(TableControl.TableKeyEvent, new EventHandler<TableKeyEventArgs>(OnKeyShortcut));
 
-            Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    if (Program.GameEngine != null)
-                        ScriptEngine = Program.GameEngine.ScriptEngine;
-                }));
             DataContextChanged += delegate
                                       {
                                           group = DataContext as Group;
@@ -136,7 +130,7 @@ namespace Octgn.Play.Gui
             ActionShortcut match = shortcuts.FirstOrDefault(shortcut => shortcut.Key.Matches(this, e.KeyEventArgs));
             if (match == null || !@group.TryToManipulate()) return;
             if (match.ActionDef.AsAction().Execute != null)
-                ScriptEngine.ExecuteOnGroup(match.ActionDef.AsAction().Execute, @group);
+                GameEngine.ScriptEngine.ExecuteOnGroup(match.ActionDef.AsAction().Execute, @group);
             e.Handled = e.KeyEventArgs.Handled = true;
         }
 
@@ -175,9 +169,9 @@ namespace Octgn.Play.Gui
             group.KeepControl();
             card.KeepControl();
             if (defaultCardAction.Execute != null)
-                ScriptEngine.ExecuteOnCards(defaultCardAction.Execute, Selection.ExtendToSelection(card));
+                GameEngine.ScriptEngine.ExecuteOnCards(defaultCardAction.Execute, Selection.ExtendToSelection(card));
             else if (defaultCardAction.BatchExecute != null)
-                ScriptEngine.ExecuteOnBatch(defaultCardAction.BatchExecute, Selection.ExtendToSelection(card));
+                GameEngine.ScriptEngine.ExecuteOnBatch(defaultCardAction.BatchExecute, Selection.ExtendToSelection(card));
             group.ReleaseControl();
             card.ReleaseControl();
             return true;
@@ -190,7 +184,7 @@ namespace Octgn.Play.Gui
                 return false;
             @group.KeepControl();
             if (defaultGroupAction.Execute != null)
-                ScriptEngine.ExecuteOnGroup(defaultGroupAction.Execute, @group);
+                GameEngine.ScriptEngine.ExecuteOnGroup(defaultGroupAction.Execute, @group);
             @group.ReleaseControl();
             return true;
         }
@@ -216,7 +210,7 @@ namespace Octgn.Play.Gui
 
         internal virtual void ShowContextMenu(Card card)
         {
-            if (Player.LocalPlayer.Spectator || Program.GameEngine.IsReplay)
+            if (Player.LocalPlayer.Spectator || GameEngine.IsReplay)
                 return;
             // Modify selection
             if (card == null || !card.Selected) Selection.Clear();
@@ -296,7 +290,7 @@ namespace Octgn.Play.Gui
                 MenuItem item = CreateLookAtCardsMenuItem();
                 if (item != null)
                     items.Add(item);
-                if (def.Id == Program.GameEngine.Definition.Table.Id)
+                if (def.Id == GameEngine.Definition.Table.Id)
                 {
                     if (!(items.Last() is Separator))
                         items.Add(new Separator());
@@ -355,7 +349,7 @@ namespace Octgn.Play.Gui
                 if (group.Controller == null)
                     items.Add(CreateCardPassToItem());
             }
-            if (def.Id == Program.GameEngine.Definition.Table.Id)
+            if (def.Id == GameEngine.Definition.Table.Id)
             {
                 var ami = new MenuItem() { Header = card.Anchored ? "Unanchor" : "Anchor" };
                 ami.Click += (sender, args) => ContextCard.SetAnchored(false, card.Anchored == false);
@@ -376,7 +370,7 @@ namespace Octgn.Play.Gui
             var taskCompletionSource = new TaskCompletionSource<bool>();
             if (baseAction.IsGroup)
             {
-                ScriptEngine.ExecuteOnGroup(baseAction.ShowExecute, @group, position, (ExecutionResult result) =>
+                GameEngine.ScriptEngine.ExecuteOnGroup(baseAction.ShowExecute, @group, position, (ExecutionResult result) =>
                 {
                     bool ret = !System.String.IsNullOrWhiteSpace(result.Error) || result.ReturnValue as bool? == true;
                     taskCompletionSource.SetResult(ret);
@@ -384,7 +378,7 @@ namespace Octgn.Play.Gui
             }
             else
             {
-                ScriptEngine.ExecuteOnBatch(baseAction.ShowExecute, selection, position, (ExecutionResult result) =>
+                GameEngine.ScriptEngine.ExecuteOnBatch(baseAction.ShowExecute, selection, position, (ExecutionResult result) =>
                 {
                     bool ret = !System.String.IsNullOrWhiteSpace(result.Error) || result.ReturnValue as bool? == true;
                     taskCompletionSource.SetResult(ret);
@@ -398,7 +392,7 @@ namespace Octgn.Play.Gui
             var taskCompletionSource = new TaskCompletionSource<string>();
             if (baseAction.IsGroup)
             {
-                ScriptEngine.ExecuteOnGroup(baseAction.HeaderExecute, @group, position, (ExecutionResult result) =>
+                GameEngine.ScriptEngine.ExecuteOnGroup(baseAction.HeaderExecute, @group, position, (ExecutionResult result) =>
                 {
                     string ret = result.ReturnValue as string;
                     taskCompletionSource.SetResult(ret);
@@ -406,7 +400,7 @@ namespace Octgn.Play.Gui
             }
             else
             {
-                ScriptEngine.ExecuteOnBatch(baseAction.HeaderExecute, selection, position, (ExecutionResult result) =>
+                GameEngine.ScriptEngine.ExecuteOnBatch(baseAction.HeaderExecute, selection, position, (ExecutionResult result) =>
                 {
                     string ret = result.ReturnValue as string;
                     taskCompletionSource.SetResult(ret);
@@ -546,16 +540,16 @@ namespace Octgn.Play.Gui
         {
             var action = (GroupAction)((MenuItem)sender).Tag;
             if (action.Execute != null)
-                ScriptEngine.ExecuteOnGroup(action.Execute, group);
+                GameEngine.ScriptEngine.ExecuteOnGroup(action.Execute, group);
         }
 
         protected virtual void CardActionClicked(object sender, RoutedEventArgs e)
         {
             var action = (GroupAction)((MenuItem)sender).Tag;
             if (action.Execute != null)
-                ScriptEngine.ExecuteOnCards(action.Execute, Selection.ExtendToSelection(ContextCard));
+                GameEngine.ScriptEngine.ExecuteOnCards(action.Execute, Selection.ExtendToSelection(ContextCard));
             else if (action.BatchExecute != null)
-                ScriptEngine.ExecuteOnBatch(action.BatchExecute, Selection.ExtendToSelection(ContextCard));
+                GameEngine.ScriptEngine.ExecuteOnBatch(action.BatchExecute, Selection.ExtendToSelection(ContextCard));
         }
 
         private Control CreateActionMenuItem(IGroupAction baseAction, RoutedEventHandler onClick, Card card)

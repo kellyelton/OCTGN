@@ -107,7 +107,7 @@ namespace Octgn.Play.Gui
             if (group.TryToManipulate())
             {
                 var cards = e.Cards.ToArray();
-                Card.MoveCardsTo(group, cards, 
+                Card.MoveCardsTo(group, cards,
                     Enumerable.Repeat(e.FaceUp ?? false,cards.Length).ToArray()
                     ,Enumerable.Repeat(0,cards.Length).ToArray(),false);
             }
@@ -122,7 +122,7 @@ namespace Octgn.Play.Gui
             if (group.TryToManipulate())
             {
                 var cards = e.Cards.ToArray();
-                Card.MoveCardsTo(group, cards, 
+                Card.MoveCardsTo(group, cards,
                     Enumerable.Repeat(e.FaceUp ?? false,cards.Length).ToArray()
                     ,Enumerable.Range(group.Count,cards.Length).ToArray(),false);
             }
@@ -139,7 +139,7 @@ namespace Octgn.Play.Gui
 
         private void cardsCtrl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            // Hack: animate the first card into a pile, 
+            // Hack: animate the first card into a pile,
             // otherwise the CardControl sometimes has issues displaying anything.
             // for some reason...
             if (e.OldValue == null)

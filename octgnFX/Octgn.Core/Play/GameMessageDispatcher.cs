@@ -1,230 +1,30 @@
-﻿namespace Octgn.Core.Play
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
+using System.Windows.Media;
+namespace Octgn.Core.Play
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Linq;
-    using System.Threading;
-    using System.Timers;
-    using System.Windows.Media;
-
-    public class GameMessageDispatcher : INotifyPropertyChanged
-    {
-        private readonly ReaderWriterLockSlim locker = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-        private readonly List<IGameMessage> messages;
-        private Func<IGameMessage, IGameMessage> messageAction;
-
-        public IList<IGameMessage> Messages
-        {
-            get
-            {
-                try
-                {
-					locker.EnterReadLock();
-                    return messages.ToList();
-                }
-                finally
-                {
-                    locker.ExitReadLock();
-                }
-            }
-        }
-
-        public GameMessageDispatcher()
-        {
-            this.messages = new List<IGameMessage>();
-        }
-
-        public void ProcessMessage(Func<IGameMessage, IGameMessage> messageActionParam)
-        {
-            this.messageAction = messageActionParam;
-        }
-
-        public List<T> MessageOfType<T>() where T : IGameMessage
-        {
-            return Messages.OfType<T>().ToList();
-        }
-
-        public void PlayerEvent(IPlayPlayer player, string message, params object[] args)
-        {
-            AddMessage(new PlayerEventMessage(player, message, args));
-        }
-
-        public void Chat(IPlayPlayer player, string message)
-        {
-            AddMessage(new ChatMessage(player, message));
-        }
-
-        public void Warning(string message, params object[] args)
-        {
-            AddMessage(new WarningMessage(message, args));
-        }
-
-        public void System(string message, params object[] args)
-        {
-            AddMessage(new SystemMessage(message, args));
-        }
-
-        public void Turn(IPlayPlayer turnPlayer, int turnNumber)
-        {
-            AddMessage(new TurnMessage(turnPlayer,turnNumber));
-        }
-
-
-        public void Phase(IPlayPlayer turnPlayer, string phase)
-        {
-            AddMessage(new PhaseMessage(turnPlayer, phase));
-        }
-
-        public void GameDebug(string message, params object[] args)
-        {
-            AddMessage(new DebugMessage(message, args));
-        }
-
-        public void Notify(string message, params object[] args)
-        {
-            AddMessage(new NotifyMessage(message, args));
-        }
-
-        public void NotifyBar(Color color, string message, params object[] args)
-        {
-            AddMessage(new NotifyBarMessage(color, message, args));
-        }
-
-        public event Action<IGameMessage> OnMessage;
-
-        public void AddMessage(IGameMessage message)
-        {
-            try
-            {
-				locker.EnterWriteLock();
-				if(messageAction != null)
-					message = messageAction(message);
-                messages.Add(message);
-                OnPropertyChanged("Messages");
-                OnMessage?.Invoke(message);
-            }
-            finally
-            {
-				locker.ExitWriteLock();
-            }
-        }
-
-        public void Clear()
-        {
-            try
-            {
-                locker.EnterWriteLock();
-				messages.Clear();
-                OnPropertyChanged("Messages");
-            }
-            finally
-            {
-                locker.ExitWriteLock();
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-
-    public class GameMessageDispatcherReader : IDisposable
-    {
-        private System.Timers.Timer _chatTimer;
-        private readonly GameMessageDispatcher _dispatcher;
-        private long lastId = -1;
-        private Action<IGameMessage[]> onMessages;
-
-        public GameMessageDispatcherReader(GameMessageDispatcher dispatcher)
-        {
-            _dispatcher = dispatcher;
-        }
-
-
-        public void Start(Action<IGameMessage[]> handler)
-        {
-            onMessages = handler;
-            _chatTimer = new System.Timers.Timer(100);
-            _chatTimer.Enabled = true;
-            _chatTimer.Elapsed += OnTick;
-        }
-
-        public void Stop()
-        {
-            onMessages = null;
-            _chatTimer.Enabled = false;
-            _chatTimer.Elapsed -= OnTick;
-            _chatTimer.Dispose();
-            _chatTimer = null;
-        }
-
-        private void OnTick(object sender, ElapsedEventArgs e)
-        {
-            lock (this)
-            {
-                if (_chatTimer.Enabled == false) return;
-                _chatTimer.Enabled = false;
-            }
-
-            try
-            {
-                var newMessages = _dispatcher.Messages.OrderBy(x => x.Id).Where(x => x.Id > lastId).ToArray();
-                if (newMessages.Length == 0)
-                {
-                    return;
-                }
-
-                if (onMessages == null) return;
-
-                lastId = newMessages.Last().Id;
-
-				onMessages.Invoke(newMessages);
-
-            }
-            finally
-            {
-                if (_chatTimer != null)
-                {
-                    _chatTimer.Enabled = true;
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            this.Stop();
-        }
-    }
 
     public abstract class GameMessage : IGameMessage
     {
-        public bool IsMuted { get; private set; }
+        public bool IsClientMuted { get; internal set; }
+
+        public bool IsMuted => CanMute && IsClientMuted;
+
         public abstract bool CanMute { get; }
+
         public long Id { get; private set; }
         public DateTime Timestamp { get; private set; }
         public IPlayPlayer From { get; private set; }
         public string Message { get; private set; }
         public object[] Arguments { get; private set; }
 
-        private bool isClientMuted = false;
+        private readonly bool isClientMuted = false;
 
         private static long currentId = 0;
         private static readonly object cidLock = new object();
-
-        public static Func<bool> MuteChecker { get; set; }
-
-        static GameMessage()
-        {
-            MuteChecker = () => false;
-        }
 
         protected GameMessage(IPlayPlayer from, string message, params object[] args)
         {
@@ -233,8 +33,6 @@
                 currentId++;
                 Id = currentId;
             }
-            isClientMuted = MuteChecker();
-            IsMuted = CanMute && isClientMuted;
             Timestamp = DateTime.Now;
             From = from;
             Message = message;
@@ -267,7 +65,7 @@
         public WarningMessage(string message, params object[] args)
 			:base(BuiltInPlayer.Warning,message, args)
         {
-            
+
         }
     }
 
@@ -277,7 +75,7 @@
         public SystemMessage(string message, params object[] args)
 			:base(BuiltInPlayer.System,message, args)
         {
-            
+
         }
     }
 
@@ -324,7 +122,7 @@
         public DebugMessage(string message, params object[] args)
 			:base(BuiltInPlayer.Debug,message, args)
         {
-            
+
         }
     }
 
@@ -341,6 +139,7 @@
 
     public interface IGameMessage
     {
+        bool IsClientMuted { get; }
         bool IsMuted { get; }
         bool CanMute { get; }
         long Id { get; }
