@@ -13,7 +13,7 @@
     public static class ExtensionMethods
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         /// <summary>
         /// Creates a <see cref="Octgn.Play.Card"/> from a <see cref="Octgn.DataNew.Entities.ICard"/> and stores its <see cref="Octgn.Play.CardIdentity"/>
         /// </summary>
@@ -22,23 +22,14 @@
         /// <returns></returns>
         public static Play.Card ToPlayCard(this ICard card, Play.Player player)
         {
-            int id = card.GenerateCardId();
-            var retCard = new Play.Card(player, id, Program.GameEngine.Definition.GetCardById(card.Id), card.Size.Name);            return retCard;
+            int id = player.GameEngine.GetUniqueCardId();
+            var retCard = new Play.Card(player, id, player.GameEngine.Definition.GetCardById(card.Id), card.Size.Name);
+            return retCard;
         }
 
         public static ulong GenerateKey(this ICard card)
         {
             return ((ulong)Crypto.PositiveRandom()) << 32 | card.Id.Condense();
-        }
-
-        public static int GenerateCardId(this ICard card)
-        {
-            return (Player.LocalPlayer.Id) << 16 | Program.GameEngine.GetUniqueId();
-        }
-
-        internal static int GenerateCardId()
-        {
-            return (Player.LocalPlayer.Id) << 16 | Program.GameEngine.GetUniqueId();
         }
 
         public static FontFamily GetFontFamily(this DataNew.Entities.Font font, FontFamily defaultFont)

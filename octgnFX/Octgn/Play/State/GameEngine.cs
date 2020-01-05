@@ -926,6 +926,10 @@ namespace Octgn
             return CurrentUniqueId++;
         }
 
+        public int GetUniqueCardId() {
+            return (Player.LocalPlayer.Id) << 16 | Program.GameEngine.GetUniqueId();
+        }
+
 
 
         //Temporarily store group visibility information for LoadDeck. //bug (google) #20
