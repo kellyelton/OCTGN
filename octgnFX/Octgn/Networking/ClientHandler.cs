@@ -62,8 +62,8 @@ namespace Octgn.Networking
                 _client.Muted = 0;
             }
 
-            if (Program.GameEngine.IsWelcomed)
-                Program.GameEngine.SaveHistory();
+            if (GameEngine.IsWelcomed)
+                GameEngine.SaveHistory();
         }
 
         private void WriteReplayAction() {
@@ -71,8 +71,8 @@ namespace Octgn.Networking
         }
 
         private void WriteReplayAction(byte playerId) {
-            if (Program.GameEngine.IsReplay) return;
-            Program.GameEngine.ReplayWriter.WriteEvent(new Play.Save.ReplayEvent {
+            if (GameEngine.IsReplay) return;
+            GameEngine.ReplayWriter.WriteEvent(new Play.Save.ReplayEvent {
                 Type = Play.Save.ReplayEventType.Action,
                 PlayerId = playerId,
                 Action = _data
@@ -80,8 +80,8 @@ namespace Octgn.Networking
         }
 
         private void WriteReplayReset(byte playerId) {
-            if (Program.GameEngine.IsReplay) return;
-            Program.GameEngine.ReplayWriter.WriteEvent(new Play.Save.ReplayEvent {
+            if (GameEngine.IsReplay) return;
+            GameEngine.ReplayWriter.WriteEvent(new Play.Save.ReplayEvent {
                 Type = Play.Save.ReplayEventType.Reset,
                 PlayerId = playerId,
                 Action = _data
@@ -89,8 +89,8 @@ namespace Octgn.Networking
         }
 
         private void WriteReplayNextTurn(byte playerId) {
-            if (Program.GameEngine.IsReplay) return;
-            Program.GameEngine.ReplayWriter.WriteEvent(new Play.Save.ReplayEvent {
+            if (GameEngine.IsReplay) return;
+            GameEngine.ReplayWriter.WriteEvent(new Play.Save.ReplayEvent {
                 Type = Play.Save.ReplayEventType.NextTurn,
                 PlayerId = playerId,
                 Action = _data
@@ -125,13 +125,13 @@ namespace Octgn.Networking
             WriteReplayAction();
             Program.InPreGame = false;
 
-            Program.GameEngine.OnStart();
+            GameEngine.OnStart();
 
             if (WindowManager.PlayWindow != null)
             {
                 WindowManager.PlayWindow.PreGameLobby.Start(false);
             }
-            if (Program.GameEngine.WaitForGameState)
+            if (GameEngine.WaitForGameState)
             {
                 Log.Debug("Start WaitForGameState");
                 foreach (var p in Player.AllExceptGlobal)
@@ -171,7 +171,7 @@ namespace Octgn.Networking
         public void Reset(Player player)
         {
             WriteReplayReset(player.Id);
-            Program.GameEngine.Reset();
+            GameEngine.Reset();
             Program.GameMess.System("{0} reset the game", player);
         }
 
@@ -179,69 +179,69 @@ namespace Octgn.Networking
         {
             WriteReplayNextTurn(player.Id);
 
-            var lastPlayer = Program.GameEngine.ActivePlayer;
-            var lastTurn = Program.GameEngine.TurnNumber;
-            Program.GameEngine.TurnNumber++;
-            Program.GameEngine.ActivePlayer = (setActive) ? player : null;
-            Program.GameEngine.StopTurn = false;
-            Program.GameEngine.CurrentPhase = null;
-            Program.GameMess.Turn(Program.GameEngine.ActivePlayer, Program.GameEngine.TurnNumber);
-            Program.GameEngine.EventProxy.OnTurn_3_1_0_0(player, Program.GameEngine.TurnNumber);
-            Program.GameEngine.EventProxy.OnTurn_3_1_0_1(player, Program.GameEngine.TurnNumber);
-            Program.GameEngine.EventProxy.OnTurnPassed_3_1_0_2(lastPlayer, lastTurn, force);
+            var lastPlayer = GameEngine.ActivePlayer;
+            var lastTurn = GameEngine.TurnNumber;
+            GameEngine.TurnNumber++;
+            GameEngine.ActivePlayer = (setActive) ? player : null;
+            GameEngine.StopTurn = false;
+            GameEngine.CurrentPhase = null;
+            Program.GameMess.Turn(GameEngine.ActivePlayer, GameEngine.TurnNumber);
+            GameEngine.EventProxy.OnTurn_3_1_0_0(player, GameEngine.TurnNumber);
+            GameEngine.EventProxy.OnTurn_3_1_0_1(player, GameEngine.TurnNumber);
+            GameEngine.EventProxy.OnTurnPassed_3_1_0_2(lastPlayer, lastTurn, force);
         }
 
         public void StopTurn(Player player)
         {
             WriteReplayAction(player.Id);
             if (player == Player.LocalPlayer)
-                Program.GameEngine.StopTurn = false;
+                GameEngine.StopTurn = false;
             Program.GameMess.System("{0} wants to play before end of turn.", player);
-            Program.GameEngine.EventProxy.OnEndTurn_3_1_0_0(player);
-            Program.GameEngine.EventProxy.OnEndTurn_3_1_0_1(player);
-            Program.GameEngine.EventProxy.OnTurnPaused_3_1_0_2(player);
+            GameEngine.EventProxy.OnEndTurn_3_1_0_0(player);
+            GameEngine.EventProxy.OnEndTurn_3_1_0_1(player);
+            GameEngine.EventProxy.OnTurnPaused_3_1_0_2(player);
         }
 
         public void SetPhase(byte phase, Player[] players, bool force)
         {
             WriteReplayAction();
-            var currentPhase = Program.GameEngine.CurrentPhase;
+            var currentPhase = GameEngine.CurrentPhase;
             var newPhase = Phase.Find(phase);
-            Program.GameEngine.CurrentPhase = newPhase;
-            Program.GameMess.Phase(Program.GameEngine.ActivePlayer, newPhase.Name);
-            if (players.Length > 0 && !players.Contains(Program.GameEngine.ActivePlayer)) //alert if a non-active player has a stop set on the phase
+            GameEngine.CurrentPhase = newPhase;
+            Program.GameMess.Phase(GameEngine.ActivePlayer, newPhase.Name);
+            if (players.Length > 0 && !players.Contains(GameEngine.ActivePlayer)) //alert if a non-active player has a stop set on the phase
             {
                 Program.GameMess.System("A player has a stop set on {0}.", newPhase.Name);
             }
 
             if (currentPhase == null)
-                Program.GameEngine.EventProxy.OnPhasePassed_3_1_0_2(null, 0, force);
+                GameEngine.EventProxy.OnPhasePassed_3_1_0_2(null, 0, force);
             else
-                Program.GameEngine.EventProxy.OnPhasePassed_3_1_0_2(currentPhase.Name, currentPhase.Id, force);
+                GameEngine.EventProxy.OnPhasePassed_3_1_0_2(currentPhase.Name, currentPhase.Id, force);
         }
 
         public void SetActivePlayer(Player player)
         {
             WriteReplayAction(player.Id);
-            var lastPlayer = Program.GameEngine.ActivePlayer;
-            Program.GameEngine.ActivePlayer = player;
-            Program.GameEngine.StopTurn = false;
-            Program.GameEngine.EventProxy.OnTurnPassed_3_1_0_2(lastPlayer, Program.GameEngine.TurnNumber, false);
+            var lastPlayer = GameEngine.ActivePlayer;
+            GameEngine.ActivePlayer = player;
+            GameEngine.StopTurn = false;
+            GameEngine.EventProxy.OnTurnPassed_3_1_0_2(lastPlayer, GameEngine.TurnNumber, false);
         }
 
         public void ClearActivePlayer()
         {
             WriteReplayAction();
-            var lastPlayer = Program.GameEngine.ActivePlayer;
-            Program.GameEngine.ActivePlayer = null;
-            Program.GameEngine.StopTurn = false;
-            Program.GameEngine.EventProxy.OnTurnPassed_3_1_0_2(lastPlayer, Program.GameEngine.TurnNumber, false);
+            var lastPlayer = GameEngine.ActivePlayer;
+            GameEngine.ActivePlayer = null;
+            GameEngine.StopTurn = false;
+            GameEngine.EventProxy.OnTurnPassed_3_1_0_2(lastPlayer, GameEngine.TurnNumber, false);
         }
 
         public void SetBoard(string name)
         {
             WriteReplayAction();
-            Program.GameEngine.ChangeGameBoard(name);
+            GameEngine.ChangeGameBoard(name);
         }
 
         public void Chat(Player player, string text)
@@ -260,7 +260,7 @@ namespace Octgn.Networking
 
         public void Random(int result)
         {
-            Program.GameEngine.ScriptApi.RandomResult(result);
+            GameEngine.ScriptApi.RandomResult(result);
         }
 
         public void Counter(Player player, Counter counter, int value, bool isScriptChange)
@@ -311,8 +311,8 @@ namespace Octgn.Networking
             {
                 if (p.Spectator == false && Program.InPreGame == false)
                 {
-                    Program.GameEngine.EventProxy.OnPlayerConnect_3_1_0_1(p);
-                    Program.GameEngine.EventProxy.OnPlayerConnected_3_1_0_2(p);
+                    GameEngine.EventProxy.OnPlayerConnect_3_1_0_1(p);
+                    GameEngine.EventProxy.OnPlayerConnected_3_1_0_2(p);
                 }
             }
         }
@@ -360,9 +360,9 @@ namespace Octgn.Networking
 
             CreateCard(GameEngine, id, type, group, size);
             Log.Info("LoadDeck Starting Task to Fire Event");
-            Program.GameEngine.EventProxy.OnLoadDeck_3_1_0_0(who, @group.Distinct().ToArray());
-            Program.GameEngine.EventProxy.OnLoadDeck_3_1_0_1(who, @group.Distinct().ToArray());
-            Program.GameEngine.EventProxy.OnDeckLoaded_3_1_0_2(who, @group.Distinct().ToArray());
+            GameEngine.EventProxy.OnLoadDeck_3_1_0_0(who, @group.Distinct().ToArray());
+            GameEngine.EventProxy.OnLoadDeck_3_1_0_1(who, @group.Distinct().ToArray());
+            GameEngine.EventProxy.OnDeckLoaded_3_1_0_2(who, @group.Distinct().ToArray());
         }
 
         /// <summary>Creates new Cards as well as the corresponding CardIdentities. The cards may be in different groups.</summary>
@@ -386,7 +386,7 @@ namespace Octgn.Networking
                     continue;
                 }
 
-                var c = new Card(owner, id[i], Program.GameEngine.Definition.GetCardById(type[i]), sizes[i]);
+                var c = new Card(owner, id[i], gameEngine.Definition.GetCardById(type[i]), sizes[i]);
                 group.AddAt(c, group.Count);
             }
         }
@@ -414,7 +414,7 @@ namespace Octgn.Networking
                 Program.GameMess.PlayerEvent(owner, "{0} creates {1} {2} in {3}'s {4}", owner.Name, id.Length, c == null ? "card" : (object)c, group.Owner.Name, group.Name);
                 // Ignore cards created by oneself
 
-                var card = new Card(owner, id[i], Program.GameEngine.Definition.GetCardById(type[i]), size[i]); group.AddAt(card, group.Count);
+                var card = new Card(owner, id[i], GameEngine.Definition.GetCardById(type[i]), size[i]); group.AddAt(card, group.Count);
             }
         }
 
@@ -445,7 +445,7 @@ namespace Octgn.Networking
                 return;
             }
             WriteReplayAction(owner.Id);
-            var table = Program.GameEngine.Table;
+            var table = GameEngine.Table;
             // Bring cards created by oneself to top, for z-order consistency
             if (IsLocalPlayer(owner))
             {
@@ -463,14 +463,14 @@ namespace Octgn.Networking
             else
             {
                 for (var i = 0; i < id.Length; i++)
-                    new CreateCard(owner, id[i], faceUp, Program.GameEngine.Definition.GetCardById(modelId[i]), x[i], y[i], !persist).Do();
+                    new CreateCard(owner, id[i], faceUp, GameEngine.Definition.GetCardById(modelId[i]), x[i], y[i], !persist).Do();
             }
 
             if (modelId.All(m => m == modelId[0]))
-                Program.GameMess.PlayerEvent(owner, "creates {1} '{2}'", owner, modelId.Length, IsLocalPlayer(owner) || faceUp ? Program.GameEngine.Definition.GetCardById(modelId[0]).Name : "card");
+                Program.GameMess.PlayerEvent(owner, "creates {1} '{2}'", owner, modelId.Length, IsLocalPlayer(owner) || faceUp ? GameEngine.Definition.GetCardById(modelId[0]).Name : "card");
             else
                 foreach (var m in modelId)
-                    Program.GameMess.PlayerEvent(owner, "{0} creates a '{1}'", owner, IsLocalPlayer(owner) || faceUp ? Program.GameEngine.Definition.GetCardById(m).Name : "card");
+                    Program.GameMess.PlayerEvent(owner, "{0} creates a '{1}'", owner, IsLocalPlayer(owner) || faceUp ? GameEngine.Definition.GetCardById(m).Name : "card");
         }
 
         public void Leave(Player player)
@@ -478,8 +478,8 @@ namespace Octgn.Networking
             WriteReplayAction(player.Id);
             Program.GameMess.System("{0} has closed their game window left the game. They did not crash or lose connection, they left on purpose.", player);
             if( !Program.InPreGame ) {
-                Program.GameEngine.EventProxy.OnPlayerLeaveGame_3_1_0_1( player );
-                Program.GameEngine.EventProxy.OnPlayerQuit_3_1_0_2( player );
+                GameEngine.EventProxy.OnPlayerLeaveGame_3_1_0_1( player );
+                GameEngine.EventProxy.OnPlayerQuit_3_1_0_2( player );
             }
             player.Delete();
             if (Program.IsHost && Program.InPreGame)
@@ -501,7 +501,7 @@ namespace Octgn.Networking
         {
             WriteReplayAction(player.Id);
             // Get the table control
-            var table = Program.GameEngine.Table;
+            var table = GameEngine.Table;
 
             var playCards = cards
                 .Select( cardId => {
@@ -543,7 +543,7 @@ namespace Octgn.Networking
         public void AddMarker(Player player, Card card, Guid id, string name, ushort count, ushort oldCount, bool isScriptChange)
         {
             WriteReplayAction(player.Id);
-            var model = Program.GameEngine.GetMarkerModel(id);
+            var model = GameEngine.GetMarkerModel(id);
             model.Name = name;
             var marker = card.FindMarker(id, name);
             if (!IsLocalPlayer(player))
@@ -567,10 +567,10 @@ namespace Octgn.Networking
                 Program.GameMess.PlayerEvent(player, "adds {0} {1} marker(s) on {2}", count, model.Name, card);
                 if (isScriptChange == false)
                 {
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(card, model.ModelString(), oldCount, newCount, isScriptChange);
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(card, model.ModelString(), oldCount, newCount, isScriptChange);
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(card, model.ModelString(), oldCount, newCount, isScriptChange);
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(card, model.ModelString(), oldCount, newCount, isScriptChange);
                 }
-                Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(card, model.Name, model.Id.ToString(), oldCount, isScriptChange);
+                GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(card, model.Name, model.Id.ToString(), oldCount, isScriptChange);
             }
         }
 
@@ -602,19 +602,19 @@ namespace Octgn.Networking
                     markerString.AppendFormat("('{0}','{1}')", name, id);
                     if (isScriptChange == false)
                     {
-                        Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(card, markerString.ToString(), oldCount, newCount, isScriptChange);
-                        Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(card, markerString.ToString(), oldCount, newCount, isScriptChange);
+                        GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(card, markerString.ToString(), oldCount, newCount, isScriptChange);
+                        GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(card, markerString.ToString(), oldCount, newCount, isScriptChange);
                     }
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(card, name, id.ToString(), oldCount, isScriptChange);
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(card, name, id.ToString(), oldCount, isScriptChange);
                 }
                 else
                 {
                     if (isScriptChange == false)
                     {
-                        Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(card, marker.Model.ModelString(), oldCount, newCount, isScriptChange);
-                        Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(card, marker.Model.ModelString(), oldCount, newCount, isScriptChange);
+                        GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(card, marker.Model.ModelString(), oldCount, newCount, isScriptChange);
+                        GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(card, marker.Model.ModelString(), oldCount, newCount, isScriptChange);
                     }
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(card, name, id.ToString(), oldCount, isScriptChange);
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(card, name, id.ToString(), oldCount, isScriptChange);
                 }
 
             }
@@ -660,38 +660,38 @@ namespace Octgn.Networking
             {
                 if (isScriptChange == false)
                 {
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(
                         from,
                         marker.Model.ModelString(),
                         oldCount,
                         fromNewCount,
                         isScriptChange);
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(
                         to,
                         marker.Model.ModelString(),
                         toOldCount,
                         toNewCount,
                         isScriptChange);
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(
                         from,
                         marker.Model.ModelString(),
                         oldCount,
                         fromNewCount,
                         isScriptChange);
-                    Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(
+                    GameEngine.EventProxy.OnMarkerChanged_3_1_0_1(
                         to,
                         marker.Model.ModelString(),
                         toOldCount,
                         toNewCount,
                         isScriptChange);
                 }
-                Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(
+                GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(
                     from,
                     marker.Model.Name,
                     marker.Model.Id.ToString(),
                     oldCount,
                     isScriptChange);
-                Program.GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(
+                GameEngine.EventProxy.OnMarkerChanged_3_1_0_2(
                     to,
                     marker.Model.Name,
                     marker.Model.Id.ToString(),
@@ -789,7 +789,7 @@ namespace Octgn.Networking
             if (!IsLocalPlayer(who))
                 obj.PassControlTo(player, who, false, requested);
             if (obj is Card)
-               Program.GameEngine.EventProxy.OnCardControllerChanged_3_1_0_2((Card)obj, who, player);
+               GameEngine.EventProxy.OnCardControllerChanged_3_1_0_2((Card)obj, who, player);
         }
 
         public void TakeFrom(ControllableObject obj, Player to)
@@ -968,33 +968,33 @@ namespace Octgn.Networking
             }
             if (!IsLocalPlayer(p))
             {
-                Program.GameEngine.EventProxy.OnPlayerGlobalVariableChanged_3_1_0_0(p, name, oldValue, value);
-                Program.GameEngine.EventProxy.OnPlayerGlobalVariableChanged_3_1_0_1(p, name, oldValue, value);
+                GameEngine.EventProxy.OnPlayerGlobalVariableChanged_3_1_0_0(p, name, oldValue, value);
+                GameEngine.EventProxy.OnPlayerGlobalVariableChanged_3_1_0_1(p, name, oldValue, value);
             }
-            Program.GameEngine.EventProxy.OnPlayerGlobalVariableChanged_3_1_0_2(p, name, oldValue, value);
+            GameEngine.EventProxy.OnPlayerGlobalVariableChanged_3_1_0_2(p, name, oldValue, value);
         }
 
         public void SetGlobalVariable(string name, string oldValue, string value)
         {
             WriteReplayAction();
-            if (Program.GameEngine.GlobalVariables.ContainsKey(name))
+            if (GameEngine.GlobalVariables.ContainsKey(name))
             {
-                Program.GameEngine.GlobalVariables[name] = value;
+                GameEngine.GlobalVariables[name] = value;
             }
             else
             {
-                Program.GameEngine.GlobalVariables.Add(name, value);
+                GameEngine.GlobalVariables.Add(name, value);
             }
-            Program.GameEngine.EventProxy.OnGlobalVariableChanged_3_1_0_0(name, oldValue, value);
-            Program.GameEngine.EventProxy.OnGlobalVariableChanged_3_1_0_1(name, oldValue, value);
-            Program.GameEngine.EventProxy.OnGlobalVariableChanged_3_1_0_2(name, oldValue, value);
+            GameEngine.EventProxy.OnGlobalVariableChanged_3_1_0_0(name, oldValue, value);
+            GameEngine.EventProxy.OnGlobalVariableChanged_3_1_0_1(name, oldValue, value);
+            GameEngine.EventProxy.OnGlobalVariableChanged_3_1_0_2(name, oldValue, value);
 
         }
 
         public void IsTableBackgroundFlipped(bool isFlipped)
         {
             WriteReplayAction();
-            Program.GameEngine.IsTableBackgroundFlipped = isFlipped;
+            GameEngine.IsTableBackgroundFlipped = isFlipped;
         }
 
         public void CardSwitchTo(Player player, Card card, string alternate)
@@ -1012,7 +1012,7 @@ namespace Octgn.Networking
         public void PlaySound(Player player, string name)
         {
             WriteReplayAction(player.Id);
-            if (!IsLocalPlayer(player)) Program.GameEngine.PlaySoundReq(player, name);
+            if (!IsLocalPlayer(player)) GameEngine.PlaySoundReq(player, name);
         }
 
         public void Ready(Player player)
@@ -1025,17 +1025,17 @@ namespace Octgn.Networking
             if (player.WaitingOnPlayers == false)
             {
                 Program.GameMess.System("Unlocking game");
-                if (Program.GameEngine.TableLoaded == false)
+                if (GameEngine.TableLoaded == false)
                 {
-                    Program.GameEngine.TableLoaded = true;
+                    GameEngine.TableLoaded = true;
 
-                    Program.GameEngine.EventProxy.OnTableLoad_3_1_0_0();
-                    Program.GameEngine.EventProxy.OnTableLoad_3_1_0_1();
-                    Program.GameEngine.EventProxy.OnTableLoaded_3_1_0_2();
+                    GameEngine.EventProxy.OnTableLoad_3_1_0_0();
+                    GameEngine.EventProxy.OnTableLoad_3_1_0_1();
+                    GameEngine.EventProxy.OnTableLoaded_3_1_0_2();
 
-                    Program.GameEngine.EventProxy.OnGameStart_3_1_0_0();
-                    Program.GameEngine.EventProxy.OnGameStart_3_1_0_1();
-                    Program.GameEngine.EventProxy.OnGameStarted_3_1_0_2();
+                    GameEngine.EventProxy.OnGameStart_3_1_0_0();
+                    GameEngine.EventProxy.OnGameStart_3_1_0_1();
+                    GameEngine.EventProxy.OnGameStarted_3_1_0_2();
                 }
             }
         }
@@ -1049,7 +1049,7 @@ namespace Octgn.Networking
         public void RemoteCall(Player fromplayer, string func, string args)
         {
             Program.GameMess.PlayerEvent(fromplayer, "executes {0}", func);
-            Program.GameEngine.ExecuteRemoteCall(fromplayer, func, args);
+            GameEngine.ExecuteRemoteCall(fromplayer, func, args);
         }
 
         public void CreateAliasDeprecated(int[] arg0, ulong[] ulongs)
@@ -1078,10 +1078,10 @@ namespace Octgn.Networking
             Log.DebugFormat("GameState From {0}", fromPlayer);
             var state = JsonConvert.DeserializeObject<GameSaveState>(strstate);
 
-            state.Load(Program.GameEngine, fromPlayer);
+            state.Load(GameEngine, fromPlayer);
 
             Program.GameMess.System("{0} sent game state ", fromPlayer.Name);
-            Program.GameEngine.GotGameState(fromPlayer);
+            GameEngine.GotGameState(fromPlayer);
         }
 
         public void GameStateReq(Player fromPlayer)
@@ -1089,7 +1089,7 @@ namespace Octgn.Networking
             Log.DebugFormat("GameStateReq From {0}", fromPlayer);
             try
             {
-                var ps = new GameSaveState().Create(Program.GameEngine, fromPlayer);
+                var ps = new GameSaveState().Create(GameEngine, fromPlayer);
 
                 var str = JsonConvert.SerializeObject(ps, Formatting.None);
 
@@ -1147,7 +1147,7 @@ namespace Octgn.Networking
 	    }
 
         public static bool IsLocalPlayer(Player player) {
-            if (Player.LocalPlayer == player && Program.GameEngine.IsReplay) return false;
+            if (Player.LocalPlayer == player && player.GameEngine.IsReplay) return false;
 
             return Player.LocalPlayer == player;
         }
