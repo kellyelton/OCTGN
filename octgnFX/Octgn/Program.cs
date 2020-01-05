@@ -281,7 +281,7 @@ namespace Octgn
             var p = Parse(player, text);
             if (color == null)
             {
-                GameMess.Notify(p.Item1, p.Item2);
+                player.GameEngine.GameLog.Notify(p.Item1, p.Item2);
             }
             else
             {
@@ -310,7 +310,7 @@ namespace Octgn
                         c = Colors.Black;
                     }
                 }
-                GameMess.NotifyBar(c.Value, p.Item1, p.Item2);
+                player.GameEngine.GameLog.NotifyBar(c.Value, p.Item1, p.Item2);
             }
         }
 

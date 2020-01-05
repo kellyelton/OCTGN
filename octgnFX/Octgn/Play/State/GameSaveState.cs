@@ -59,7 +59,7 @@ namespace Octgn.Play.State
                 .Select(x => new PlayerSaveState().Create(x, fromPlayer))
                 .ToArray()
             ;
-            Table = new GroupSaveState().Create(Program.GameEngine.Table, fromPlayer);
+            Table = new GroupSaveState().Create(engine.Table, fromPlayer);
             Table.Visiblity = GroupVisibility.Undefined;
             SessionId = engine.SessionId;
             return this;
@@ -70,13 +70,13 @@ namespace Octgn.Play.State
             var state = this;
             foreach (var gv in state.GlobalVariables)
             {
-                Program.GameEngine.GlobalVariables[gv.Key] = gv.Value;
+                engine.GlobalVariables[gv.Key] = gv.Value;
             }
 
-            Program.GameEngine.StopTurn = state.StopTurn;
-            Program.GameEngine.ChangeGameBoard(state.GameBoard);
-            Program.GameEngine.TurnNumber = state.TurnNumber;
-            Program.GameEngine.ActivePlayer = Play.Player.Find(engine, state.ActivePlayer);
+            engine.StopTurn = state.StopTurn;
+            engine.ChangeGameBoard(state.GameBoard);
+            engine.TurnNumber = state.TurnNumber;
+            engine.ActivePlayer = Play.Player.Find(engine, state.ActivePlayer);
 
             foreach (var p in state.Players)
             {
@@ -121,7 +121,7 @@ namespace Octgn.Play.State
                 if (c.Type != Guid.Empty)
                     model =
                         Core.DataManagers.GameManager.Get()
-                            .GetById(Program.GameEngine.Definition.Id)
+                            .GetById(engine.Definition.Id)
                             .GetCardById(c.Type);
                 var card = Play.Card.Find(engine, c.Id);
                 if (fromPlayer == owner && card != null)

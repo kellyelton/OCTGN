@@ -156,7 +156,7 @@ namespace Octgn.Scripting.Versions
         {
             var pile = (Pile)Group.Find(GameEngine, id);
             if (pile.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't shuffle {1} because they don't control it.", Player.LocalPlayer.Name, pile.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't shuffle {1} because they don't control it.", Player.LocalPlayer.Name, pile.Name));
 
             QueueAction(() => pile.Shuffle());
 
@@ -190,7 +190,7 @@ namespace Octgn.Scripting.Versions
             Group group = Group.Find(GameEngine, id);
             if (group.Controller != Player.LocalPlayer)
             {
-                Program.GameMess.Warning("{0} can't set visibility on {0} because they don't control it.", Player.LocalPlayer.Name, group.Name);
+                GameEngine.GameLog.Warning("{0} can't set visibility on {0} because they don't control it.", Player.LocalPlayer.Name, group.Name);
                 return;
             }
             QueueAction(
@@ -212,7 +212,7 @@ namespace Octgn.Scripting.Versions
                             group.AddViewer(Player.LocalPlayer, true);
                             return;
                         default:
-                            Program.GameMess.Warning("Invalid visibility type '{0}'", v);
+                            GameEngine.GameLog.Warning("Invalid visibility type '{0}'", v);
                             return;
                     }
                 });
@@ -236,7 +236,7 @@ namespace Octgn.Scripting.Versions
             var g = (Pile)Group.Find(GameEngine, id);
             if (g.Controller != Player.LocalPlayer)
             {
-                Program.GameMess.Warning(String.Format("{0} can't look at {1} because they don't control it.", Player.LocalPlayer.Name, g.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} can't look at {1} because they don't control it.", Player.LocalPlayer.Name, g.Name));
             }
             PlayWindow playWindow = WindowManager.PlayWindow;
             if (playWindow == null) return;
@@ -273,7 +273,7 @@ namespace Octgn.Scripting.Versions
             Player player = Player.Find(GameEngine, (byte)pid);
             if (group.Controller != Player.LocalPlayer)
             {
-                Program.GameMess.Warning("{0} can't set visibility on {0} because they don't control it.", Player.LocalPlayer.Name, group.Name);
+                GameEngine.GameLog.Warning("{0} can't set visibility on {0} because they don't control it.", Player.LocalPlayer.Name, group.Name);
                 return;
             }
             if (group.Viewers.Contains(player)) return;
@@ -288,7 +288,7 @@ namespace Octgn.Scripting.Versions
             Player player = Player.Find(GameEngine, (byte)pid);
             if (group.Controller != Player.LocalPlayer)
             {
-                Program.GameMess.Warning("{0} can't set visibility on {0} because they don't control it.", Player.LocalPlayer.Name, group.Name);
+                GameEngine.GameLog.Warning("{0} can't set visibility on {0} because they don't control it.", Player.LocalPlayer.Name, group.Name);
                 return;
             }
             if (!group.Viewers.Contains(player)) return;
@@ -460,7 +460,7 @@ namespace Octgn.Scripting.Versions
             Card card = Card.Find(GameEngine, id);
 
             if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't flip up {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't flip up {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
 
             QueueAction(() => card.FaceUp = value);
         }
@@ -476,7 +476,7 @@ namespace Octgn.Scripting.Versions
             Card card = Card.Find(GameEngine, id);
 
             if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't rotate {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't rotate {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
 
             QueueAction(() => card.Orientation = (CardOrientation)rot);
         }
@@ -495,7 +495,7 @@ namespace Octgn.Scripting.Versions
             Color? value = color == null ? null : (Color?)ColorConverter.ConvertFromString(color);
 
             /*if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't highlight {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't highlight {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
             */
             // Will add in checks or controls to handle/allow this. - DS
             QueueAction(() => card.HighlightColor = value);
@@ -515,7 +515,7 @@ namespace Octgn.Scripting.Versions
             Color? value = color == null ? null : (Color?)ColorConverter.ConvertFromString(color);
 
             /*if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't highlight {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't highlight {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
             */
             // Will add in checks or controls to handle/allow this. - DS
             QueueAction(() => card.FilterColor = value);
@@ -534,13 +534,13 @@ namespace Octgn.Scripting.Versions
             Group group = Group.Find(GameEngine, groupId);
 
             if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't move {1} to {2} because they don't control {1}.", Player.LocalPlayer.Name, card.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't move {1} to {2} because they don't control {1}.", Player.LocalPlayer.Name, card.Name, card.Name));
 
             if (group.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't move {1} to {2} because they don't control {1}.", Player.LocalPlayer.Name, card.Name, group.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't move {1} to {2} because they don't control {1}.", Player.LocalPlayer.Name, card.Name, group.Name));
 
             if (card.Group != GameEngine.Table && card.Group.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't move {1} from {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't move {1} from {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
 
             QueueAction(() =>
             {
@@ -556,10 +556,10 @@ namespace Octgn.Scripting.Versions
             Card card = Card.Find(GameEngine, cardId);
 
             if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't move {1} to Table because they don't control {1}.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't move {1} to Table because they don't control {1}.", Player.LocalPlayer.Name, card.Name));
 
             if (card.Group != GameEngine.Table && card.Group.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't move {1} from {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't move {1} from {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
 
             bool faceUp = !forceFaceDown && (!(card.Group is Table) || card.FaceUp);
             QueueAction(
@@ -597,16 +597,16 @@ namespace Octgn.Scripting.Versions
         {
             if (idx < 0)
             {
-                Program.GameMess.Warning("Cannot setIndex({0}), number is less than 0", idx);
+                GameEngine.GameLog.Warning("Cannot setIndex({0}), number is less than 0", idx);
                 return;
             }
             Card card = Card.Find(GameEngine, CardId);
 
             if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't set index of {1} to Table because they don't control {1}.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't set index of {1} to Table because they don't control {1}.", Player.LocalPlayer.Name, card.Name));
 
             if (card.Group != GameEngine.Table && card.Group.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't set index of {1} in {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't set index of {1} in {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
 
             if (!TableOnly || (TableOnly && card.Group is Table))
             {
@@ -683,7 +683,7 @@ namespace Octgn.Scripting.Versions
             int origCount = 0;
 
             /*if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't set markers on {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't set markers on {1} because they don't control it.", Player.LocalPlayer.Name, card.Name));
             */
             // Will add in checks or controls to handle/allow this. -- DS
             QueueAction(() =>
@@ -722,14 +722,14 @@ namespace Octgn.Scripting.Versions
                 return;
 
             if (card.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't delete {1} to Table because they don't control {1}.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't delete {1} to Table because they don't control {1}.", Player.LocalPlayer.Name, card.Name));
 
             if (card.Group != GameEngine.Table && card.Group.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't delete {1} from {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't delete {1} from {2} because they don't control it.", Player.LocalPlayer.Name, card, card.Group));
 
             if (c.Controller != Player.LocalPlayer)
             {
-                Program.GameMess.Warning("Cannot delete({0}), because you do not control it. ", cardId);
+                GameEngine.GameLog.Warning("Cannot delete({0}), because you do not control it. ", cardId);
                 return;
             }
             QueueAction(() =>
@@ -758,13 +758,13 @@ namespace Octgn.Scripting.Versions
 
             if (card.Group.Definition.Id != GameEngine.Definition.Table.Id)
             {
-                Program.GameMess.Warning(String.Format("You can't anchor a card that's not on the table."));
+                GameEngine.GameLog.Warning(String.Format("You can't anchor a card that's not on the table."));
                 return;
             }
 
             if (card.Controller != Player.LocalPlayer)
             {
-                Program.GameMess.Warning(String.Format("{0} Can't anchor {1} to Table because they don't control it.", Player.LocalPlayer.Name, card.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't anchor {1} to Table because they don't control it.", Player.LocalPlayer.Name, card.Name));
                 return;
             }
 
@@ -781,7 +781,7 @@ namespace Octgn.Scripting.Versions
             var card = Card.Find(GameEngine, cardId);
             if (card == null)
             {
-                Program.GameMess.Warning("Card " + cardId + " doesn't exist.");
+                GameEngine.GameLog.Warning("Card " + cardId + " doesn't exist.");
                 return;
             }
 
@@ -793,7 +793,7 @@ namespace Octgn.Scripting.Versions
             var card = Card.Find(GameEngine, cardId);
             if (card == null)
             {
-                Program.GameMess.Warning("Card " + cardId + " doesn't exist.");
+                GameEngine.GameLog.Warning("Card " + cardId + " doesn't exist.");
                 return;
             }
 
@@ -927,7 +927,7 @@ namespace Octgn.Scripting.Versions
 
         public string GetGameName()
         {
-            return Program.CurrentOnlineGameName;
+            return GameEngine.HostedGameName;
         }
 
         public int TurnNumber()
@@ -949,7 +949,7 @@ namespace Octgn.Scripting.Versions
             if (group == null) return ret;
 
             if (group.Controller != Player.LocalPlayer)
-                Program.GameMess.Warning(String.Format("{0} Can't create card in {1} because they don't control it.", Player.LocalPlayer.Name, group.Name));
+                GameEngine.GameLog.Warning(String.Format("{0} Can't create card in {1} because they don't control it.", Player.LocalPlayer.Name, group.Name));
 
             QueueAction(
                 () =>
@@ -1242,7 +1242,7 @@ namespace Octgn.Scripting.Versions
                 return "";
             if (p.GlobalVariables.ContainsKey(name) == false)
             {
-                Program.GameMess.Warning("Global variable '{0}' isn't defined for player '{1}'", name, p.Name);
+                GameEngine.GameLog.Warning("Global variable '{0}' isn't defined for player '{1}'", name, p.Name);
                 return "";
             }
             return p.GlobalVariables[name];
@@ -1266,7 +1266,7 @@ namespace Octgn.Scripting.Versions
         {
             if (GameEngine.GlobalVariables.ContainsKey(name) == false)
             {
-                Program.GameMess.Warning("Global variable '{0}' isn't defined", name);
+                GameEngine.GameLog.Warning("Global variable '{0}' isn't defined", name);
                 return "";
             }
             return GameEngine.GlobalVariables[name];

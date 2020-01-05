@@ -62,23 +62,23 @@ namespace Octgn.Scripting
 
             var workingDirectory = Directory.GetCurrentDirectory();
             Log.DebugFormat("Setting working directory: {0}", workingDirectory);
-            if (Program.GameEngine != null)
+            if (GameEngine != null)
             {
-                workingDirectory = Path.Combine(Config.Instance.Paths.DatabasePath, Program.GameEngine.Definition.Id.ToString());
+                workingDirectory = Path.Combine(Config.Instance.Paths.DatabasePath, GameEngine.Definition.Id.ToString());
                 var search = _engine.GetSearchPaths();
                 search.Add(workingDirectory);
                 _engine.SetSearchPaths(search);
             }
             //var workingDirectory = Directory.GetCurrentDirectory();
-            if (Program.GameEngine != null)
+            if (GameEngine != null)
             {
-                workingDirectory = Path.Combine(Config.Instance.Paths.DatabasePath, Program.GameEngine.Definition.Id.ToString());
+                workingDirectory = Path.Combine(Config.Instance.Paths.DatabasePath, GameEngine.Definition.Id.ToString());
             }
 
             ActionsScope = CreateScope(workingDirectory);
-            if (Program.GameEngine == null || testing) return;
+            if (GameEngine == null || testing) return;
             Log.Debug("Loading Scripts...");
-            foreach (var script in Program.GameEngine.Definition.GetScripts().ToArray())
+            foreach (var script in GameEngine.Definition.GetScripts().ToArray())
             {
                 try
                 {
@@ -98,7 +98,7 @@ namespace Octgn.Scripting
                     };
                     var eo = _engine.GetService<ExceptionOperations>();
                     var error = eo.FormatException(e);
-                    Program.GameMess.Warning("Could not load script " + gs.Path + Environment.NewLine + error);
+                    GameEngine.GameLog.Warning("Could not load script " + gs.Path + Environment.NewLine + error);
                 }
             }
             Log.Debug("Scripts Loaded.");
@@ -110,7 +110,7 @@ namespace Octgn.Scripting
             var code = (FunctionCode)frame.f_code;
             if (result == "call")
             {
-                Program.GameMess.GameDebug("[{0}:{1}]{2}", code.co_filename, (int)frame.f_lineno, code.co_name);
+                GameEngine.GameLog.GameDebug("[{0}:{1}]{2}", code.co_filename, (int)frame.f_lineno, code.co_name);
             }
             return this.OnTraceback;
         }
@@ -179,7 +179,7 @@ namespace Octgn.Scripting
         //private bool didMsg = false;
         public void ExecuteFunction(string function, params object[] args)
         {
-            //if (Program.GameEngine.Definition.ScriptVersion < ev)
+            //if (GameEngine.Definition.ScriptVersion < ev)
             //{
             //    if (!didMsg)
             //    {
@@ -413,7 +413,7 @@ namespace Octgn.Scripting
                 ScriptJobBase job = _executionQueue.Peek();
                 var scriptjob = job as ScriptJob;
                 if (scriptjob != null)
-                    Program.GameMess.GameDebug(scriptjob.Source.GetCode());
+                    GameEngine.GameLog.GameDebug(scriptjob.Source.GetCode());
                 // Because some scripts have to be suspended during asynchronous operations (e.g. shuffle, reveal or random),
                 // their evaluation is done on another thread.
                 // The process still looks synchronous (no concurrency is allowed when manipulating the game model),
@@ -441,7 +441,7 @@ namespace Octgn.Scripting
                 }
                 if (job.Result != null && !String.IsNullOrWhiteSpace(job.Result.Error))
                 {
-                    Program.GameMess.Warning("{0}", job.Result.Error.Trim());
+                    GameEngine.GameLog.Warning("{0}", job.Result.Error.Trim());
                 }
                 if (job.Suspended) return;
                 job.DispatcherSignal.Dispose();
@@ -526,13 +526,13 @@ namespace Octgn.Scripting
 
         private void InjectOctgnIntoScope(ScriptScope scope, string workingDirectory)
         {
-            scope.SetVariable("_api", Program.GameEngine.ScriptApi);
+            scope.SetVariable("_api", GameEngine.ScriptApi);
             scope.SetVariable("_wd", workingDirectory);
 
             // For convenience reason, the definition of Python API objects is in a seperate file: PythonAPI.py
             _engine.Execute(Properties.Resources.CaseInsensitiveDict, scope);
 
-            var file = Versioned.GetFile("PythonApi", Program.GameEngine.Definition.ScriptVersion);
+            var file = Versioned.GetFile("PythonApi", GameEngine.Definition.ScriptVersion);
             using (var str = Application.GetResourceStream(new Uri(file.Path)).Stream)
             using (var sr = new StreamReader(str))
             {

@@ -108,13 +108,13 @@ namespace Octgn.Networking
         public void Error(string msg)
         {
             WriteReplayAction();
-            Program.GameMess.Warning("The server has returned an error: {0}", msg);
+            GameEngine.GameLog.Warning("The server has returned an error: {0}", msg);
         }
 
         public void Kick(string reason)
         {
             WriteReplayAction();
-            Program.GameMess.Warning("You have been kicked: {0}", reason);
+            GameEngine.GameLog.Warning("You have been kicked: {0}", reason);
             Program.InPreGame = false;
             _client.Shutdown();
         }
@@ -172,7 +172,7 @@ namespace Octgn.Networking
         {
             WriteReplayReset(player.Id);
             GameEngine.Reset();
-            Program.GameMess.System("{0} reset the game", player);
+            GameEngine.GameLog.System("{0} reset the game", player);
         }
 
         public void NextTurn(Player player, bool setActive, bool force)
@@ -185,7 +185,7 @@ namespace Octgn.Networking
             GameEngine.ActivePlayer = (setActive) ? player : null;
             GameEngine.StopTurn = false;
             GameEngine.CurrentPhase = null;
-            Program.GameMess.Turn(GameEngine.ActivePlayer, GameEngine.TurnNumber);
+            GameEngine.GameLog.Turn(GameEngine.ActivePlayer, GameEngine.TurnNumber);
             GameEngine.EventProxy.OnTurn_3_1_0_0(player, GameEngine.TurnNumber);
             GameEngine.EventProxy.OnTurn_3_1_0_1(player, GameEngine.TurnNumber);
             GameEngine.EventProxy.OnTurnPassed_3_1_0_2(lastPlayer, lastTurn, force);
@@ -196,7 +196,7 @@ namespace Octgn.Networking
             WriteReplayAction(player.Id);
             if (player == Player.LocalPlayer)
                 GameEngine.StopTurn = false;
-            Program.GameMess.System("{0} wants to play before end of turn.", player);
+            GameEngine.GameLog.System("{0} wants to play before end of turn.", player);
             GameEngine.EventProxy.OnEndTurn_3_1_0_0(player);
             GameEngine.EventProxy.OnEndTurn_3_1_0_1(player);
             GameEngine.EventProxy.OnTurnPaused_3_1_0_2(player);
@@ -208,10 +208,10 @@ namespace Octgn.Networking
             var currentPhase = GameEngine.CurrentPhase;
             var newPhase = Phase.Find(phase);
             GameEngine.CurrentPhase = newPhase;
-            Program.GameMess.Phase(GameEngine.ActivePlayer, newPhase.Name);
+            GameEngine.GameLog.Phase(GameEngine.ActivePlayer, newPhase.Name);
             if (players.Length > 0 && !players.Contains(GameEngine.ActivePlayer)) //alert if a non-active player has a stop set on the phase
             {
-                Program.GameMess.System("A player has a stop set on {0}.", newPhase.Name);
+                GameEngine.GameLog.System("A player has a stop set on {0}.", newPhase.Name);
             }
 
             if (currentPhase == null)
@@ -247,7 +247,7 @@ namespace Octgn.Networking
         public void Chat(Player player, string text)
         {
             WriteReplayAction(player.Id);
-            Program.GameMess.Chat(player, text);
+            GameEngine.GameLog.Chat(player, text);
         }
 
         public void Print(Player player, string text)
@@ -288,7 +288,7 @@ namespace Octgn.Networking
             if (p == null)
             {
                 var player = new Player(GameEngine, GameEngine.Definition, nick, userId, id, pkey, spectator, false, GameEngine.IsReplay);
-                Program.GameMess.System("{0} has joined the game", player);
+                GameEngine.GameLog.System("{0} has joined the game", player);
                 player.UpdateSettings(invertedTable, spectator, false);
                 if (Program.InPreGame == false)
                 {
@@ -325,7 +325,7 @@ namespace Octgn.Networking
         {
             if (id.Length != type.Length || id.Length != group.Length)
             {
-                Program.GameMess.Warning("[LoadDeck] Protocol violation: inconsistent arrays sizes.");
+                GameEngine.GameLog.Warning("[LoadDeck] Protocol violation: inconsistent arrays sizes.");
                 return;
             }
 
@@ -334,13 +334,13 @@ namespace Octgn.Networking
             var who = Player.Find(GameEngine, (byte)(id[0] >> 16));
             if (who == null)
             {
-                Program.GameMess.Warning("[LoadDeck] Player not found.");
+                GameEngine.GameLog.Warning("[LoadDeck] Player not found.");
                 return;
             }
             WriteReplayAction(who.Id);
 
-            if (limited) Program.GameMess.System("{0} loads a limited deck.", who);
-            else Program.GameMess.System("{0} loads a deck.", who);
+            if (limited) GameEngine.GameLog.System("{0} loads a limited deck.", who);
+            else GameEngine.GameLog.System("{0} loads a deck.", who);
 
             if (!IsLocalPlayer(who)) {
                 try {
@@ -350,11 +350,11 @@ namespace Octgn.Networking
                 } catch (SleeveException ex) {
                     Log.Warn(ex.Message, ex);
 
-                    Program.GameMess.Warning($"There was an error loading {0}'s deck sleeve: " + ex.Message, who);
+                    GameEngine.GameLog.Warning($"There was an error loading {0}'s deck sleeve: " + ex.Message, who);
                 } catch (Exception ex) {
                     Log.Warn(ex.Message, ex);
 
-                    Program.GameMess.Warning($"There was an unknown error loading {0}'s deck sleeve.", who);
+                    GameEngine.GameLog.Warning($"There was an unknown error loading {0}'s deck sleeve.", who);
                 }
             }
 
@@ -382,7 +382,7 @@ namespace Octgn.Networking
                 var owner = group.Owner;
                 if (owner == null)
                 {
-                    Program.GameMess.Warning("[CreateCard] Player not found.");
+                    gameEngine.GameLog.Warning("[CreateCard] Player not found.");
                     continue;
                 }
 
@@ -406,12 +406,12 @@ namespace Octgn.Networking
                 var owner = group.Owner;
                 if (owner == null)
                 {
-                    Program.GameMess.Warning("[CreateCard] Player not found.");
+                    GameEngine.GameLog.Warning("[CreateCard] Player not found.");
                     return;
                 }
                 var c = Card.Find(GameEngine, id[0]);
 
-                Program.GameMess.PlayerEvent(owner, "{0} creates {1} {2} in {3}'s {4}", owner.Name, id.Length, c == null ? "card" : (object)c, group.Owner.Name, group.Name);
+                GameEngine.GameLog.PlayerEvent(owner, "{0} creates {1} {2} in {3}'s {4}", owner.Name, id.Length, c == null ? "card" : (object)c, group.Owner.Name, group.Name);
                 // Ignore cards created by oneself
 
                 var card = new Card(owner, id[i], GameEngine.Definition.GetCardById(type[i]), size[i]); group.AddAt(card, group.Count);
@@ -430,18 +430,18 @@ namespace Octgn.Networking
         {
             if (id.Length == 0)
             {
-                Program.GameMess.Warning("[CreateCardAt] Empty id parameter.");
+                GameEngine.GameLog.Warning("[CreateCardAt] Empty id parameter.");
                 return;
             }
             if (id.Length != x.Length || id.Length != y.Length || id.Length != modelId.Length)
             {
-                Program.GameMess.Warning("[CreateCardAt] Inconsistent parameters length.");
+                GameEngine.GameLog.Warning("[CreateCardAt] Inconsistent parameters length.");
                 return;
             }
             var owner = Player.Find(GameEngine, (byte)(id[0] >> 16));
             if (owner == null)
             {
-                Program.GameMess.Warning("[CreateCardAt] Player not found.");
+                GameEngine.GameLog.Warning("[CreateCardAt] Player not found.");
                 return;
             }
             WriteReplayAction(owner.Id);
@@ -454,7 +454,7 @@ namespace Octgn.Networking
                     var card = Card.Find(GameEngine, id[i]);
                     if (card == null)
                     {
-                        Program.GameMess.Warning("[CreateCardAt] Card not found.");
+                        GameEngine.GameLog.Warning("[CreateCardAt] Card not found.");
                         return;
                     }
                     table.SetCardIndex(card, table.Count + i - id.Length);
@@ -467,22 +467,22 @@ namespace Octgn.Networking
             }
 
             if (modelId.All(m => m == modelId[0]))
-                Program.GameMess.PlayerEvent(owner, "creates {1} '{2}'", owner, modelId.Length, IsLocalPlayer(owner) || faceUp ? GameEngine.Definition.GetCardById(modelId[0]).Name : "card");
+                GameEngine.GameLog.PlayerEvent(owner, "creates {1} '{2}'", owner, modelId.Length, IsLocalPlayer(owner) || faceUp ? GameEngine.Definition.GetCardById(modelId[0]).Name : "card");
             else
                 foreach (var m in modelId)
-                    Program.GameMess.PlayerEvent(owner, "{0} creates a '{1}'", owner, IsLocalPlayer(owner) || faceUp ? GameEngine.Definition.GetCardById(m).Name : "card");
+                    GameEngine.GameLog.PlayerEvent(owner, "{0} creates a '{1}'", owner, IsLocalPlayer(owner) || faceUp ? GameEngine.Definition.GetCardById(m).Name : "card");
         }
 
         public void Leave(Player player)
         {
             WriteReplayAction(player.Id);
-            Program.GameMess.System("{0} has closed their game window left the game. They did not crash or lose connection, they left on purpose.", player);
+            GameEngine.GameLog.System("{0} has closed their game window left the game. They did not crash or lose connection, they left on purpose.", player);
             if( !Program.InPreGame ) {
                 GameEngine.EventProxy.OnPlayerLeaveGame_3_1_0_1( player );
                 GameEngine.EventProxy.OnPlayerQuit_3_1_0_2( player );
             }
             player.Delete();
-            if (Program.IsHost && Program.InPreGame)
+            if (GameEngine.IsHost && Program.InPreGame)
             {
                 Sounds.PlaySound(Properties.Resources.doorclose);
             }
@@ -507,8 +507,8 @@ namespace Octgn.Networking
                 .Select( cardId => {
                     var playCard = Card.Find(GameEngine, cardId);
                     if( playCard == null ) {
-                        Program.GameMess.Warning( "Inconsistent state. Player {0} tried to move a card that does not exist.", player );
-                        Program.GameMess.GameDebug( "Missing Card ID={0}", cardId );
+                        GameEngine.GameLog.Warning( "Inconsistent state. Player {0} tried to move a card that does not exist.", player );
+                        GameEngine.GameLog.GameDebug( "Missing Card ID={0}", cardId );
                     }
                     return playCard;
                 } )
@@ -550,12 +550,12 @@ namespace Octgn.Networking
             {
                 if (marker == null && oldCount != 0)
                 {
-                    Program.GameMess.Warning("Inconsistent state. Cannot create a marker when that marker already exists.");
+                    GameEngine.GameLog.Warning("Inconsistent state. Cannot create a marker when that marker already exists.");
                     return;
                 }
                 if (marker != null && oldCount != marker.Count)
                 {
-                    Program.GameMess.Warning("Inconsistent state.  Marker count invalid.");
+                    GameEngine.GameLog.Warning("Inconsistent state.  Marker count invalid.");
                     return;
                 }
                 card.AddMarker(model, count);
@@ -564,7 +564,7 @@ namespace Octgn.Networking
             if (count != 0)
             {
                 var newCount = oldCount + count;
-                Program.GameMess.PlayerEvent(player, "adds {0} {1} marker(s) on {2}", count, model.Name, card);
+                GameEngine.GameLog.PlayerEvent(player, "adds {0} {1} marker(s) on {2}", count, model.Name, card);
                 if (isScriptChange == false)
                 {
                     GameEngine.EventProxy.OnMarkerChanged_3_1_0_0(card, model.ModelString(), oldCount, newCount, isScriptChange);
@@ -582,11 +582,11 @@ namespace Octgn.Networking
             {
                 if (marker == null)
                 {
-                    Program.GameMess.Warning("Inconsistent state. Marker not found on card.");
+                    GameEngine.GameLog.Warning("Inconsistent state. Marker not found on card.");
                     return;
                 }
                 if (marker.Count != oldCount)
-                    Program.GameMess.Warning("Inconsistent state. Missing markers to remove");
+                    GameEngine.GameLog.Warning("Inconsistent state. Missing markers to remove");
             }
             if (count != 0)
             {
@@ -595,7 +595,7 @@ namespace Octgn.Networking
                 {
                     card.RemoveMarker(marker, count);
                 }
-                Program.GameMess.PlayerEvent(player, "removes {0} {1} marker(s) from {2}", count, name, card);
+                GameEngine.GameLog.PlayerEvent(player, "removes {0} {1} marker(s) from {2}", count, name, card);
                 if (IsLocalPlayer(player) && marker == null)
                 {
                     var markerString = new StringBuilder();
@@ -626,7 +626,7 @@ namespace Octgn.Networking
             var marker = from.FindMarker(id, name);
             if (player == null)
             {
-                Program.GameMess.Warning("Inconsistent state. Cannot transfer marker to unknown player.");
+                GameEngine.GameLog.Warning("Inconsistent state. Cannot transfer marker to unknown player.");
                 return;
             }
             WriteReplayAction(player.Id);
@@ -634,11 +634,11 @@ namespace Octgn.Networking
             {
                 if (marker == null)
                 {
-                    Program.GameMess.Warning("Inconsistent state. Marker not found on card.");
+                    GameEngine.GameLog.Warning("Inconsistent state. Marker not found on card.");
                     return;
                 }
                 if (marker.Count != oldCount)
-                    Program.GameMess.Warning("Inconsistent state. Missing markers to remove");
+                    GameEngine.GameLog.Warning("Inconsistent state. Missing markers to remove");
             }
             var newMarker = to.FindMarker(id, name);
             var toOldCount = 0;
@@ -651,7 +651,7 @@ namespace Octgn.Networking
                 from.RemoveMarker(marker, count);
                 to.AddMarker(marker.Model, count);
             }
-            Program.GameMess.PlayerEvent(player, "moves {0} {1} marker(s) from {2} to {3}", count, name, from, to);
+            GameEngine.GameLog.PlayerEvent(player, "moves {0} {1} marker(s) from {2} to {3}", count, name, from, to);
             if (marker == null)
             {
                 marker = from.FindRemovedMarker(id, name);
@@ -703,7 +703,7 @@ namespace Octgn.Networking
         public void Nick(Player player, string nick)
         {
             WriteReplayAction(player.Id);
-            Program.GameMess.System("{0} is now known as {1}.", player, nick);
+            GameEngine.GameLog.System("{0} is now known as {1}.", player, nick);
             player.Name = nick;
         }
 
@@ -714,7 +714,7 @@ namespace Octgn.Networking
                 card.PeekingPlayers.Add(player);
             if (!IsLocalPlayer(player))
             {
-                Program.GameMess.PlayerEvent(player, "peeks at a card ({0}).", card.Group is Table ? "on table" : "in " + card.Group.FullName);
+                GameEngine.GameLog.PlayerEvent(player, "peeks at a card ({0}).", card.Group is Table ? "on table" : "in " + card.Group.FullName);
             }
         }
 
@@ -817,7 +817,7 @@ namespace Octgn.Networking
             if (!IsLocalPlayer(player))
                 group.SetVisibility(defined ? (bool?)visible : null, false);
             if (defined)
-                Program.GameMess.PlayerEvent(player, visible ? "shows {0} to everybody." : "shows {0} to nobody.", group);
+                GameEngine.GameLog.PlayerEvent(player, visible ? "shows {0} to everybody." : "shows {0} to nobody.", group);
         }
 
         public void GroupVisAdd(Player player, Group group, Player whom)
@@ -826,7 +826,7 @@ namespace Octgn.Networking
             // Ignore messages sent by myself
             if (!IsLocalPlayer(player))
                 group.AddViewer(whom, false);
-            Program.GameMess.PlayerEvent(player, "shows {0} to {1}.", group, whom);
+            GameEngine.GameLog.PlayerEvent(player, "shows {0} to {1}.", group, whom);
         }
 
         public void GroupVisRemove(Player player, Group group, Player whom)
@@ -835,7 +835,7 @@ namespace Octgn.Networking
             // Ignore messages sent by myself
             if (!IsLocalPlayer(player))
                 group.RemoveViewer(whom, false);
-            Program.GameMess.PlayerEvent(player, "hides {0} from {1}.", group, whom);
+            GameEngine.GameLog.PlayerEvent(player, "hides {0} from {1}.", group, whom);
         }
 
         public void LookAt(Player player, int uid, Group group, bool look)
@@ -849,19 +849,19 @@ namespace Octgn.Networking
                         c.PlayersLooking.Add(player);
                     }
                 group.LookedAt.Add(uid, group.ToList());
-                Program.GameMess.PlayerEvent(player, "looks at {0}.", group);
+                GameEngine.GameLog.PlayerEvent(player, "looks at {0}.", group);
             }
             else
             {
                 if (!group.LookedAt.ContainsKey(uid))
-                { Program.GameMess.Warning("[LookAtTop] Protocol violation: unknown unique id received."); return; }
+                { GameEngine.GameLog.Warning("[LookAtTop] Protocol violation: unknown unique id received."); return; }
                 if (group.Visibility != DataNew.Entities.GroupVisibility.Everybody)
                 {
                     foreach (var c in group.LookedAt[uid])
                         c.PlayersLooking.Remove(player);
                 }
                 group.LookedAt.Remove(uid);
-                Program.GameMess.PlayerEvent(player, "stops looking at {0}.", group);
+                GameEngine.GameLog.PlayerEvent(player, "stops looking at {0}.", group);
             }
         }
 
@@ -876,15 +876,15 @@ namespace Octgn.Networking
                     c.PlayersLooking.Add(player);
                 }
                 group.LookedAt.Add(uid, cards.ToList());
-                Program.GameMess.PlayerEvent(player, "looks at {0} top {1} cards.", group, count);
+                GameEngine.GameLog.PlayerEvent(player, "looks at {0} top {1} cards.", group, count);
             }
             else
             {
                 if (!group.LookedAt.ContainsKey(uid))
-                { Program.GameMess.Warning("[LookAtTop] Protocol violation: unknown unique id received."); return; }
+                { GameEngine.GameLog.Warning("[LookAtTop] Protocol violation: unknown unique id received."); return; }
                 foreach (var c in group.LookedAt[uid])
                     c.PlayersLooking.Remove(player);
-                Program.GameMess.PlayerEvent(player, "stops looking at {0} top {1} cards.", group, count);
+                GameEngine.GameLog.PlayerEvent(player, "stops looking at {0} top {1} cards.", group, count);
                 group.LookedAt.Remove(uid);
             }
         }
@@ -901,16 +901,16 @@ namespace Octgn.Networking
                     c.PlayersLooking.Add(player);
                 }
                 group.LookedAt.Add(uid, cards.ToList());
-                Program.GameMess.PlayerEvent(player, "looks at {0} bottom {1} cards.", group, count);
+                GameEngine.GameLog.PlayerEvent(player, "looks at {0} bottom {1} cards.", group, count);
             }
             else
             {
                 if (!group.LookedAt.ContainsKey(uid))
-                { Program.GameMess.Warning("[LookAtTop] Protocol violation: unknown unique id received."); return; }
+                { GameEngine.GameLog.Warning("[LookAtTop] Protocol violation: unknown unique id received."); return; }
 
                 foreach (var c in group.LookedAt[uid])
                     c.PlayersLooking.Remove(player);
-                Program.GameMess.PlayerEvent(player, "stops looking at {0} bottom {1} cards.", group, count);
+                GameEngine.GameLog.PlayerEvent(player, "stops looking at {0} bottom {1} cards.", group, count);
                 group.LookedAt.Remove(uid);
             }
         }
@@ -918,7 +918,7 @@ namespace Octgn.Networking
         public void StartLimited(Player player, Guid[] packs)
         {
             WriteReplayAction(player.Id);
-            Program.GameMess.System("{0} starts a limited game.", player);
+            GameEngine.GameLog.System("{0} starts a limited game.", player);
             if (Player.LocalPlayer.Spectator == false)
             {
                 var wnd = new Play.Dialogs.PickCardsDialog(GameEngine);
@@ -935,16 +935,16 @@ namespace Octgn.Networking
             if (packNames == "") return;
             if (selfOnly && !IsLocalPlayer(player))
             {
-                Program.GameMess.System("{0} added {1} to their pool.", player, packNames);
+                GameEngine.GameLog.System("{0} added {1} to their pool.", player, packNames);
             }
             else if (selfOnly && IsLocalPlayer(player))
             {
-                Program.GameMess.System("{0} added {1} to their pool.", player, packNames);
+                GameEngine.GameLog.System("{0} added {1} to their pool.", player, packNames);
                 wnd.OpenPacks(packs);
             }
             else
             {
-                Program.GameMess.System("{0} added {1} to the limited game for all players.", player, packNames);
+                GameEngine.GameLog.System("{0} added {1} to the limited game for all players.", player, packNames);
                 wnd.OpenPacks(packs);
             }
         }
@@ -952,7 +952,7 @@ namespace Octgn.Networking
         public void CancelLimited(Player player)
         {
             WriteReplayAction(player.Id);
-            Program.GameMess.System("{0} cancels out of the limited game.", player);
+            GameEngine.GameLog.System("{0} cancels out of the limited game.", player);
         }
 
         public void PlayerSetGlobalVariable(Player p, string name, string oldValue, string value)
@@ -1019,12 +1019,12 @@ namespace Octgn.Networking
         {
             WriteReplayAction(player.Id);
             player.Ready = true;
-            Program.GameMess.System("{0} is ready", player);
+            GameEngine.GameLog.System("{0} is ready", player);
             if (player.Spectator)
                 return;
             if (player.WaitingOnPlayers == false)
             {
-                Program.GameMess.System("Unlocking game");
+                GameEngine.GameLog.System("Unlocking game");
                 if (GameEngine.TableLoaded == false)
                 {
                     GameEngine.TableLoaded = true;
@@ -1048,28 +1048,28 @@ namespace Octgn.Networking
 
         public void RemoteCall(Player fromplayer, string func, string args)
         {
-            Program.GameMess.PlayerEvent(fromplayer, "executes {0}", func);
+            GameEngine.GameLog.PlayerEvent(fromplayer, "executes {0}", func);
             GameEngine.ExecuteRemoteCall(fromplayer, func, args);
         }
 
         public void CreateAliasDeprecated(int[] arg0, ulong[] ulongs)
         {
-            Program.GameMess.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
+            GameEngine.GameLog.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
         }
 
         public void ShuffleDeprecated(Group arg0, int[] ints)
         {
-            Program.GameMess.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
+            GameEngine.GameLog.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
         }
 
         public void UnaliasGrpDeprecated(Group arg0)
         {
-            Program.GameMess.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
+            GameEngine.GameLog.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
         }
 
         public void UnaliasDeprecated(int[] arg0, ulong[] ulongs)
         {
-            Program.GameMess.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
+            GameEngine.GameLog.Warning("[" + MethodInfo.GetCurrentMethod().Name + "] is deprecated");
         }
 
         public void GameState(Player fromPlayer, string strstate)
@@ -1080,7 +1080,7 @@ namespace Octgn.Networking
 
             state.Load(GameEngine, fromPlayer);
 
-            Program.GameMess.System("{0} sent game state ", fromPlayer.Name);
+            GameEngine.GameLog.System("{0} sent game state ", fromPlayer.Name);
             GameEngine.GotGameState(fromPlayer);
         }
 
@@ -1104,7 +1104,7 @@ namespace Octgn.Networking
         public void DeleteCard(Card card, Player player)
         {
             WriteReplayAction(player.Id);
-            Program.GameMess.PlayerEvent(player, "deletes {0}", card);
+            GameEngine.GameLog.PlayerEvent(player, "deletes {0}", card);
             if (!IsLocalPlayer(player))
                 card.Group.Remove(card);
         }
@@ -1112,7 +1112,7 @@ namespace Octgn.Networking
         public void PlayerDisconnect(Player player)
         {
             WriteReplayAction(player.Id);
-            Program.GameMess.System("{0} disconnected, please wait. If they do not reconnect within 1 minute they will be booted.", player);
+            GameEngine.GameLog.System("{0} disconnected, please wait. If they do not reconnect within 1 minute they will be booted.", player);
             player.Ready = false;
         }
 
@@ -1120,7 +1120,7 @@ namespace Octgn.Networking
         {
             WriteReplayAction(player.Id);
             var astring = anchor ? "anchored" : "unanchored";
-            Program.GameMess.PlayerEvent(player, "{0} {1}", astring, card);
+            GameEngine.GameLog.PlayerEvent(player, "{0} {1}", astring, card);
             if (IsLocalPlayer(player))
                 return;
             card.SetAnchored(true, anchor);
