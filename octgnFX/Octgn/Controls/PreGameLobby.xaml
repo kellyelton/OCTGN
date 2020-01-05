@@ -1,11 +1,11 @@
 ﻿<UserControl x:Class="Octgn.Controls.PreGameLobby"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:gui="clr-namespace:Octgn.Play.Gui"
              xmlns:o="clr-namespace:Octgn" xmlns:play="clr-namespace:Octgn.Play"
              xmlns:toggleSwitch="clr-namespace:ToggleSwitch;assembly=ToggleSwitch"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="500"
              MinHeight="500" x:Name="me">
     <UserControl.Resources>
@@ -97,7 +97,7 @@
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
-                        <!--<TextBlock Grid.Column="1" FontSize="12" Margin="0" Text="Profile Page" Foreground="WhiteSmoke" 
+                        <!--<TextBlock Grid.Column="1" FontSize="12" Margin="0" Text="Profile Page" Foreground="WhiteSmoke"
                                TextDecorations="Underline" Cursor="Hand" MouseUp="ProfileMouseUp"/>-->
                     </StackPanel>
                 </Grid>
@@ -139,8 +139,8 @@
                             </ControlTemplate>
                         </CheckBox.Template>
                     </CheckBox>
-                    <Button Style="{StaticResource FlatDarkRedButtonStyle}" x:Name="KickPlayer" Click="KickPlayer_OnClick" Margin="-4,0,5,0" 
-                                                    Width="22" Height="22" Visibility="{Binding Path=CanKick,Converter={StaticResource BooleanToVisibilityConverter}}" 
+                    <Button Style="{StaticResource FlatDarkRedButtonStyle}" x:Name="KickPlayer" Click="KickPlayer_OnClick" Margin="-4,0,5,0"
+                                                    Width="22" Height="22" Visibility="{Binding Path=CanKick,Converter={StaticResource BooleanToVisibilityConverter}}"
                                                     FontFamily="{StaticResource Entypo}" FontSize="20" Padding="0 -8 0 0">&#10060;</Button>
                 </StackPanel>
             </Grid>
@@ -212,7 +212,8 @@
                         </ScrollViewer>
                     </Border>
 
-                    <gui:ChatControl x:Name="chatControl" Grid.Row="2" Grid.Column="1" Margin="8,8,0,8" />
+                    <gui:ChatControl x:Name="chatControl" Grid.Row="2" Grid.Column="1" Margin="8,8,0,8"
+                                     GameEngine="{Binding GameEngine, ElementName=me, Mode=OneWay}"/>
                 </Grid>
             </Border>
 

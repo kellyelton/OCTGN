@@ -36,11 +36,10 @@ namespace Octgn.Networking
 
         public GameEngine GameEngine { get; }
 
-        public Handler(GameEngine gameEngine)
+        public Handler(GameEngine gameEngine, IClient client)
         {
             GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
-
-            _client = GameEngine.Client;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
 
             _binParser = new BinaryParser(this);
         }

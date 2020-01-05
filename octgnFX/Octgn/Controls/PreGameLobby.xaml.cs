@@ -22,78 +22,106 @@ using Octgn.Networking;
 using Octgn.Play;
 using Octgn.Windows;
 using Octgn.Communication;
+using Octgn.Annotations;
 
 namespace Octgn.Controls
 {
-    public partial class PreGameLobby : IDisposable
+    public partial class PreGameLobby : IDisposable, INotifyPropertyChanged
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event Action<object> OnClose;
-        public bool CanChangeSettings { get; }
 
-        protected virtual void FireOnClose(object obj)
-        {
-            var handler = this.OnClose;
-            if (handler != null)
-            {
-                handler(obj);
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged(string propertyName)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public bool CanChangeSettings {
+            get {
+                if (GameEngine == null) return false;
+
+                return GameEngine.IsHost && !GameEngine.IsReplay;
             }
         }
 
-        public bool StartingGame { get; private set; }
-        public bool IsOnline { get; private set; }
-        private readonly bool _isLocal;
+        public bool IsOnline {
+            get {
+                if(GameEngine == null) return false;
 
-        private readonly GameEngine _gameEngine;
+                return !GameEngine.IsLocal;
+            }
+        }
 
-        public PreGameLobby()
-        {
-            _gameEngine = Program.GameEngine;
+        protected virtual void FireOnClose(object obj) => OnClose?.Invoke(obj);
 
-            CanChangeSettings = _gameEngine.IsHost && !_gameEngine.IsReplay;
-            IsOnline = _gameEngine.IsLocal == false;
-            var isLocal = _gameEngine.IsLocal;
-            InitializeComponent();
-            if (this.IsInDesignMode()) return;
-            Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
-            _isLocal = isLocal;
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for GameEngine.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(PreGameLobby), new PropertyMetadata(GameEngine_Changed));
+
+        private static void GameEngine_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            var lobby = (PreGameLobby)d;
+
+            lobby.OnPropertyChanged(nameof(CanChangeSettings));
+            lobby.OnPropertyChanged(nameof(IsOnline));
+
+            var gameEngine = lobby.GameEngine;
+
+            var isLocal = gameEngine.IsLocal;
+
             if (!isLocal)
             {
-                this.HorizontalAlignment = HorizontalAlignment.Stretch;
-                this.VerticalAlignment = VerticalAlignment.Stretch;
-                this.Width = Double.NaN;
-                this.Height = Double.NaN;
+                lobby.HorizontalAlignment = HorizontalAlignment.Stretch;
+                lobby.VerticalAlignment = VerticalAlignment.Stretch;
+                lobby.Width = Double.NaN;
+                lobby.Height = Double.NaN;
             }
 
-            if (CanChangeSettings)
+            if (lobby.CanChangeSettings)
             {
-                skipBtn.Visibility = Visibility.Collapsed;
-                descriptionLabel.Text =
+                lobby.skipBtn.Visibility = Visibility.Collapsed;
+                lobby.descriptionLabel.Text =
                     "The following players have joined your game.\n\nClick 'Start' when everyone has joined. No one will be able to join once the game has started.";
                 if (isLocal)
                 {
-                    if (_gameEngine.Client is ClientSocket clientSocket) {
-                        descriptionLabel.Text += "\n\nHosting on port: " + clientSocket.EndPoint.Port;
-                        GetIps();
+                    if (gameEngine.Client is ClientSocket clientSocket) {
+                        lobby.descriptionLabel.Text += "\n\nHosting on port: " + clientSocket.EndPoint.Port;
+                        lobby.GetIps();
 
                         // save game/port so a new client can start up and connect
                         Prefs.LastLocalHostedGamePort = clientSocket.EndPoint.Port;
-                        Prefs.LastHostedGameType = _gameEngine.Definition.Id;
+                        Prefs.LastHostedGameType = gameEngine.Definition.Id;
                     }
                 }
             }
             else
             {
-                descriptionLabel.Text =
+                lobby.descriptionLabel.Text =
                     "The following players have joined the game.\nPlease wait until the game starts, or click 'Cancel' to leave this game.";
-                startBtn.Visibility = Visibility.Collapsed;
-                if (_gameEngine.IsReplay) {
-                    skipBtn.Visibility = Visibility.Visible;
+                lobby.startBtn.Visibility = Visibility.Collapsed;
+                if (gameEngine.IsReplay) {
+                    lobby.skipBtn.Visibility = Visibility.Visible;
                 } else {
-                    skipBtn.Visibility = Visibility.Collapsed;
+                    lobby.skipBtn.Visibility = Visibility.Collapsed;
                 }
             }
+        }
+
+        public bool StartingGame { get; private set; }
+
+        public PreGameLobby()
+        {
+            InitializeComponent();
+
+            if (this.IsInDesignMode()) return;
+
+
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
@@ -102,13 +130,15 @@ namespace Octgn.Controls
         {
             Program.GameSettings.PropertyChanged -= SettingsChanged;
             Program.ServerError -= HandshakeError;
+            Player.OnLocalPlayerWelcomed -= PlayerOnOnLocalPlayerWelcomed;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
             Loaded -= OnLoaded;
-            Program.GameSettings.UseTwoSidedTable = _gameEngine.Definition.UseTwoSidedTable;
-            Program.GameSettings.ChangeTwoSidedTable = _gameEngine.Definition.ChangeTwoSidedTable;
+            Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
+            Program.GameSettings.UseTwoSidedTable = GameEngine.Definition.UseTwoSidedTable;
+            Program.GameSettings.ChangeTwoSidedTable = GameEngine.Definition.ChangeTwoSidedTable;
 
             Program.Dispatcher = Dispatcher;
             Program.ServerError += HandshakeError;
@@ -118,8 +148,8 @@ namespace Octgn.Controls
             // Otherwise, messages notifying a disconnection may be lost
             try
             {
-                if (_gameEngine != null)
-                    Dispatcher.BeginInvoke(new Action(() => _gameEngine.Begin()));
+                if (GameEngine != null)
+                    Dispatcher.BeginInvoke(new Action(() => GameEngine.Begin()));
             }
             catch (Exception)
             {
@@ -193,10 +223,10 @@ namespace Octgn.Controls
         private void PlayerOnOnLocalPlayerWelcomed()
         {
             if (Player.LocalPlayer.Id == 255) return;
-            if (Player.LocalPlayer.Id == 1 && !_gameEngine.IsReplay)
+            if (Player.LocalPlayer.Id == 1 && !GameEngine.IsReplay)
             {
                 Dispatcher.BeginInvoke(new Action(() => { startBtn.Visibility = Visibility.Visible; }));
-                _gameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
+                GameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
             }
 			Player.LocalPlayer.SetPlayerColor(Player.LocalPlayer.Id);
             this.StartingGame = true;
@@ -206,7 +236,7 @@ namespace Octgn.Controls
         {
             if (DesignerProperties.GetIsInDesignMode(this)) return;
             if (Program.IsHost)
-                _gameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
+                GameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
         }
 
         private bool calledStart = false;
@@ -236,7 +266,7 @@ namespace Octgn.Controls
             }
             if (callStartGame)
             {
-                _gameEngine.Client.Rpc.Start(); // I believe this is for table only mode - Kelly
+                GameEngine.Client.Rpc.Start(); // I believe this is for table only mode - Kelly
             }
             this.StartingGame = true;
             Back();
@@ -301,7 +331,7 @@ namespace Octgn.Controls
             if (play == null) return;
             if (Program.IsHost == false) return;
 
-            _gameEngine.Client.Rpc.Boot(play, "The host has booted them from the game.");
+            GameEngine.Client.Rpc.Boot(play, "The host has booted them from the game.");
         }
 
         private async void ProfileMouseUp(object sender, MouseButtonEventArgs e)
@@ -313,7 +343,7 @@ namespace Octgn.Controls
         }
 
         private void SkipClicked(object sender, RoutedEventArgs e) {
-            _gameEngine.ReplayEngine.FastForwardToStart();
+            GameEngine.ReplayEngine.FastForwardToStart();
         }
     }
 }

@@ -31,31 +31,27 @@ namespace Octgn.Play.Gui
     partial class ChatControl : INotifyPropertyChanged
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private bool showInput = true;
-
         private bool hideErrors;
 
         private bool hideDebug;
 
         public bool IgnoreMute { get; set; }
 
-        public bool ShowInput
-        {
-            get
-            {
-                return this.showInput;
-            }
-            set
-            {
-                if (value.Equals(this.showInput))
-                {
-                    return;
+        public bool ShowInput {
+            get {
+                bool result;
+
+                if (GameEngine == null) {
+                    result = false;
+                } else if (GameEngine.Spectator) {
+                    result = Program.GameSettings.MuteSpectators == false;
+                } else {
+                    result = GameEngine.IsReplay == false;
                 }
-                this.showInput = value;
-                this.OnPropertyChanged("ShowInput");
+
+                return result;
             }
         }
-
         private bool devMode = Program.DeveloperMode;
 
         public bool DevMode
@@ -141,51 +137,50 @@ namespace Octgn.Play.Gui
 
         private System.Timers.Timer chatTimer2;
 
-        private readonly GameEngine _gameEngine;
-
-        [Obsolete("Use only for Design mode")]
-        public ChatControl() {
-            InitializeComponent();
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
         }
 
-        public ChatControl(GameEngine gameEngine)
-        {
-            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+        // Using a DependencyProperty as the backing store for GameEngine.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(ChatControl), new PropertyMetadata(GameEngine_Changed));
 
+        private static void GameEngine_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            var chatControl = (ChatControl)d;
+
+            chatControl.OnPropertyChanged(nameof(ShowInput));
+        }
+
+        public ChatControl() {
             AutoScroll = true;
+
             InitializeComponent();
+
             if (DesignerProperties.GetIsInDesignMode(this)) return;
 
             (output.Document.Blocks.FirstBlock).Margin = new Thickness();
 
-            //var listener = new ChatTraceListener("ChatListener", this);
-
             Loaded += delegate
             {
+                Program.GameSettings.PropertyChanged += GameSettings_PropertyChanged;
+
                 chatTimer2 = new System.Timers.Timer(100);
                 chatTimer2.Enabled = true;
                 chatTimer2.Elapsed += this.TickMessage;
             };
             Unloaded += delegate
             {
+                Program.GameSettings.PropertyChanged -= GameSettings_PropertyChanged;
+
                 chatTimer2.Enabled = false;
                 chatTimer2.Elapsed -= this.TickMessage;
                 chatTimer2.Dispose();
             };
+        }
 
-            Program.GameSettings.PropertyChanged += (a, b) => {
-                if (_gameEngine.Spectator) {
-                    ShowInput = Program.GameSettings.MuteSpectators == false;
-                } else {
-                    ShowInput = _gameEngine.IsReplay == false;
-                }
-            };
-
-            if (_gameEngine.Spectator) {
-                ShowInput = Program.GameSettings.MuteSpectators == false;
-            } else {
-                ShowInput = _gameEngine.IsReplay == false;
-            }
+        private void GameSettings_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+            OnPropertyChanged(nameof(ShowInput));
         }
 
         public static Block GameMessageToBlock(IGameMessage m)
@@ -602,7 +597,7 @@ namespace Octgn.Play.Gui
                         input.Clear();
                         if (string.IsNullOrEmpty(msg)) return;
 
-                        _gameEngine.Client.Rpc.ChatReq(msg);
+                        GameEngine.Client.Rpc.ChatReq(msg);
                     }
                     break;
                 case Key.Escape:

@@ -199,6 +199,10 @@ namespace Octgn
                 var back = ImageUtils.CreateFrozenBitmap(new Uri(size.Value.Back));
                 _cardFrontsBacksCache.Add(size.Key, new Tuple<BitmapImage, BitmapImage>(front, back));
             }
+
+            ScriptEngine = new Engine(this);
+            EventProxy = new GameEventProxy(ScriptEngine, this);
+
             Application.Current.Dispatcher.Invoke(new Action(() => {
                 // clear any existing players
                 Play.Player.All.Clear();
@@ -211,9 +215,6 @@ namespace Octgn
 
                 IsConnected = true;
             }));
-
-            ScriptEngine = new Engine(this);
-            EventProxy = new GameEventProxy(ScriptEngine, this);
         }
 
         private GameEngine(Game def, string hostedGameName, bool isHost, string nickname, bool specator, string password = "", bool isLocal = false, HostedGame hostedGame = null)
@@ -304,6 +305,10 @@ namespace Octgn
                 var back = ImageUtils.CreateFrozenBitmap(new Uri(size.Value.Back));
                 _cardFrontsBacksCache.Add(size.Key, new Tuple<BitmapImage, BitmapImage>(front, back));
             }
+
+            ScriptEngine = new Engine(this);
+            EventProxy = new GameEventProxy(ScriptEngine, this);
+
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
                 // clear any existing players

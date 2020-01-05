@@ -26,30 +26,30 @@ namespace Octgn.Networking
         {
             this.Setup(new IPEndPoint(address, port), new ClientMessageProcessor());
             this.Client.Client.SendTimeout = 4000;
-            Handler = new Handler(gameEngine);
+            Handler = new Handler(gameEngine, this);
             Rpc = new BinarySenderStub(this, this);
         }
 
         public override void OnConnectionEvent(object sender, SocketConnectionEvent e)
         {
             base.OnConnectionEvent(sender, e);
+
             switch (e)
             {
                 case SocketConnectionEvent.Disconnected:
-                    if (Program.GameEngine != null)
-                        Program.GameEngine.IsConnected = false;
+                    Handler.GameEngine.IsConnected = false;
+
                     Program.GameMess.Warning("You have been disconnected from server.");
+
                     break;
                 case SocketConnectionEvent.Connected:
-                    if (Program.GameEngine != null)
-                        Program.GameEngine.IsConnected = true;
+                    Handler.GameEngine.IsConnected = true;
+
                     break;
                 case SocketConnectionEvent.Reconnected:
-                    if (Program.GameEngine != null)
-                    {
-                        Program.GameEngine.IsConnected = true;
-                        Program.GameEngine.Resume();
-                    }
+                    Handler.GameEngine.IsConnected = true;
+                    Handler.GameEngine.Resume();
+
                     Program.GameMess.System("You have reconnected");
 
                     break;

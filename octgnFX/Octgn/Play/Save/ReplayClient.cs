@@ -11,7 +11,7 @@ namespace Octgn.Play.Save
 
         public ReplayClient(GameEngine gameEngine) {
             Rpc = new ReplayRpc(this);
-            Handler = new Handler(gameEngine);
+            Handler = new Handler(gameEngine, this);
         }
 
         public Task Connect() {
