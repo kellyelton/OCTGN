@@ -477,7 +477,7 @@ namespace Octgn.Play
                 OnPropertyChanged("Spectators");
                 Ready = true;
             }
-            CanKick = local == false && Program.IsHost;
+            CanKick = local == false && GameEngine.IsHost;
         }
 
         public bool IsGlobal { get; }

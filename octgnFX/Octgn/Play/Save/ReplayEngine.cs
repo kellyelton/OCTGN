@@ -19,10 +19,12 @@ namespace Octgn.Play.Save
         private readonly DispatcherTimer _timer;
         private readonly ReplayClient _client;
         private readonly ReplayReader _reader;
+        private readonly GameEngine _gameEngine;
 
         private readonly IReadOnlyDictionary<int, ReplayEvent> _events;
 
-        public ReplayEngine(ReplayReader reader, ReplayClient client) {
+        public ReplayEngine(GameEngine gameEngine, ReplayReader reader, ReplayClient client) {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
             _reader = reader ?? throw new ArgumentNullException(nameof(reader));
 
             _timer = new DispatcherTimer();
@@ -295,7 +297,7 @@ namespace Octgn.Play.Save
 
             if(when < CurrentTime) {
                 _currentEvent = null;
-                Program.GameEngine.Reset();
+                _gameEngine.Reset();
                 CurrentTime = Replay.GameStartTime;
 
                 _lastTickTime = null;

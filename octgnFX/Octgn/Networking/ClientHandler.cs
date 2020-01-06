@@ -206,7 +206,7 @@ namespace Octgn.Networking
         {
             WriteReplayAction();
             var currentPhase = GameEngine.CurrentPhase;
-            var newPhase = Phase.Find(phase);
+            var newPhase = Phase.Find(GameEngine, phase);
             GameEngine.CurrentPhase = newPhase;
             GameEngine.GameLog.Phase(GameEngine.ActivePlayer, newPhase.Name);
             if (players.Length > 0 && !players.Contains(GameEngine.ActivePlayer)) //alert if a non-active player has a stop set on the phase

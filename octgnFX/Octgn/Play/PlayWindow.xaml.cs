@@ -131,7 +131,6 @@ namespace Octgn.Play
             set { SetValue(GameEngineProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for GameEngine.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty GameEngineProperty =
             DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(PlayWindow), new PropertyMetadata(null));
 
@@ -145,9 +144,9 @@ namespace Octgn.Play
             GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
 
             GameSettings = Program.GameSettings;
-            IsHost = Program.IsHost;
+            IsHost = GameEngine.IsHost;
             GameMessages = new ObservableCollection<IGameMessage>();
-            _gameMessageReader = new GameLogReader(Program.GameMess);
+            _gameMessageReader = new GameLogReader(GameEngine.GameLog);
             var isLocal = GameEngine.IsLocal;
             Program.Dispatcher = Dispatcher;
             DataContext = GameEngine;
@@ -207,7 +206,7 @@ namespace Octgn.Play
                     }
                     Program.GameSettings.PropertyChanged += (sender, args) =>
                         {
-                            if (Program.IsHost)
+                            if (GameEngine.IsHost)
                             {
                                 GameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable,
                                                             Program.GameSettings.AllowSpectators,
@@ -453,7 +452,6 @@ namespace Octgn.Play
         public void ShowGameLog(object sender, RoutedEventArgs routedEventArgs)
         {
             if (this.PreGameLobby.Visibility == Visibility.Visible) return;
-            //GameLogWindow.Visibility = Visibility.Visible;
         }
 
         private bool IsRealClosing = false;
@@ -477,7 +475,6 @@ namespace Octgn.Play
         {
             base.OnClosed(e);
             WindowManager.PlayWindow = null;
-            Program.GameMess.Clear();
 			X.Instance.Try(()=>GameEngine.Client?.Rpc?.Leave(Player.LocalPlayer));
 
             GameEngine.Client.Shutdown();
@@ -1247,28 +1244,6 @@ namespace Octgn.Play
             var b = Gui.ChatControl.GameMessageToBlock(textBlock.GameMessage) as System.Windows.Documents.Section;
             if (b == null) return;
 
-            //textBlock.Inlines.Add(new Run("♦  ")
-            //                      {
-            //                          FontSize = 8
-            //                      });
-            //new BulletDecorator()
-            //{
-            //    Bullet =
-            //        new Image()
-            //        {
-            //            Source =
-            //                new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/statusOffline.png")),
-            //            Stretch = Stretch.Uniform,
-            //            Width = 12,
-            //            Height=8,
-            //            VerticalAlignment = VerticalAlignment.Center,
-            //            Margin = new Thickness(0, 0, 3, 0)
-            //        },
-            //    VerticalAlignment = VerticalAlignment.Center,
-            //    Width = 8,
-            //    Height = 8
-            //});
-
             foreach (var block in b.Blocks.OfType<System.Windows.Documents.Paragraph>().ToArray())
             {
                 foreach (var i in block.Inlines.ToArray())
@@ -1277,27 +1252,8 @@ namespace Octgn.Play
                 }
             }
 
-            //textBlock.Inlines.Add(
-            //new BulletDecorator()
-            //{
-            //    Bullet =
-            //        new Image()
-            //        {
-            //            Source =
-            //                new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/orangebullet.png")),
-            //            Stretch = Stretch.Uniform,
-            //            Width = 8,
-            //            VerticalAlignment = VerticalAlignment.Center,
-            //            Margin = new Thickness(3, 0, 0, 0)
-            //        },
-            //    VerticalAlignment = VerticalAlignment.Center,
-            //    Width = 8,
-            //    Height = 8
-            //});
-
             textBlock.Margin = new Thickness(10, 0, 10, 0);
             textBlock.VerticalAlignment = VerticalAlignment.Center;
-            //textBlock.Inlines.Add(Octgn.Play.Gui.ChatControl.GameMessageToInline(textBlock.GameMessage));
         }
 
         public IGameMessage GameMessage

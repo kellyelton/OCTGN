@@ -146,7 +146,7 @@ namespace Octgn
 
             Client = new ReplayClient(this);
 
-            ReplayEngine = new ReplayEngine(replayReader, (ReplayClient)Client);
+            ReplayEngine = new ReplayEngine(this, replayReader, (ReplayClient)Client);
 
             HostedGameName = replayReader.Replay.Name;
 

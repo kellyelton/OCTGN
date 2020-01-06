@@ -1,20 +1,19 @@
-using System;
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System.ComponentModel;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Octgn.DataNew.Entities;
 using System.Linq;
-using System.Windows;
-using Octgn.Utils;
 
 namespace Octgn.Play
 {
     public sealed class Phase : INotifyPropertyChanged
     {
-        
-        internal static Phase Find(byte id)
+
+        internal static Phase Find(GameEngine gameEngine, byte id)
         {
-            return Program.GameEngine.AllPhases.FirstOrDefault(p => p.Id == id);
+            return gameEngine.AllPhases.FirstOrDefault(p => p.Id == id);
         }
 
         private readonly GamePhase _model;
@@ -28,8 +27,8 @@ namespace Octgn.Play
             _model = model;
             _hold = false;
         }
-        
-        
+
+
         internal byte Id
         {
             get { return _id; }
@@ -44,7 +43,7 @@ namespace Octgn.Play
                 OnPropertyChanged("Hold");
             }
         }
-    
+
         public string Name
         {
             get { return _model.Name; }
@@ -54,7 +53,7 @@ namespace Octgn.Play
         {
             get { return _model.Icon; }
         }
-        
+
         public bool IsActive
         {
             get { return _isActive; }
@@ -67,7 +66,7 @@ namespace Octgn.Play
         }
 
         #region INotifyPropertyChanged Members
-                 
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         #endregion
