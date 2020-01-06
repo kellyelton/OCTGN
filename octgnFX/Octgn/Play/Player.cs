@@ -399,7 +399,6 @@ namespace Octgn.Play
         internal Player(GameEngine gameEngine, DataNew.Entities.Game g, string name, string userId, byte id, ulong pkey, bool spectator, bool local, bool isReplay)
         {
             GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
-            // Cannot access Program.GameEngine here, it's null.
 
             Id = id;
             _name = name;

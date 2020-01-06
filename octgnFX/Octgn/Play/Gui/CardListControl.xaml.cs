@@ -120,7 +120,7 @@ namespace Octgn.Play.Gui
 			{
                 e.CardSizes[i] = new Size(e.Cards[i].RealWidth * 100 / e.Cards[i].RealHeight, 100);
             }
-            //e.CardSize = new Size(Program.GameEngine.Definition.DefaultSize.Width * 100 / Program.GameEngine.Definition.DefaultSize.Height, 100);
+            //e.CardSize = new Size(GameEngine.Definition.DefaultSize.Width * 100 / Program.GameEngine.Definition.DefaultSize.Height, 100);
             if (IsAlwaysUp) e.FaceUp = true;
 
             // Drop is forbidden when not ordered by position
@@ -130,7 +130,7 @@ namespace Octgn.Play.Gui
                 return;
             }
 
-            // When the list is restricted to some cards only, 
+            // When the list is restricted to some cards only,
             // one cannot drop cards from outside this list
             if (RestrictDrop && !e.Cards.All(c => Cards.Contains(c)))
             {
@@ -168,7 +168,7 @@ namespace Octgn.Play.Gui
                 return;
             }
 
-            // When the list is restricted to some cards only, 
+            // When the list is restricted to some cards only,
             // one cannot drop cards from outside this list
             if (RestrictDrop && !e.Cards.All(c => Cards.Contains(c)))
             {
@@ -274,7 +274,7 @@ namespace Octgn.Play.Gui
         private void SmoothScroll(object sender, MouseWheelEventArgs e)
         {
             e.Handled = true;
-            // Add inerita to scrolling for a very smooth effect      
+            // Add inerita to scrolling for a very smooth effect
             int sign = Math.Sign(e.Delta);
             double offset = -sign * 48.0;
             if (sign == _scrollDirection)

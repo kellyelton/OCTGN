@@ -46,7 +46,7 @@ namespace Octgn.Test.OctgnApp.Scripting
 					context.Response.Close();
 				};
 				result = s.DoWebRequest(wl.Url, 1000);
-				var ua = "UserAgent:OCTGN_" + Const.OctgnVersion.ToString() + "/" + Program.GameEngine.Definition.Name + "_" + Program.GameEngine.Definition.Version.ToString();
+				var ua = "UserAgent:OCTGN_" + Const.OctgnVersion.ToString() + "/" + def.Name + "_" + def.Version.ToString();
 				Assert.AreEqual(ua, result.Item1);
 
 				// No content
@@ -113,7 +113,7 @@ namespace Octgn.Test.OctgnApp.Scripting
 						context.Response.Close();
 					};
 					result = s.DoWebRequest(wl.Url, 1000);
-					var ua = "UserAgent:OCTGN_" + Const.OctgnVersion.ToString() + "/" + Program.GameEngine.Definition.Name + "_" + Program.GameEngine.Definition.Version.ToString();
+					var ua = "UserAgent:OCTGN_" + Const.OctgnVersion.ToString() + "/" + def.Name + "_" + def.Version.ToString();
 					Assert.AreEqual(ua, result.Item1);
 
 					// No content
@@ -182,7 +182,7 @@ namespace Octgn.Test.OctgnApp.Scripting
 						context.Response.Close();
 					};
 					result = s.DoWebRequest(wl.Url, 1000);
-					var ua = "UserAgent:OCTGN_" + Const.OctgnVersion.ToString() + "/" + Program.GameEngine.Definition.Name + "_" + Program.GameEngine.Definition.Version.ToString();
+					var ua = "UserAgent:OCTGN_" + Const.OctgnVersion.ToString() + "/" + def.Name + "_" + def.Version.ToString();
 					Assert.AreEqual(ua, result.Item1);
 
 					// No content
