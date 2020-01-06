@@ -40,6 +40,8 @@ namespace Octgn.Core.Play
         private readonly List<IGameMessage> _messages = new List<IGameMessage>();
         private readonly Func<bool> _isMuted;
 
+        private long _firstLogId = -1;
+
         public GameLog(Func<bool> isMuted) {
             _isMuted = isMuted ?? throw new ArgumentNullException(nameof(isMuted));
         }
@@ -68,9 +70,19 @@ namespace Octgn.Core.Play
             }
         }
 
+        public IEnumerable<IGameMessage> LogsSince(long logId) {
+            lock (_messages) {
+
+            }
+        }
+
         public void Add(IGameMessage item) {
             lock (_messages) {
                 if (!(item is GameMessage gameMessage)) throw new ArgumentException($"{nameof(item)} must be a {nameof(GameMessage)}", nameof(item));
+
+                if (_firstLogId == -1) {
+                    _firstLogId = item.Id;
+                }
 
                 gameMessage.IsClientMuted = _isMuted();
 

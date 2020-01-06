@@ -53,6 +53,10 @@ namespace Octgn.Core.Play
             _isStarted = false;
         }
 
+        public void Reset() {
+            throw new NotImplementedException();
+        }
+
         private void OnTick(object sender, ElapsedEventArgs e) {
             lock (_chatTimer)
                 _chatTimer.Enabled = false;
