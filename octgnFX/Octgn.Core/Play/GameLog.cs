@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 using System.Windows.Media;
 
 namespace Octgn.Core.Play
@@ -40,8 +41,6 @@ namespace Octgn.Core.Play
         private readonly List<IGameMessage> _messages = new List<IGameMessage>();
         private readonly Func<bool> _isMuted;
 
-        private long _firstLogId = -1;
-
         public GameLog(Func<bool> isMuted) {
             _isMuted = isMuted ?? throw new ArgumentNullException(nameof(isMuted));
         }
@@ -70,19 +69,39 @@ namespace Octgn.Core.Play
             }
         }
 
-        public IEnumerable<IGameMessage> LogsSince(long logId) {
+        public IEnumerable<IGameMessage> LogsSince(int logId) {
             lock (_messages) {
+                if (logId >= _messages.Count || logId < -1) throw new ArgumentOutOfRangeException(nameof(logId));
 
+                // Return all logs
+                if (logId == -1) {
+                    return _messages.ToArray();
+                }
+
+                // Return logs in range
+                var logIndex = logId + 1;
+
+                if (logIndex >= _messages.Count) return Enumerable.Empty<IGameMessage>();
+
+                var count = _messages.Count - logIndex;
+
+                var result = new IGameMessage[count];
+
+                for(var i = 0; i < count; i++, logIndex++) {
+                    result[i] = _messages[logIndex];
+                }
+
+                return result;
             }
         }
 
+        private int _previousLogId = -1;
+
         public void Add(IGameMessage item) {
             lock (_messages) {
-                if (!(item is GameMessage gameMessage)) throw new ArgumentException($"{nameof(item)} must be a {nameof(GameMessage)}", nameof(item));
+                if (!(item is GameMessage gameMessage)) throw new NotSupportedException($"{nameof(item)} must be a {nameof(GameMessage)}");
 
-                if (_firstLogId == -1) {
-                    _firstLogId = item.Id;
-                }
+                gameMessage.Id = Interlocked.Increment(ref _previousLogId);
 
                 gameMessage.IsClientMuted = _isMuted();
 
@@ -93,16 +112,6 @@ namespace Octgn.Core.Play
                 OnCollectionChanged(args);
 
                 OnLogAdded(item);
-            }
-        }
-
-        public void Clear() {
-            lock (_messages) {
-                _messages.Clear();
-
-                var args = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
-
-                OnCollectionChanged(args);
             }
         }
 
@@ -118,6 +127,7 @@ namespace Octgn.Core.Play
             }
         }
 
+        public void Clear() => throw new NotSupportedException();
         public void Insert(int index, IGameMessage item) => throw new NotSupportedException();
         public void RemoveAt(int index) => throw new NotSupportedException();
         public bool Remove(IGameMessage item) => throw new NotSupportedException();

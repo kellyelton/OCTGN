@@ -81,7 +81,9 @@
     <Compile Include="GameSettings.cs" />
     <Compile Include="Play\GameLog.cs" />
     <Compile Include="Play\GameLogReader.cs" />
-    <Compile Include="Play\GameMessageDispatcher.cs" />
+    <Compile Include="Play\GameMessage.cs" />
+    <Compile Include="Play\BuiltInPlayer.cs" />
+    <Compile Include="Play\IGameMessage.cs" />
     <Compile Include="Play\IPlayPlayer.cs" />
     <Compile Include="Play\PlayerState.cs" />
     <Compile Include="Plugin\IDeckBuilderPlugin.cs" />
