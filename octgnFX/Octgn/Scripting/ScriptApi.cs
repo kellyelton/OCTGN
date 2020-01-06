@@ -100,7 +100,7 @@ namespace Octgn.Scripting
             {
                 try
                 {
-                    while (Program.IsGameRunning)
+                    while (!_engine.GameEngine.IsDone)
                     {
                         try
                         {

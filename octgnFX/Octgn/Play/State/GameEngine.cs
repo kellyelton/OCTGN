@@ -82,6 +82,8 @@ namespace Octgn
 
         public bool IsLocal { get; private set; }
 
+        public bool IsDone { get; private set; }
+
         public bool Spectator
         {
             get { return _spectator; }
@@ -830,7 +832,6 @@ namespace Octgn
                                      Const.ClientName, oversion, oversion,
                                      Definition.Id, Definition.Version, this.Password
                                      , Spectator);
-            Program.IsGameRunning = true;
 
             if (IsReplay) {
                 ReplayEngine.Start();
@@ -886,6 +887,7 @@ namespace Octgn
 
         public void End()
         {
+            IsDone = true;
             SaveHistory();
             ReplayWriter?.Dispose();
             ReplayEngine?.Dispose();
@@ -897,6 +899,8 @@ namespace Octgn
             Selection.Clear();
 
             GameLog.LogAdded -= GameLog_LogAdded;
+
+            OnPropertyChanged(nameof(IsDone));
         }
 
         public BitmapImage GetCardFront(string name)

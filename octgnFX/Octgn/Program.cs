@@ -38,9 +38,6 @@ namespace Octgn
         public static GameSettings GameSettings { get; set; }
         public static event Action OnOptionsChanged;
 
-
-        internal static bool IsGameRunning;
-
         internal static bool InPreGame;
 
 #pragma warning disable 67

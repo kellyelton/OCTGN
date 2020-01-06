@@ -480,8 +480,6 @@ namespace Octgn.Play
             GameEngine.Client.Shutdown();
 
             GameEngine.End();
-
-            Program.IsGameRunning = false;
         }
 
         public bool TryClose()
