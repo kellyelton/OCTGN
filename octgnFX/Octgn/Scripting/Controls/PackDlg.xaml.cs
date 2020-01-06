@@ -1,13 +1,14 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.ComponentModel;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Octgn.Data;
 using Octgn.Core.DataExtensionMethods;
-using Octgn.Controls;
 using Octgn.DataNew.Entities;
 
 namespace Octgn.Scripting.Controls
@@ -16,14 +17,22 @@ namespace Octgn.Scripting.Controls
     {
         public IEnumerable<Set> Sets { get; set; }
 
-        public PackDlg()
+        [Obsolete("Only to be used in designer")]
+        public PackDlg() {
+            InitializeComponent();
+        }
+
+        private readonly GameEngine _gameEngine;
+
+        public PackDlg(GameEngine gameEngine)
         {
-            Sets = Program.GameEngine.Definition.Sets().Where(x => x.Packs.Count() > 0).OrderBy(x => x.Name).ToArray();
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+            Sets = _gameEngine.Definition.Sets().Where(x => x.Packs.Count() > 0).OrderBy(x => x.Name).ToArray();
             InitializeComponent();
             Owner = WindowManager.PlayWindow;
             setsCombo.SelectionChanged += setsCombo_SelectionChanged;
         }
-        
+
 
         protected override void OnClosing(CancelEventArgs e)
         {
@@ -36,7 +45,7 @@ namespace Octgn.Scripting.Controls
             if (packsCombo.SelectedItem != null)
                 DialogResult = true;
         }
-        
+
         public Pack GetPack()
         {
             ShowDialog();
@@ -54,6 +63,6 @@ namespace Octgn.Scripting.Controls
         {
             packsCombo.SelectedIndex = 0;
         }
-        
+
     }
 }

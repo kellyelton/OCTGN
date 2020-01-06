@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
@@ -38,18 +42,20 @@ namespace Octgn.Launchers
             return this.Host();
         }
 
+        private GameEngine _gameEngine;
+
         private async Task Host()
         {
             Program.GameSettings.UseTwoSidedTable = HostGame.UseTwoSidedTable;
 
             var gameName = Randomness.RandomRoomName();
 
-            Program.GameEngine = await GameEngine.HostLocal(HostGame, gameName, "", Prefs.Nickname, true);
+            _gameEngine = await GameEngine.HostLocal(HostGame, gameName, "", Prefs.Nickname, true);
 
             Octgn.Play.Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
             Program.GameSettings.UseTwoSidedTable = HostGame.UseTwoSidedTable;
 
-            Dispatcher.CurrentDispatcher.Invoke(new Action(()=>Program.GameEngine.Begin()));
+            Dispatcher.CurrentDispatcher.Invoke(new Action(()=>_gameEngine.Begin()));
         }
 
         private void PlayerOnOnLocalPlayerWelcomed()
@@ -63,7 +69,7 @@ namespace Octgn.Launchers
         private void StartGame()
         {
             Play.Player.OnLocalPlayerWelcomed -= this.PlayerOnOnLocalPlayerWelcomed;
-            WindowManager.PlayWindow = new PlayWindow(Program.GameEngine);
+            WindowManager.PlayWindow = new PlayWindow(_gameEngine);
             Application.Current.MainWindow = WindowManager.PlayWindow;
 			WindowManager.PlayWindow.Show();
             WindowManager.PlayWindow.Closed += PlayWindowOnClosed;

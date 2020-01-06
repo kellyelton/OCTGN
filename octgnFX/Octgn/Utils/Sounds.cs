@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.IO;
 using System.Media;
 using System.Reflection;
@@ -82,10 +86,8 @@ namespace Octgn.Utils
 
         public static List<IDisposable> DisposeObjects = new List<IDisposable>();
 
-        public static void PlayGameSound(GameSound sound)
+        public static void PlayGameSound(GameEngine gameEngine, GameSound sound)
         {
-            //var isSubscribed = SubscriptionModule.Get().IsSubscribed ?? false;
-            //if (isSubscribed == false)return;
             if (Prefs.EnableGameSound == false) return;
             Log.InfoFormat("Playing game sound {0}", sound.Name);
             if (!sound.Src.ToLowerInvariant().EndsWith(".mp3"))
@@ -127,7 +129,7 @@ namespace Octgn.Utils
                     catch (Exception e)
                     {
                         Log.Warn("PlayGameSound Error", e);
-                        Program.GameMess.Warning("Cannot play sound {0}, it must be in the format 44100:2", sound.Name);
+                        gameEngine.GameLog.Warning("Cannot play sound {0}, it must be in the format 44100:2", sound.Name);
                     }
                 });
         }

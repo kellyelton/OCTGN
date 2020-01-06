@@ -1274,40 +1274,12 @@ namespace Octgn.Scripting.Versions
             {
                 var sound = GameEngine.Definition.Sounds[name.ToLowerInvariant()];
                 GameEngine.Client.Rpc.PlaySound(Player.LocalPlayer, sound.Name.ToLowerInvariant());
-                Sounds.PlayGameSound(sound);
+                Sounds.PlayGameSound(GameEngine, sound);
             }
         }
 
         public void RemoteCall(int playerid, string func, string args = "")
         {
-            //if (args == null) args = new object[0];
-
-            //var argString = GameEngine.ScriptEngine.FormatObject(args);
-
-            //var rargs = args.ToArray();
-            //var sb = new StringBuilder();
-            //for (var i = 0; i < rargs.Length; i++)
-            //{
-            //    var isLast = i == rargs.Length - 1;
-            //    var a = rargs[i];
-            //    if (a is Array)
-            //    {
-            //        var arr = a as Array;
-            //        sb.Append("[");
-            //        var argStrings = new List<string>();
-            //        foreach (var o in arr)
-            //        {
-            //            argStrings.Add(GameEngine.ScriptEngine.FormatObject(o));
-            //        }
-            //        sb.Append(string.Join(",", argStrings));
-            //        sb.Append("]");
-            //    }
-            //    else
-            //        sb.Append(GameEngine.ScriptEngine.FormatObject(a));
-
-            //    if (!isLast) sb.Append(", ");
-            //}
-
             var player = Player.Find(GameEngine, (byte)playerid);
             using (CreateMute())
                 GameEngine.Client.Rpc.RemoteCall(player, func, args);

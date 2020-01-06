@@ -1,5 +1,8 @@
-﻿using System;
-using Octgn.Data;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 
 namespace Octgn.Play.Actions
 {
@@ -17,7 +20,7 @@ namespace Octgn.Play.Actions
         public CreateCard(Player owner, int id,bool faceUp, DataNew.Entities.Card model, int x, int y,
                           bool deletesWhenLeavesGroup)
         {
-            _owner = owner;
+            _owner = owner ?? throw new ArgumentNullException(nameof(owner));
             _id = id;
             _faceUp = faceUp;
             _deletesWhenLeavesGroup = deletesWhenLeavesGroup;
@@ -35,7 +38,7 @@ namespace Octgn.Play.Actions
             Card =
                 new Card(_owner, _id, _model, _model.Size.Name)                    {X = _x, Y = _y, DeleteWhenLeavesGroup = _deletesWhenLeavesGroup};
             Card.SetFaceUp(_faceUp);
-            Program.GameEngine.Table.AddAt(Card, Program.GameEngine.Table.Count);
+            _owner.GameEngine.Table.AddAt(Card, _owner.GameEngine.Table.Count);
 
             if (Done != null) Done(this, EventArgs.Empty);
         }

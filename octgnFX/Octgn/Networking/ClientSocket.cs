@@ -39,7 +39,7 @@ namespace Octgn.Networking
                 case SocketConnectionEvent.Disconnected:
                     Handler.GameEngine.IsConnected = false;
 
-                    Program.GameMess.Warning("You have been disconnected from server.");
+                    Handler.GameEngine.GameLog.Warning("You have been disconnected from server.");
 
                     break;
                 case SocketConnectionEvent.Connected:
@@ -50,7 +50,7 @@ namespace Octgn.Networking
                     Handler.GameEngine.IsConnected = true;
                     Handler.GameEngine.Resume();
 
-                    Program.GameMess.System("You have reconnected");
+                    Handler.GameEngine.GameLog.System("You have reconnected");
 
                     break;
                 default:

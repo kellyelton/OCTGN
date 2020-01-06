@@ -1,16 +1,16 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.Scripting.Utils;
-
+using System.Reflection;
+using log4net;
 
 namespace Octgn.Play.Actions
 {
-    using System.Reflection;
-
-    using log4net;
-    
     internal class MoveCards : ActionBase
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -31,7 +31,9 @@ namespace Octgn.Play.Actions
 
         public MoveCards(Player who, Card[] cards, Group to, int[] idx, bool[] faceUp, bool isScriptMove, bool raw = false)
         {
-            Who = who;
+            Who = who ?? throw new ArgumentNullException(nameof(who));
+            if (Who.GameEngine == null) throw new InvalidOperationException($"{nameof(who)}.{nameof(Player.GameEngine)} can't be null");
+
             Cards = cards;
             To = to;
             From = cards[0].Group;
@@ -45,9 +47,11 @@ namespace Octgn.Play.Actions
 
         public MoveCards(Player who, Card[] card, int[] x, int[] y, int[] idx, bool[] faceUp, bool isScriptMove, bool raw = false)
         {
-            Who = who;
+            Who = who ?? throw new ArgumentNullException(nameof(who));
+            if (Who.GameEngine == null) throw new InvalidOperationException($"{nameof(who)}.{nameof(Player.GameEngine)} can't be null");
+
             Cards = card;
-            To = Program.GameEngine.Table;
+            To = Who.GameEngine.Table;
             From = card[0].Group;
             X = x;
             Y = y;
@@ -106,7 +110,7 @@ namespace Octgn.Play.Actions
                     if (To.Cards.IndexOf(card) != Idx[iindex])
                     {
                         if (To.Ordered)
-                            Program.GameMess.PlayerEvent(Who, "reorders {0}", To);
+                            Who.GameEngine.GameLog.PlayerEvent(Who, "reorders {0}", To);
                         card.SetIndex(Idx[iindex]);
                     }
                 }
@@ -153,7 +157,7 @@ namespace Octgn.Play.Actions
                 shouldSee |= card.FaceUp;
                 // Prepare the message
                 if (shouldLog)
-                    Program.GameMess.PlayerEvent(Who, "moves '{0}' to {2}{1}",
+                    Who.GameEngine.GameLog.PlayerEvent(Who, "moves '{0}' to {2}{1}",
                                              shouldSee ? card.Type : (object)"Card",
                                              To, To is Pile && Idx[iindex] > 0 && Idx[iindex] + 1 == To.Count ? "the bottom of " : "");
                 iindex++;
@@ -194,30 +198,30 @@ namespace Octgn.Play.Actions
                     oldFilters[i] = c.OldFilter;
                     oldAlternates[i] = c.OldAlternate;
 
-                    Program.GameEngine.EventProxy.OnMoveCard_3_1_0_0(Who, c.Card, c.From, c.To, c.OldIndex, c.Index, c.OldX, c.OldY, c.X, c.Y, IsScriptMove);
+                    Who.GameEngine.EventProxy.OnMoveCard_3_1_0_0(Who, c.Card, c.From, c.To, c.OldIndex, c.Index, c.OldX, c.OldY, c.X, c.Y, IsScriptMove);
 
                     if (IsScriptMove)
                     {
-                        Program.GameEngine.EventProxy.OnScriptedMoveCard_3_1_0_1(Who, c.Card, c.From, c.To, c.OldIndex, c.Index, c.OldX, c.OldY, c.X, c.Y, c.OldFaceUp, c.OldHighlight, c.OldMarkers);
+                        Who.GameEngine.EventProxy.OnScriptedMoveCard_3_1_0_1(Who, c.Card, c.From, c.To, c.OldIndex, c.Index, c.OldX, c.OldY, c.X, c.Y, c.OldFaceUp, c.OldHighlight, c.OldMarkers);
                     }
                     else
                     {
-                        Program.GameEngine.EventProxy.OnMoveCard_3_1_0_1(Who, c.Card, c.From, c.To, c.OldIndex, c.Index, c.OldX, c.OldY, c.X, c.Y, c.OldFaceUp, c.OldHighlight, c.OldMarkers);
+                        Who.GameEngine.EventProxy.OnMoveCard_3_1_0_1(Who, c.Card, c.From, c.To, c.OldIndex, c.Index, c.OldX, c.OldY, c.X, c.Y, c.OldFaceUp, c.OldHighlight, c.OldMarkers);
                     }
                 }
 
                 if (cardstomove.Count > 0)
                 {
-                    Program.GameEngine.EventProxy.OnMoveCards_3_1_0_0(Who, cards, oldGroups, tos, oldIndexes, indexes, oldX, oldY, x, y, oldHighlights, oldMarkers, IsScriptMove);
+                    Who.GameEngine.EventProxy.OnMoveCards_3_1_0_0(Who, cards, oldGroups, tos, oldIndexes, indexes, oldX, oldY, x, y, oldHighlights, oldMarkers, IsScriptMove);
                     if (IsScriptMove)
                     {
-                        Program.GameEngine.EventProxy.OnScriptedMoveCards_3_1_0_1(Who, cards, oldGroups, tos, oldIndexes, indexes, oldX, oldY, x, y, oldHighlights, oldMarkers, oldFaceUps);
-                        Program.GameEngine.EventProxy.OnScriptedCardsMoved_3_1_0_2(Who, cards, oldGroups, tos, oldIndexes, oldX, oldY, oldHighlights, oldMarkers, oldFaceUps, oldFilters, oldAlternates);
+                        Who.GameEngine.EventProxy.OnScriptedMoveCards_3_1_0_1(Who, cards, oldGroups, tos, oldIndexes, indexes, oldX, oldY, x, y, oldHighlights, oldMarkers, oldFaceUps);
+                        Who.GameEngine.EventProxy.OnScriptedCardsMoved_3_1_0_2(Who, cards, oldGroups, tos, oldIndexes, oldX, oldY, oldHighlights, oldMarkers, oldFaceUps, oldFilters, oldAlternates);
                     }
                     else
                     {
-                        Program.GameEngine.EventProxy.OnMoveCards_3_1_0_1(Who, cards, oldGroups, tos, oldIndexes, indexes, oldX, oldY, x, y, oldHighlights, oldMarkers, oldFaceUps);
-                        Program.GameEngine.EventProxy.OnCardsMoved_3_1_0_2(Who, cards, oldGroups, tos, oldIndexes, oldX, oldY, oldHighlights, oldMarkers, oldFaceUps, oldFilters, oldAlternates);
+                        Who.GameEngine.EventProxy.OnMoveCards_3_1_0_1(Who, cards, oldGroups, tos, oldIndexes, indexes, oldX, oldY, x, y, oldHighlights, oldMarkers, oldFaceUps);
+                        Who.GameEngine.EventProxy.OnCardsMoved_3_1_0_2(Who, cards, oldGroups, tos, oldIndexes, oldX, oldY, oldHighlights, oldMarkers, oldFaceUps, oldFilters, oldAlternates);
                     }
                 }
             }

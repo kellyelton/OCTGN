@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Threading;
 using Microsoft.Scripting.Hosting;
 using Octgn.Play;
@@ -11,7 +15,7 @@ namespace Octgn.Scripting
         public ScriptSource Source;
         // Helper fields used to invoke an operation on the Dispatcher thread from the Scripting thread
 
-        public ScriptJob(ScriptSource source, ScriptScope scope, Action<ExecutionResult> continuation)
+        public ScriptJob(GameEngine gameEngine, ScriptSource source, ScriptScope scope, Action<ExecutionResult> continuation) : base(gameEngine)
         {
             Source = source;
             Scope = scope;
@@ -21,9 +25,9 @@ namespace Octgn.Scripting
 
     internal class InvokedScriptJob : ScriptJobBase
     {
-        public Action ExecuteAction { get; set; } 
+        public Action ExecuteAction { get; set; }
 
-        public InvokedScriptJob(Action a)
+        public InvokedScriptJob(GameEngine gameEngine, Action a) : base(gameEngine)
         {
             ExecuteAction = a;
         }
@@ -35,7 +39,7 @@ namespace Octgn.Scripting
         {
             get
             {
-                if (_uniqueId == 0) _uniqueId = (Player.LocalPlayer.Id) << 16 | Program.GameEngine.GetUniqueId();
+                if (_uniqueId == 0) _uniqueId = (Player.LocalPlayer.Id) << 16 | GameEngine.GetUniqueId();
                 return _uniqueId;
             }
         }
@@ -45,7 +49,7 @@ namespace Octgn.Scripting
         public Action<ExecutionResult> Continuation;
         // The execution result
         public ExecutionResult Result;
-        // The signals used to synchronise the Dispatcher thread and the Scripting thread    
+        // The signals used to synchronise the Dispatcher thread and the Scripting thread
         public AutoResetEvent DispatcherSignal;
         // It's tempting to use only one but doesn't work reliably
         public AutoResetEvent WorkerSignal;
@@ -56,5 +60,10 @@ namespace Octgn.Scripting
 
         // The unique id of this job
         private int _uniqueId;
+
+        protected GameEngine GameEngine { get; }
+        protected ScriptJobBase(GameEngine gameEngine) {
+            GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+        }
     }
 }

@@ -1018,7 +1018,7 @@ namespace Octgn
 
                             Log.Warn("Can't set deck sleeve, unable to determin if user is a subscriber.");
 
-                            Program.GameMess.Warning($"Deck sleeve can not be loaded, subscriber status is unknown.");
+                            GameLog.Warning($"Deck sleeve can not be loaded, subscriber status is unknown.");
 
                         } else if (isSubscriber == false) {
                             loadSleeve = false;
@@ -1166,7 +1166,7 @@ namespace Octgn
             if (Definition.Sounds.ContainsKey(name.ToLowerInvariant()))
             {
                 var sound = this.Definition.Sounds[name.ToLowerInvariant()];
-                Sounds.PlayGameSound(sound);
+                Sounds.PlayGameSound(this, sound);
             }
         }
 

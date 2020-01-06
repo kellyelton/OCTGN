@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.ComponentModel;
 using System.Windows;
@@ -11,10 +15,6 @@ using Octgn.Play;
 
 namespace Octgn.Scripting.Controls
 {
-    using System.Globalization;
-    using System.IO;
-    using System.Windows.Media.Imaging;
-
     public partial class MarkerDlg
     {
         public static readonly DependencyProperty IsModelSelectedProperty =
@@ -22,19 +22,27 @@ namespace Octgn.Scripting.Controls
                                         new UIPropertyMetadata(false));
 
         private readonly ICollectionView _allMarkersView;
+        private readonly GameEngine _gameEngine;
         private string _filterText = "";
 
-        public MarkerDlg()
-        {
+        [Obsolete("To be used only in the designer")]
+        public MarkerDlg() {
             InitializeComponent();
-            _allMarkersView = CollectionViewSource.GetDefaultView(Program.GameEngine.Markers);
+        }
+
+        public MarkerDlg(GameEngine gameEngine) {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
+            InitializeComponent();
+
+            _allMarkersView = CollectionViewSource.GetDefaultView(_gameEngine.Markers);
             _allMarkersView.Filter =
                 marker =>
                 ((DataNew.Entities.Marker)marker).Name.IndexOf(_filterText, StringComparison.CurrentCultureIgnoreCase) >= 0;
             _allMarkersView.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
             allList.ItemsSource = _allMarkersView;
             defaultList.ItemsSource = Marker.DefaultMarkers;
-            recentList.ItemsSource = Program.GameEngine.RecentMarkers;
+            recentList.ItemsSource = _gameEngine.RecentMarkers;
         }
 
         public bool IsModelSelected
@@ -78,7 +86,7 @@ namespace Octgn.Scripting.Controls
                 return;
             }
 
-            Program.GameEngine.AddRecentMarker(MarkerModel);
+            _gameEngine.AddRecentMarker(MarkerModel);
             DialogResult = true;
         }
 

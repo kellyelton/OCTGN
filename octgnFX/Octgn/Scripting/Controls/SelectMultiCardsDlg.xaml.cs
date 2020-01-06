@@ -36,9 +36,8 @@ namespace Octgn.Scripting.Controls
         private string _filter2Text = "";
         private int? _min;
         private int? _max;
-        private IEnumerable<string> textProperties = Program.GameEngine.Definition.CustomProperties
-                    .Where(p => !p.IgnoreText)
-                    .Select(p => p.Name);
+
+        private readonly IEnumerable<string> textProperties;
 
         private readonly GameEngine _gameEngine;
 
@@ -46,8 +45,12 @@ namespace Octgn.Scripting.Controls
         {
             _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
 
+            textProperties = _gameEngine.Definition.CustomProperties
+                    .Where(p => !p.IgnoreText)
+                    .Select(p => p.Name);
+
             InitializeComponent();
-            slider.Value = Prefs.GetGameSetting(Program.GameEngine.Definition, "sliderValue", 175);
+            slider.Value = Prefs.GetGameSetting(_gameEngine.Definition, "sliderValue", 175);
             Title = title;
             this.Height = Math.Min(System.Windows.SystemParameters.PrimaryScreenHeight * 0.80, 860);
             this.Width = Math.Min(System.Windows.SystemParameters.PrimaryScreenWidth * 0.80, 860);
@@ -156,7 +159,7 @@ namespace Octgn.Scripting.Controls
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
-            Prefs.SetGameSetting(Program.GameEngine.Definition, "sliderValue", (int)slider.Value);
+            Prefs.SetGameSetting(_gameEngine.Definition, "sliderValue", (int)slider.Value);
         }
 
         private void CardSelected(object sender, SelectionChangedEventArgs e)
@@ -239,7 +242,7 @@ namespace Octgn.Scripting.Controls
         private void SliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             SliderHeight = slider.Value;
-            SliderWidth = slider.Value * Program.GameEngine.Definition.CardSize.Width / Program.GameEngine.Definition.CardSize.Height;
+            SliderWidth = slider.Value * _gameEngine.Definition.CardSize.Width / _gameEngine.Definition.CardSize.Height;
         }
 
         #region dragDrop Stuff

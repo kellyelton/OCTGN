@@ -153,7 +153,7 @@ namespace Octgn.Networking
             // The host is the driver for this flag and should ignore notifications,
             // otherwise there might be a loop if the server takes more time to dispatch this message
             // than the user to click again on the checkbox.
-            if (!Program.IsHost)
+            if (!GameEngine.IsHost)
             {
                 Program.GameSettings.UseTwoSidedTable = twoSidedTable;
                 Program.GameSettings.AllowSpectators = allowSpectators;

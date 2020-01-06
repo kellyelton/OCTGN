@@ -32,13 +32,15 @@ namespace Octgn.Scripting.Controls
 
         private List<Card> _allCards;
         private string _filterText = "";
-        private IEnumerable<string> textProperties = Program.GameEngine.Definition.CustomProperties
-                    .Where(p => !p.IgnoreText)
-                    .Select(p => p.Name);
+        private readonly IEnumerable<string> _textProperties;
 
         public SelectCardsDlg(GameEngine gameEngine, List<Card> cardList, string prompt, string title)
         {
             GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
+            _textProperties = GameEngine.Definition.CustomProperties
+                    .Where(p => !p.IgnoreText)
+                    .Select(p => p.Name);
 
             InitializeComponent();
 
@@ -48,7 +50,7 @@ namespace Octgn.Scripting.Controls
             promptLbl.Text = prompt;
             Task.Factory.StartNew(() =>
             {
-                var game = GameManager.Get().GetById(Program.GameEngine.Definition.Id);
+                var game = GameManager.Get().GetById(GameEngine.Definition.Id);
                 if (cardList == null) cardList = new List<Card>();
 
                 _allCards = cardList;
@@ -113,7 +115,7 @@ namespace Octgn.Scripting.Controls
                                                      _allCards.Where(
                                                          m =>
                                                          m.RealName.IndexOf(search, StringComparison.CurrentCultureIgnoreCase) >= 0 ||
-                                                         textProperties.Select(property => m.GetProperty(property)).
+                                                         _textProperties.Select(property => m.GetProperty(property)).
                                                             Where(propertyValue => propertyValue != null).Any(
                                                             propertyValue => propertyValue.ToString().IndexOf(search, StringComparison.CurrentCultureIgnoreCase) >= 0)
                                                          )
@@ -141,7 +143,7 @@ namespace Octgn.Scripting.Controls
         private void ComputeChildWidth(object sender, RoutedEventArgs e)
         {
             var panel = sender as VirtualizingWrapPanel;
-            if (panel != null) panel.ChildWidth = panel.ChildHeight * Program.GameEngine.Definition.CardSize.Width / Program.GameEngine.Definition.CardSize.Height;
+            if (panel != null) panel.ChildWidth = panel.ChildHeight * GameEngine.Definition.CardSize.Width / GameEngine.Definition.CardSize.Height;
         }
     }
 }

@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.ComponentModel;
 using Octgn.Controls;
@@ -81,7 +85,7 @@ namespace Octgn.Play
 
         public void TakeControl()
         {
-            if (Controller == Player.LocalPlayer || Program.GameEngine.IsReplay) return;
+            if (Controller == Player.LocalPlayer || GameEngine.IsReplay) return;
             GameEngine.Client.Rpc.TakeFromReq(this, Controller);
         }
 
@@ -107,14 +111,14 @@ namespace Octgn.Play
             if (notifyServer)
             {
                 // Can't pass control if I don't own it
-                if (Controller != Player.LocalPlayer || Program.GameEngine.IsReplay) return;
+                if (Controller != Player.LocalPlayer || GameEngine.IsReplay) return;
                 GameEngine.Client.Rpc.PassToReq(this, p, requested);
             }
             Controller = p;
             if (requested)
-                Program.GameMess.PlayerEvent(p,"takes control of {0}", this);
+                GameEngine.GameLog.PlayerEvent(p,"takes control of {0}", this);
             else
-                Program.GameMess.PlayerEvent(who,"gives control of {0} to {1}", this, p);
+                GameEngine.GameLog.PlayerEvent(who,"gives control of {0} to {1}", this, p);
         }
 
         // Prevents others from acquiring control of this object
@@ -128,13 +132,13 @@ namespace Octgn.Play
         {
             if (_keepControl > 0) _keepControl--;
             else
-                Program.GameMess.Warning("[ReleaseControl] Called with no matching call to KeepControl().");
+                GameEngine.GameLog.Warning("[ReleaseControl] Called with no matching call to KeepControl().");
         }
 
         // Return true if the object can be manipulated by the local player
         internal virtual bool CanManipulate()
         {
-            return (Controller == Player.LocalPlayer || Controller == null) && !Program.GameEngine.IsReplay;
+            return (Controller == Player.LocalPlayer || Controller == null) && !GameEngine.IsReplay;
         }
 
         // Return true if we can manipulate this object, otherwise display an error and return false
