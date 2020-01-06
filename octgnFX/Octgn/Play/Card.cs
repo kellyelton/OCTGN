@@ -271,7 +271,7 @@ namespace Octgn.Play
                 if (value != null)
                 {
                     if (value.InUse)
-                        Program.GameMess.Warning("The same card identity is used for two different cards!");
+                        GameEngine.GameLog.Warning("The same card identity is used for two different cards!");
                     // Acquire the new identity
                     value.InUse = true;
                     // Make changes in the Card hashtable
@@ -638,7 +638,7 @@ namespace Octgn.Play
             if (!PeekingPlayers.Contains(Player.LocalPlayer))
                 PeekingPlayers.Add(Player.LocalPlayer);
             GameEngine.Client.Rpc.PeekReq(this);
-            Program.GameMess.PlayerEvent(Player.LocalPlayer, "peeked at {0}.", this.Type.Model);
+            GameEngine.GameLog.PlayerEvent(Player.LocalPlayer, "peeked at {0}.", this.Type.Model);
         }
 
         internal BitmapImage GetBitmapImage(bool up, bool proxyOnly = false)

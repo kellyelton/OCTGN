@@ -121,7 +121,7 @@ namespace Octgn.Play
             OnPropertyChanged("Value");
             // Display a notification in the chat
             string deltaString = (delta > 0 ? "+" : "") + delta.ToString(CultureInfo.InvariantCulture);
-            Program.GameMess.PlayerEvent(who, "sets {0} counter to {1} ({2})", this, value, deltaString);
+            _gameEngine.GameLog.PlayerEvent(who, "sets {0} counter to {1} ({2})", this, value, deltaString);
             if (notifyServer || who != Player.LocalPlayer)
             {
                 _gameEngine.EventProxy.OnChangeCounter_3_1_0_0(who, this, oldValue);

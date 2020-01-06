@@ -1,38 +1,39 @@
-﻿namespace Octgn.Play.DeveloperConsole
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using Microsoft.Scripting.Hosting;
+using Octgn.Extentions;
+using Octgn.Scripting;
+
+namespace Octgn.Play.DeveloperConsole
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.Composition;
-    using System.IO;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-
-    using Microsoft.Scripting.Hosting;
-
-    using Octgn.Core;
-    using Octgn.Extentions;
-    using Octgn.Scripting;
-
     public partial class InteractiveConsole
     {
-#pragma warning disable 649   // Unassigned variable: it's initialized by MEF
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
 
-        private Engine _scriptEngine;
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(InteractiveConsole), new PropertyMetadata(null));
 
-#pragma warning restore 649
-
-        private ScriptScope _scope { get { return this._scriptEngine.ActionsScope; } }
+        private ScriptScope _scope => this.GameEngine.ScriptEngine.ActionsScope;
         private readonly List<string> _commandHistory = new List<string>();
         private int _commandHistoryLoc = 0;
 
-        public InteractiveConsole()
-        {
+        public InteractiveConsole() {
             this.InitializeComponent();
+
             if (this.IsInDesignMode()) return;
-            _scriptEngine = Program.GameEngine.ScriptEngine;
 
             this.Loaded += (s, a) => this.prompt.Focus();
         }
@@ -93,7 +94,7 @@
             this._commandHistory.Add(input);
             this._commandHistoryLoc = this._commandHistory.Count;
             this.prompt.IsEnabled = false;
-            if (this._scriptEngine.TryExecuteInteractiveCode(input, this._scope, this.ExecutionCompleted)) return;
+            if (this.GameEngine.ScriptEngine.TryExecuteInteractiveCode(input, this._scope, this.ExecutionCompleted)) return;
             this.prompt.IsEnabled = true;
             this.PromptNewIndentedLine();
         }

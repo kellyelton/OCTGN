@@ -36,7 +36,7 @@ namespace Octgn.Play.Gui
             var es = markerSize * 0.8;
             if (es < 1)
             {
-                Program.GameMess.Warning("[MarkerSize] Marker size of {0} is too small.\n", _gameEngine.Definition.MarkerSize);
+                _gameEngine.GameLog.Warning("[MarkerSize] Marker size of {0} is too small.\n", _gameEngine.Definition.MarkerSize);
                 es = 8;
             }
             text.FontSize = es;

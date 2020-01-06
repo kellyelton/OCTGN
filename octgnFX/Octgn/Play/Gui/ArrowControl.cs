@@ -1,4 +1,9 @@
-﻿using System.Windows;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -40,8 +45,12 @@ namespace Octgn.Play.Gui
             FillBrush.Freeze();
         }
 
-        public ArrowControl()
+        private readonly GameEngine _gameEngine;
+
+        public ArrowControl(GameEngine gameEngine)
         {
+            _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
+
             _endPt1 = new BezierSegment();
             _endPt2 = new LineSegment();
             _arrowPt1 = new LineSegment();
@@ -85,7 +94,7 @@ namespace Octgn.Play.Gui
 
         private void ComputeShape()
         {
-            double arrowHalfWidth = Program.GameEngine.Definition.Table.Height*0.017; // 1/60th
+            double arrowHalfWidth = _gameEngine.Definition.Table.Height*0.017; // 1/60th
             double headHalfWidth = arrowHalfWidth*HeadHalfWidthFactor;
             double headLength = arrowHalfWidth*HeadLengthFactor;
 

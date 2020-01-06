@@ -394,7 +394,7 @@ namespace Octgn.Scripting
 
         private void StartExecution(ScriptSource src, ScriptScope scope, Action<ExecutionResult> continuation)
         {
-            var job = new ScriptJob(src, scope, continuation);
+            var job = new ScriptJob(GameEngine, src, scope, continuation);
             StartExecution(job);
         }
 

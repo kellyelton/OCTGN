@@ -102,7 +102,7 @@ namespace Octgn.Scripting.Versions
 
         public void SetPhase(int phase, bool force)
         {
-            if (Phase.Find((byte)phase) == null) return;
+            if (Phase.Find(GameEngine, (byte)phase) == null) return;
             if (GameEngine.ActivePlayer == null || GameEngine.ActivePlayer == Player.LocalPlayer)
                 GameEngine.Client.Rpc.SetPhaseReq((byte)phase, force);
         }
@@ -110,7 +110,7 @@ namespace Octgn.Scripting.Versions
         public bool GetStop(int id)
         {
             if (id == 0) return GameEngine.StopTurn;
-            var phase = Phase.Find((byte)id);
+            var phase = Phase.Find(GameEngine, (byte)id);
             if (phase == null) return false;
             return phase.Hold;
         }
@@ -125,7 +125,7 @@ namespace Octgn.Scripting.Versions
             }
             else
             {
-                var phase = Phase.Find((byte)id);
+                var phase = Phase.Find(GameEngine, (byte)id);
                 if (phase == null) return;
                 if (phase.Hold == stop) return;
                 phase.Hold = stop;

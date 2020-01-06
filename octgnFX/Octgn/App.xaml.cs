@@ -160,26 +160,29 @@ namespace Octgn
 
                 X.Instance.Try(() =>
                 {
-                    var ge = Program.GameEngine;
-                    //var gameString = "";
-                    if (ge != null && ge.Definition != null)
-                    {
-                        var gameObject = new
-                        {
-                            Game = new
-                            {
-                                Name = ge.Definition.Name,
-                                Version = ge.Definition.Version,
-                                ID = ge.Definition.Id,
-                                Variables = ge.Variables,
-                                GlobalVariables = ge.GlobalVariables
+                    var gameEngines = Application.Current.Windows
+                        .OfType<PlayWindow>()
+                        .Select(window => window.GameEngine)
+                        .ToArray();
+
+                    for(var engineIndex = 0; engineIndex < gameEngines.Length; engineIndex++) {
+                        var gameEngine = gameEngines[engineIndex];
+
+                        if (gameEngine.Definition == null) continue;
+
+                        var gameObject = new {
+                            Game = new {
+                                Name = gameEngine.Definition.Name,
+                                Version = gameEngine.Definition.Version,
+                                ID = gameEngine.Definition.Id,
+                                Variables = gameEngine.Variables,
+                                GlobalVariables = gameEngine.GlobalVariables
                             },
-                            IsConnected = ge.IsConnected,
-                            IsLocal = ge.IsLocal,
-                            SessionId = ge.SessionId,
-                            WaitingForState = ge.WaitForGameState,
-                            Players = Player.All.Select(player => new
-                            {
+                            IsConnected = gameEngine.IsConnected,
+                            IsLocal = gameEngine.IsLocal,
+                            SessionId = gameEngine.SessionId,
+                            WaitingForState = gameEngine.WaitForGameState,
+                            Players = Player.All.Select(player => new {
                                 GlobalVariables = player.GlobalVariables,
                                 Id = player.Id,
                                 InvertedTable = player.InvertedTable,
@@ -190,10 +193,9 @@ namespace Octgn
                                 WaitingOnPlayers = player.WaitingOnPlayers,
                             })
                         };
-                        args.Event.AddObject(gameObject, "Game State");
+
+                        args.Event.AddObject(gameObject, $"Game State {engineIndex}");
                     }
-
-
                 });
 
                 X.Instance.Try(() =>
@@ -299,10 +301,9 @@ namespace Octgn
         {
             var ex = (Exception)e.ExceptionObject;
             var handled = false;
-            var ge = Program.GameEngine;
-            var gameString = "";
-            if (ge?.Definition != null)
-                gameString = "[Game " + ge.Definition.Name + " " + ge.Definition.Version + " " + ge.Definition.Id + "] [Username " + Prefs.Username + "] ";
+
+            var gameString = string.Empty;
+
             if (ex is UserMessageException)
             {
                 if ((ex as UserMessageException).Mode == UserMessageExceptionMode.Blocking || WindowManager.GrowlWindow == null)

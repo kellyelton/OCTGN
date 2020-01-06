@@ -24,6 +24,7 @@ using Octgn.Core.Play;
 using Octgn.Extentions;
 using Octgn.Library;
 using Octgn.Utils;
+using System.Collections.Generic;
 
 namespace Octgn.Play.Gui
 {
@@ -84,7 +85,7 @@ namespace Octgn.Play.Gui
                     return;
                 }
                 this.output.Document.Blocks.Clear();
-                lastId = -1;
+                _gameLogReader?.Reset();
                 this.hideErrors = value;
                 this.OnPropertyChanged("HideErrors");
             }
@@ -118,7 +119,7 @@ namespace Octgn.Play.Gui
                     return;
                 }
                 this.output.Document.Blocks.Clear();
-                lastId = -1;
+                _gameLogReader?.Reset();
                 this.hideDebug = value;
                 OnPropertyChanged("HideDebug");
             }
@@ -135,8 +136,6 @@ namespace Octgn.Play.Gui
             }
         }
 
-        private System.Timers.Timer chatTimer2;
-
         public GameEngine GameEngine {
             get { return (GameEngine)GetValue(GameEngineProperty); }
             set { SetValue(GameEngineProperty, value); }
@@ -149,8 +148,11 @@ namespace Octgn.Play.Gui
         private static void GameEngine_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
             var chatControl = (ChatControl)d;
 
+            chatControl.Configure((GameEngine)e.NewValue);
             chatControl.OnPropertyChanged(nameof(ShowInput));
         }
+
+        private GameLogReader _gameLogReader;
 
         public ChatControl() {
             AutoScroll = true;
@@ -164,19 +166,21 @@ namespace Octgn.Play.Gui
             Loaded += delegate
             {
                 Program.GameSettings.PropertyChanged += GameSettings_PropertyChanged;
-
-                chatTimer2 = new System.Timers.Timer(100);
-                chatTimer2.Enabled = true;
-                chatTimer2.Elapsed += this.TickMessage;
             };
             Unloaded += delegate
             {
                 Program.GameSettings.PropertyChanged -= GameSettings_PropertyChanged;
-
-                chatTimer2.Enabled = false;
-                chatTimer2.Elapsed -= this.TickMessage;
-                chatTimer2.Dispose();
             };
+        }
+
+        private void Configure(GameEngine gameEngine) {
+            _gameLogReader?.Dispose();
+
+            if (gameEngine != null) {
+                _gameLogReader = new GameLogReader(gameEngine.GameLog);
+                _gameLogReader.Start(GameLogsAdded);
+            }
+
         }
 
         private void GameSettings_PropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -200,7 +204,6 @@ namespace Octgn.Play.Gui
 
                 var chatRun = MergeArgsv2(m.Message, m.Arguments);
                 chatRun.Foreground = new SolidColorBrush(m.From.Color);
-                //chatRun.FontWeight = FontWeights.Bold;
                 p.Inlines.Add(chatRun);
 
                 b.Blocks.Add(p);
@@ -242,29 +245,6 @@ namespace Octgn.Play.Gui
 				var par = new Paragraph(MergeArgsv2(m.Message, m.Arguments));
                 par.Margin = new Thickness(0);
                 b.Blocks.Add(par);
-                //var block = new BlockUIContainer();
-                //var border = new Border()
-                //{
-                //    CornerRadius = new CornerRadius(4),
-                //    BorderBrush = Brushes.Gray,
-                //    BorderThickness = new Thickness(1),
-                //    Padding = new Thickness(5),
-                //    Background = Brushes.LightGray,
-                //};
-                //var tb = new TextBlock(MergeArgsv2(m.Message, m.Arguments));
-                //tb.Foreground = m.From.Color.CacheToBrush();
-                //tb.TextWrapping = TextWrapping.Wrap;
-
-                //border.Child = tb;
-                //block.Child = border;
-
-                //b.Blocks.Add(block);
-
-                //var hiddenText = new Paragraph(MergeArgsv2(m.Message, m.Arguments));
-                //hiddenText.Foreground = Brushes.Transparent;
-                //hiddenText.FontSize = 0.1;
-                //hiddenText.Margin = new Thickness(0);
-                //b.Blocks.Add(hiddenText);
 
                 return b;
             }
@@ -364,12 +344,7 @@ namespace Octgn.Play.Gui
 
                 b.Blocks.Add(p);
 
-                //if (((Paragraph)output.Document.Blocks.LastBlock).Inlines.Count == 0)
-                //    output.Document.Blocks.Remove(output.Document.Blocks.LastBlock);
-
                 return b;
-
-                //output.Document.Blocks.Add(new Paragraph { Margin = new Thickness() });
             }
             else if (m is DebugMessage)
             {
@@ -396,73 +371,45 @@ namespace Octgn.Play.Gui
             return null;
         }
 
-        private void TickMessage(object sender, ElapsedEventArgs elapsedEventArgs)
-        {
-            lock (this)
+        private void GameLogsAdded(IReadOnlyList<IGameMessage> obj) {
+            Dispatcher.Invoke(new Action(() =>
             {
-                if (chatTimer2.Enabled == false) return;
-                chatTimer2.Enabled = false;
-            }
-            try
-            {
-                var newMessages = Program.GameMess.Messages.OrderBy(x => x.Id).Where(x => x.Id > lastId).ToArray();
-                if (newMessages.Length == 0)
-                {
-                    return;
-                }
-
-                lastId = newMessages.Last().Id;
                 var gotone = false;
 
-                Dispatcher.Invoke(new Action(() =>
+                foreach (var gameLog in obj)
                 {
-                    foreach (var m in newMessages)
+                    if (gameLog is NotifyBarMessage)
                     {
-                        if (m is NotifyBarMessage)
-                        {
+                        continue;
+                    }
+                    if (gameLog is WarningMessage)
+                    {
+                        if (this.HideErrors)
                             continue;
-                        }
-                        if (m is WarningMessage)
-                        {
-                            if (this.HideErrors)
-                                continue;
-                        }
-                        if (m is DebugMessage)
-                        {
-                            if (Program.DeveloperMode == false || this.HideDebug)
-                                continue;
-                        }
-
-                        if (NewMessage != null)
-                            NewMessage(m);
-
-                        var b = GameMessageToBlock(m);
-                        if (b != null)
-                        {
-                            gotone = true;
-                            this.output.Document.Blocks.Add(b);
-                        }
                     }
-                    if (gotone && AutoScroll)
+                    if (gameLog is DebugMessage)
                     {
-                        X.Instance.Try(this.output.ScrollToEnd);
+                        if (Program.DeveloperMode == false || this.HideDebug)
+                            continue;
                     }
-                }));
-            }
-            finally
-            {
 
-                try
-                {
-                    chatTimer2.Enabled = true;
+                    if (NewMessage != null)
+                        NewMessage(gameLog);
+
+                    var b = GameMessageToBlock(gameLog);
+                    if (b != null)
+                    {
+                        gotone = true;
+                        this.output.Document.Blocks.Add(b);
+                    }
                 }
-                catch
+
+                if (gotone && AutoScroll)
                 {
+                    X.Instance.Try(this.output.ScrollToEnd);
                 }
-            }
+            }));
         }
-
-        private long lastId = -1;
 
         private bool autoScroll;
 

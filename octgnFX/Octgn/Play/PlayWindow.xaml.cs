@@ -188,7 +188,7 @@ namespace Octgn.Play
                         GameEngine.ScriptEngine.SetupEngine(false);
 
 
-                    table = new TableControl { DataContext = GameEngine.Table, IsTabStop = true };
+                    table = new TableControl(GameEngine) { DataContext = GameEngine.Table, IsTabStop = true };
                     KeyboardNavigation.SetIsTabStop(table, true);
                     TableHolder.Child = table;
 
@@ -201,7 +201,7 @@ namespace Octgn.Play
                     if (Program.DeveloperMode && Player.LocalPlayer.Spectator == false && GameEngine.IsReplay == false)
                     {
                         MenuConsole.Visibility = Visibility.Visible;
-                        var wnd = new DeveloperWindow() { Owner = this };
+                        var wnd = new DeveloperWindow(GameEngine) { Owner = this };
                         wnd.Show();
                     }
                     Program.GameSettings.PropertyChanged += (sender, args) =>
@@ -882,7 +882,7 @@ namespace Octgn.Play
 
             if (Program.DeveloperMode)
             {
-                var wnd = new DeveloperWindow() { Owner = this };
+                var wnd = new DeveloperWindow(GameEngine) { Owner = this };
                 wnd.Show();
             }
         }

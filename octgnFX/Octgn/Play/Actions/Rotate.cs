@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using System;
 
 namespace Octgn.Play.Actions
 {
@@ -10,7 +10,8 @@ namespace Octgn.Play.Actions
 
         public Rotate(Player who, Card card, CardOrientation rot)
         {
-            _who = who;
+            _who = who ?? throw new ArgumentNullException(nameof(who));
+            if (_who.GameEngine == null) throw new InvalidOperationException("");
             _card = card;
             _rot = rot;
         }
@@ -19,7 +20,7 @@ namespace Octgn.Play.Actions
         {
             base.Do();
             _card.SetOrientation(_rot);
-            Program.GameMess.PlayerEvent(_who,"sets '{0}' orientation to {1}",_card, _rot);
+            _who.GameEngine.GameLog.PlayerEvent(_who,"sets '{0}' orientation to {1}",_card, _rot);
         }
     }
 }

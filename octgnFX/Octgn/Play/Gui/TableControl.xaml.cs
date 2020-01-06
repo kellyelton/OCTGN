@@ -43,15 +43,6 @@ namespace Octgn.Play.Gui
             }
         }
 
-        public GameEngine GameEngine {
-            get { return (GameEngine)GetValue(GameEngineProperty); }
-            set { SetValue(GameEngineProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for GameEngine.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty GameEngineProperty =
-            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(TableControl), new PropertyMetadata(null));
-
         private readonly int _defaultHeight;
         private readonly int _defaultWidth;
         protected bool IsCardSizeValid;

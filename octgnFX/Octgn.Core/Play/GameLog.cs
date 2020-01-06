@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Windows.Media;
 
 namespace Octgn.Core.Play
@@ -33,7 +34,7 @@ namespace Octgn.Core.Play
         public event EventHandler<IGameMessage> LogAdded;
 
         protected void OnLogAdded(IGameMessage log) {
-            LogAdded?.BeginInvoke(this, log, null, null);
+            LogAdded?.Invoke(this, log);
         }
 
         private readonly List<IGameMessage> _messages = new List<IGameMessage>();
@@ -44,12 +45,12 @@ namespace Octgn.Core.Play
         }
 
         public IEnumerator<IGameMessage> GetEnumerator() {
-            IGameMessage[] copy;
+            List<IGameMessage> copy;
             lock (_messages) {
-                copy = _messages.ToArray();
+                copy = _messages.ToList();
             }
 
-            return (IEnumerator<IGameMessage>)copy.GetEnumerator();
+            return copy.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {

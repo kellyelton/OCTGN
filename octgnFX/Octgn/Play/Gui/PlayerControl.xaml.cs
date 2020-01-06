@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -9,6 +13,14 @@ namespace Octgn.Play.Gui
 {
     public partial class PlayerControl
     {
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
+
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(PlayerControl), new PropertyMetadata(null));
+
         public PlayerControl()
         {
             InitializeComponent();
@@ -26,6 +38,9 @@ namespace Octgn.Play.Gui
             }
 
             player = e.NewValue as Player;
+
+            GameEngine = player?.GameEngine;
+
             if (player == null) return;
             foreach (Pile group in player.Groups.OfType<Pile>())
                 group.PropertyChanged += GroupPropertyChanged;

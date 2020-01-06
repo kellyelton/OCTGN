@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,14 +16,20 @@ namespace Octgn.Play.Gui.Adorners
         private static readonly DependencyPropertyDescriptor IsInvertedPropertyDescriptor =
             DependencyPropertyDescriptor.FromProperty(CardControl.IsInvertedProperty, typeof (CardControl));
 
-        private readonly ArrowControl _arrow = new ArrowControl {ToPoint = new Point(200, 200)};
+        private readonly ArrowControl _arrow;
         private readonly Player _player;
         private CardControl _toCard;
 
         public ArrowAdorner(Player player, UIElement adornedElement)
             : base(adornedElement)
         {
-            _player = player;
+            _player = player ?? throw new ArgumentNullException(nameof(player));
+            if (_player.GameEngine == null) throw new InvalidOperationException($"Player GameEngine can't be null");
+
+            _arrow = new ArrowControl(_player.GameEngine) {
+                ToPoint = new Point(200, 200)
+            };
+
             IsHitTestVisible = false;
 
             UpdateStartPoint(this, EventArgs.Empty);

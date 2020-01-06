@@ -33,7 +33,7 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <gui:CardScroller VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Grid.Row="1" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" 
+        <gui:CardScroller VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto" Grid.Row="1" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel"
                       Margin="0,-200,0,0" VerticalContentAlignment="Bottom" VerticalAlignment="Stretch" x:Name="cardScroller">
             <Grid Margin="0,200,0,0">
                 <Grid.RowDefinitions>
@@ -45,8 +45,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <gui:HandControl x:Name="PlayerHand" DataContext="{Binding Hand}" Margin="3,3,0,3" VerticalAlignment="Stretch" MinWidth="{Binding minHandSize}" Panel.ZIndex="1000"/>
-                
+                <gui:HandControl x:Name="PlayerHand" DataContext="{Binding Hand}" Margin="3,3,0,3" VerticalAlignment="Stretch" MinWidth="{Binding minHandSize}" Panel.ZIndex="1000" GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:PlayerControl}, Mode=OneWay}"/>
+
                 <ItemsControl x:Name="piles" ItemsSource="{Binding Source={StaticResource ExpandedGroups}}" Grid.Column="1"
                   Margin="0,3,0,3" VerticalAlignment="Stretch" Focusable="False">
                     <ItemsControl.ItemsPanel>
@@ -56,7 +56,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <gui:PileControl Margin="3,0,0,0" />
+                            <gui:PileControl Margin="3,0,0,0" GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:PlayerControl}, Mode=OneWay}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -70,7 +70,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <gui:PileCollapsedControl Margin="3,0,0,3" />
+                            <gui:PileCollapsedControl Margin="3,0,0,3" GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:PlayerControl}, Mode=OneWay}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
