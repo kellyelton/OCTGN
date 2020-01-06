@@ -13,9 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-
 using log4net;
-
 using Octgn.Core;
 using Octgn.Extentions;
 using Octgn.Networking;
@@ -235,7 +233,7 @@ namespace Octgn.Controls
         private void SettingsChanged(object sender, PropertyChangedEventArgs e)
         {
             if (DesignerProperties.GetIsInDesignMode(this)) return;
-            if (Program.IsHost)
+            if (GameEngine.IsHost)
                 GameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
         }
 
@@ -299,16 +297,8 @@ namespace Octgn.Controls
             Back();
         }
 
-        //private void CheckBoxClick(object sender, RoutedEventArgs e)
-        //{
-        //    if (cbTwoSided.IsChecked != null) Program.GameSettings.UseTwoSidedTable = cbTwoSided.IsChecked.Value;
-        //}
-
         #region Implementation of IDisposable
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
         public void Dispose()
         {
             Player.OnLocalPlayerWelcomed -= PlayerOnOnLocalPlayerWelcomed;
@@ -329,7 +319,7 @@ namespace Octgn.Controls
             if (sen == null) return;
             var play = sen.DataContext as Player;
             if (play == null) return;
-            if (Program.IsHost == false) return;
+            if (GameEngine.IsHost == false) return;
 
             GameEngine.Client.Rpc.Boot(play, "The host has booted them from the game.");
         }
