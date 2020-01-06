@@ -530,7 +530,7 @@ namespace Octgn.Play
         internal void UpdateSettings(bool invertedTable, bool spectator, bool notify)
         {
             Log.InfoFormat("[UpdateSettings]{0} {1} {2}", this, invertedTable, spectator);
-            if (Program.InPreGame == false) return;
+            if (GameEngine.InPreGame == false) return;
             _invertedTable = invertedTable;
             _spectator = spectator;
             if (_spectator)

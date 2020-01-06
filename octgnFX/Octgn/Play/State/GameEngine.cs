@@ -113,6 +113,8 @@ namespace Octgn
             }
         }
 
+        public bool InPreGame { get; private set; }
+
         public History History { get; }
 
         public bool IsReplay { get; }
@@ -552,6 +554,7 @@ namespace Octgn
         }
 
         public void OnWelcomed(Guid gameSessionId, string gameName, bool waitForGameState) {
+            InPreGame = true;
             IsWelcomed = true;
 
             SessionId = gameSessionId;
@@ -560,6 +563,8 @@ namespace Octgn
         }
 
         public void OnStart() {
+            InPreGame = false;
+
             if (IsReplay) {
                 return;
             }
@@ -609,6 +614,14 @@ namespace Octgn
 
                 _logStream = new StreamWriter(logStream);
             }
+        }
+
+        public void OnKicked(string reason) {
+            InPreGame = false;
+
+            GameLog.Warning("You have been kicked: {0}", reason);
+
+            Client.Shutdown();
         }
 
         private string BlockToString(System.Windows.Documents.Block block) {

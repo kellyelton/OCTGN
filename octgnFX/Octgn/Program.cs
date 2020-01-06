@@ -38,8 +38,6 @@ namespace Octgn
         public static GameSettings GameSettings { get; set; }
         public static event Action OnOptionsChanged;
 
-        internal static bool InPreGame;
-
 #pragma warning disable 67
         internal static event EventHandler<ServerErrorEventArgs> ServerError;
 #pragma warning restore 67

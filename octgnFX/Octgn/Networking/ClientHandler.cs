@@ -114,16 +114,14 @@ namespace Octgn.Networking
         public void Kick(string reason)
         {
             WriteReplayAction();
-            GameEngine.GameLog.Warning("You have been kicked: {0}", reason);
-            Program.InPreGame = false;
-            _client.Shutdown();
+
+            GameEngine.OnKicked(reason);
         }
 
         public void Start()
         {
             Log.Debug("Start");
             WriteReplayAction();
-            Program.InPreGame = false;
 
             GameEngine.OnStart();
 
@@ -272,7 +270,6 @@ namespace Octgn.Networking
         public void Welcome(byte id, Guid gameSessionId, string gameName, bool waitForGameState)
         {
             WriteReplayAction(id);
-            Program.InPreGame = true;
             Player.LocalPlayer.Id = id;
             if (_client is ClientSocket cs) {
                 cs.StartPings();
@@ -290,7 +287,7 @@ namespace Octgn.Networking
                 var player = new Player(GameEngine, GameEngine.Definition, nick, userId, id, pkey, spectator, false, GameEngine.IsReplay);
                 GameEngine.GameLog.System("{0} has joined the game", player);
                 player.UpdateSettings(invertedTable, spectator, false);
-                if (Program.InPreGame == false)
+                if (GameEngine.InPreGame == false)
                 {
                     GameStateReq(player);
                     if (player.Spectator == false)
@@ -309,7 +306,7 @@ namespace Octgn.Networking
             }
             else
             {
-                if (p.Spectator == false && Program.InPreGame == false)
+                if (p.Spectator == false && GameEngine.InPreGame == false)
                 {
                     GameEngine.EventProxy.OnPlayerConnect_3_1_0_1(p);
                     GameEngine.EventProxy.OnPlayerConnected_3_1_0_2(p);
@@ -477,12 +474,12 @@ namespace Octgn.Networking
         {
             WriteReplayAction(player.Id);
             GameEngine.GameLog.System("{0} has closed their game window left the game. They did not crash or lose connection, they left on purpose.", player);
-            if( !Program.InPreGame ) {
+            if( !GameEngine.InPreGame ) {
                 GameEngine.EventProxy.OnPlayerLeaveGame_3_1_0_1( player );
                 GameEngine.EventProxy.OnPlayerQuit_3_1_0_2( player );
             }
             player.Delete();
-            if (GameEngine.IsHost && Program.InPreGame)
+            if (GameEngine.IsHost && GameEngine.InPreGame)
             {
                 Sounds.PlaySound(Properties.Resources.doorclose);
             }
