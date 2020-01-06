@@ -46,7 +46,6 @@ namespace Octgn
             Debug.WriteLine(bi);
             GlobalContext.Properties["version"] = Const.OctgnVersion;
             GlobalContext.Properties["os"] = Environment.OSVersion.ToString();
-            AppDomain.CurrentDomain.AssemblyLoad += CurrentDomainOnAssemblyLoad;
 
             int i = 0;
             foreach (var a in e.Args)
@@ -238,7 +237,6 @@ namespace Octgn
             Signal.OnException += Signal_OnException;
             if (X.Instance.Debug)
             {
-                AppDomain.CurrentDomain.FirstChanceException += this.CurrentDomainFirstChanceException;
                 ExceptionlessClient.Default.Configuration.DefaultTags.Add("DEBUG");
             }
             else
@@ -266,19 +264,6 @@ namespace Octgn
             Log.Debug("Base called.");
             Program.Start(e.Args, isTestRelease);
 
-        }
-
-        private void CurrentDomainOnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            //Log.InfoFormat("LOADED ASSEMBLY: {0} - {1}", args.LoadedAssembly.FullName, args.LoadedAssembly.IsDynamic == false ? args.LoadedAssembly.Location : "NOLOCATIONDYNAMIC");
-        }
-
-        private void CurrentDomainFirstChanceException(object sender, FirstChanceExceptionEventArgs e)
-        {
-            //if (X.Instance.Debug)
-            //{
-            //    if (Program.GameMess != null && Program.GameEngine != null) Program.GameMess.Warning(e.Exception.Message + "\n" + e.Exception.StackTrace);
-            //}
         }
 
         private void CurrentOnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
