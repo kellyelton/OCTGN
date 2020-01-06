@@ -16,20 +16,16 @@ using Octgn.Networking;
 using Octgn.Play;
 using Octgn.Scripting;
 using Octgn.Utils;
-using Card = Octgn.Play.Card;
 using Player = Octgn.Play.Player;
 using System.Reflection;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Microsoft.Win32;
 using Octgn.Core;
-using Octgn.Core.Play;
-using Octgn.Play.Gui;
 using Octgn.Windows;
 using log4net;
 using Octgn.Controls;
 using Octgn.Library.Communication;
-using Octgn.Online.Hosting;
 
 namespace Octgn
 {
@@ -50,8 +46,6 @@ namespace Octgn
 #pragma warning disable 67
         internal static event EventHandler<ServerErrorEventArgs> ServerError;
 #pragma warning restore 67
-
-        internal static GameMode GameMode { get; set; }
 
         internal static Dispatcher Dispatcher;
 
