@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Threading;
 using Octgn.Data;
-using Octgn.DataNew.Entities;
 using Octgn.Networking;
 using Octgn.Play;
 using Octgn.Scripting;

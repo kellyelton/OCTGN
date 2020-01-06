@@ -109,7 +109,7 @@ namespace Octgn.Controls
             var port = -1;
             this.ValidateFields(username, game, userhost, userport, password, out var host, out port);
 
-            GameEngine = await GameEngine.Join(game.GetGame(), username, password, Spectator, host, port).ConfigureAwait(false);
+            GameEngine = await GameEngine.Join(game.GetGame(), username, password, Spectator, host, port, Program.DeveloperMode).ConfigureAwait(false);
 
             Successful = true;
         }

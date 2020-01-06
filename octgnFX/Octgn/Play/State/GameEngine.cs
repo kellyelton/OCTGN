@@ -126,6 +126,7 @@ namespace Octgn
         public HostedGame HostedGame { get; }
         public string HostedGameName { get; }
         public bool IsHost { get; }
+        public bool IsDeveloperMode { get; }
 
         public GameLog GameLog { get; }
 
@@ -140,10 +141,11 @@ namespace Octgn
 
         }
 
-        private GameEngine(Game def, string nickname, ReplayReader replayReader) {
+        private GameEngine(Game def, string nickname, ReplayReader replayReader, bool isDeveloperMode) {
             if (def == null) throw new ArgumentNullException(nameof(def));
             if (replayReader == null) throw new ArgumentNullException(nameof(replayReader));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
+            IsDeveloperMode = isDeveloperMode;
 
             IsReplay = true;
             IsHost = true;
@@ -231,11 +233,12 @@ namespace Octgn
             }));
         }
 
-        private GameEngine(Game def, string hostedGameName, bool isHost, string nickname, bool specator, string password = "", bool isLocal = false, HostedGame hostedGame = null)
+        private GameEngine(Game def, string hostedGameName, bool isHost, string nickname, bool specator, bool isDevMode, string password = "", bool isLocal = false, HostedGame hostedGame = null)
         {
             HostedGame = hostedGame;
             HostedGameName = hostedGameName;
             IsHost = isHost;
+            IsDeveloperMode = isDevMode;
 
             History = new History(def.Id);
             if (IsHost) {
@@ -738,7 +741,7 @@ namespace Octgn
             throw new InvalidOperationException($"Unable to connect to {AppConfig.GameServerPath}.{port}");
         }
 
-        public static async Task<GameEngine> HostLocal(Game game, string name, string password, string nickname, bool allowSpectators) {
+        public static async Task<GameEngine> HostLocal(Game game, string name, string password, string nickname, bool allowSpectators, bool isDeveloperMode) {
             var hostport = new Random().Next(5000, 6000);
             while (!NetworkHelper.IsPortAvailable(hostport)) hostport++;
 
@@ -764,7 +767,7 @@ namespace Octgn
 
             Prefs.Nickname = nickname;
 
-            var engine = new GameEngine(game, name, true, nickname, false, password, true);
+            var engine = new GameEngine(game, name, true, nickname, false, isDeveloperMode, password, true);
 
             var ip = IPAddress.Parse("127.0.0.1");
 
@@ -773,7 +776,7 @@ namespace Octgn
             return engine;
         }
 
-        public static async Task<GameEngine> HostOnline(Game game, string name, string password, bool allowSpectators) {
+        public static async Task<GameEngine> HostOnline(Game game, string name, string password, bool allowSpectators, bool isDeveloperMode) {
             var apiclient = new Octgn.Site.Api.ApiClient();
             if (!await apiclient.IsGameServerRunning(Prefs.Username, Prefs.Password.Decrypt()))
             {
@@ -804,29 +807,29 @@ namespace Octgn
                 throw new UserMessageException("The Game Service is currently offline. Please try again.");
             }
 
-            var engine = new GameEngine(game, result.Name, true, result.HostUser.DisplayName, false, password, false);
+            var engine = new GameEngine(game, result.Name, true, result.HostUser.DisplayName, false, isDeveloperMode, password, false);
 
             await engine.Connect(AppConfig.GameServerPath, result.Port).ConfigureAwait(false);
 
             return engine;
         }
 
-        public static async Task<GameEngine> Join(Game game, string nickname, string password, bool spectator, IPAddress host, int port) {
+        public static async Task<GameEngine> Join(Game game, string nickname, string password, bool spectator, IPAddress host, int port, bool isDeveloperMode) {
             Log.InfoFormat("Creating client for {0}:{1}", host, port);
 
-            var engine = new GameEngine(game, null, false, nickname, spectator, password, true);
+            var engine = new GameEngine(game, null, false, nickname, spectator, isDeveloperMode, password, true);
 
             await engine.Connect(host, port).ConfigureAwait(false);
 
             return engine;
         }
 
-        public static GameEngine Replay(Game game, string replayFile) {
+        public static GameEngine Replay(Game game, string replayFile, bool isDeveloperMode) {
             ReplayReader reader = null;
             try {
                 reader = ReplayReader.FromStream(File.OpenRead(replayFile));
 
-                return new GameEngine(game, reader.Replay.User, reader);
+                return new GameEngine(game, reader.Replay.User, reader, isDeveloperMode);
             } catch {
                 reader?.Dispose();
 

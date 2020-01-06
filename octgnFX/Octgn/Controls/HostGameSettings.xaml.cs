@@ -227,11 +227,11 @@ namespace Octgn.Controls
                 var isLocalGame = CheckBoxIsLocalGame?.IsChecked ?? false;
 
                 if (isLocalGame) {
-                    GameEngine = await GameEngine.HostLocal(Game, Gamename, Password, Username, Specators);
+                    GameEngine = await GameEngine.HostLocal(Game, Gamename, Password, Username, Specators, Program.DeveloperMode);
                 } else {
                     Username = Program.LobbyClient.User.DisplayName;
 
-                    GameEngine = await GameEngine.HostOnline(Game, Gamename, Password, Specators);
+                    GameEngine = await GameEngine.HostOnline(Game, Gamename, Password, Specators, Program.DeveloperMode);
                 }
 
                 SuccessfulHost = true;

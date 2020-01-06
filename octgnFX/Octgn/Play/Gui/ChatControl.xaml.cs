@@ -27,7 +27,6 @@ using System.Collections.Generic;
 
 namespace Octgn.Play.Gui
 {
-
     partial class ChatControl : INotifyPropertyChanged
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -52,24 +51,8 @@ namespace Octgn.Play.Gui
                 return result;
             }
         }
-        private bool devMode = Program.DeveloperMode;
 
-        public bool DevMode
-        {
-            get
-            {
-                return this.devMode;
-            }
-            set
-            {
-                if (value.Equals(this.devMode))
-                {
-                    return;
-                }
-                this.devMode = value;
-                this.OnPropertyChanged("DevMode");
-            }
-        }
+        public bool DevMode => GameEngine?.IsDeveloperMode ?? false;
 
         public bool HideErrors
         {
@@ -149,6 +132,7 @@ namespace Octgn.Play.Gui
 
             chatControl.Configure((GameEngine)e.NewValue);
             chatControl.OnPropertyChanged(nameof(ShowInput));
+            chatControl.OnPropertyChanged(nameof(DevMode));
         }
 
         private GameLogReader _gameLogReader;
@@ -388,7 +372,7 @@ namespace Octgn.Play.Gui
                     }
                     if (gameLog is DebugMessage)
                     {
-                        if (Program.DeveloperMode == false || this.HideDebug)
+                        if (DevMode == false || this.HideDebug)
                             continue;
                     }
 

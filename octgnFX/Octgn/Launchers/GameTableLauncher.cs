@@ -50,7 +50,7 @@ namespace Octgn.Launchers
 
             var gameName = Randomness.RandomRoomName();
 
-            _gameEngine = await GameEngine.HostLocal(HostGame, gameName, "", Prefs.Nickname, true);
+            _gameEngine = await GameEngine.HostLocal(HostGame, gameName, "", Prefs.Nickname, true, Program.DeveloperMode);
 
             Octgn.Play.Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
             Program.GameSettings.UseTwoSidedTable = HostGame.UseTwoSidedTable;
