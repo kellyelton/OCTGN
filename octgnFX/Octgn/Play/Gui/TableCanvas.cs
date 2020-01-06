@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,6 +17,14 @@ namespace Octgn.Play.Gui
 {
     public class TableCanvas : Canvas
     {
+        public GameEngine GameEngine {
+            get { return (GameEngine)GetValue(GameEngineProperty); }
+            set { SetValue(GameEngineProperty, value); }
+        }
+
+        public static readonly DependencyProperty GameEngineProperty =
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(TableCanvas), new PropertyMetadata(null));
+
         public TableCanvas()
         {
             MoveCards.Doing += CardMoving;
@@ -75,8 +87,8 @@ namespace Octgn.Play.Gui
         private void CardMoving(object sender, EventArgs e)
         {
             var action = (MoveCards)sender;
-            Table table = Program.GameEngine.Table;
-            if ((action.Who == Player.LocalPlayer && !Program.GameEngine.IsReplay) || action.To != table || action.From != table)
+            Table table = GameEngine.Table;
+            if ((action.Who == Player.LocalPlayer && !GameEngine.IsReplay) || action.To != table || action.From != table)
                 return;
 
             for (int i = 0; i < action.Cards.Length; i++)

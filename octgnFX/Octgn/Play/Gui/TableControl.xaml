@@ -52,11 +52,6 @@
                             <RotateTransform Angle="0"/>
                         </Canvas.RenderTransform>
                     </Canvas>
-                    <!--<Canvas ZIndex="4" x:Name="PlayerCanvas" Left="-100" Top="100">
-                        <Canvas.RenderTransform>
-                            <RotateTransform Angle="0"/>
-                        </Canvas.RenderTransform>
-                    </Canvas>-->
                     <ItemsControl x:Name="cardsView" ItemsSource="{Binding Cards}"
                         Focusable="False">
                         <ItemsControl.ItemTemplate>
@@ -67,14 +62,10 @@
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <gui:TableCanvas Width="{Binding Definition.Width}" Height="{Binding Definition.Height}"
-                                 ClipToBounds="False" />
+                                                 GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:TableControl}, Mode=OneWay}" ClipToBounds="False" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemContainerStyle>
-                            <!--<Style>
-                                <Setter Property="Canvas.Left" Value="{Binding X}" />
-                                <Setter Property="Canvas.Top" Value="{Binding Y}" />
-                            </Style>-->
                             <Style TargetType="ContentPresenter">
                                 <Setter Property="ContentTemplate">
                                     <Setter.Value>
