@@ -14,7 +14,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Timers;
 using System.Windows.Data;
 using Microsoft.Win32;
 using Octgn.Annotations;
