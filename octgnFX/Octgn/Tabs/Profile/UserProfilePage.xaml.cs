@@ -143,7 +143,7 @@ namespace Octgn.Tabs.Profile
 
         private void ChangeIconClick(object sender, RoutedEventArgs e)
         {
-            if ((SubscriptionModule.Get().IsSubscribed ?? false) == false)
+            if (SubscriptionModule.Get().IsSubscribed)
             {
                 TopMostMessageBox.Show(
                     "You must be subscribed to set your icon", "Error", MessageBoxButton.OK, MessageBoxImage.Information);

@@ -7,9 +7,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
-using Octgn.Library;
 
-namespace Octgn.Core.Util
+namespace Octgn.Library.Util
 {
     public class FileDownloader : IDisposable, INotifyPropertyChanged
     {

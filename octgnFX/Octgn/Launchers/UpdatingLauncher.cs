@@ -2,6 +2,7 @@
 using log4net;
 using Octgn.Windows;
 using System.Threading.Tasks;
+using Octgn.Library;
 
 namespace Octgn.Launchers
 {
@@ -24,7 +25,7 @@ namespace Octgn.Launchers
                 if (isUpdate)
                 {
                     InterProcess.Instance.KillOtherOctgn(true);
-                    if (UpdateManager.Instance.UpdateAndRestart()) {
+                    if (UpdateManager.Current.UpdateAndRestart()) {
                         this.Shutdown = true;
                         return;
                     }

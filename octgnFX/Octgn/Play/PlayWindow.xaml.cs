@@ -316,7 +316,7 @@ namespace Octgn.Play
             _fadeOut = (Storyboard)Resources["ImageFadeOut"];
 
             // I think this is the thing that previews a card if you hover it.
-            cardViewer.Source = StringExtensionMethods.BitmapFromUri(new Uri(GameEngine.Definition.CardSize.Back));
+            cardViewer.Source = Extentions.StringExtensionMethods.BitmapFromUri(new Uri(GameEngine.Definition.CardSize.Back));
             //if (GameEngine.Definition.CardCornerRadius > 0)
             cardViewer.Clip = new RectangleGeometry();
             AddHandler(CardControl.CardHoveredEvent, new CardEventHandler(CardHovered));
@@ -1048,7 +1048,7 @@ namespace Octgn.Play
         private void MenuChangeBackgroundFromFileClick(object sender, RoutedEventArgs e)
         {
             if (this.PreGameLobby.Visibility == Visibility.Visible) return;
-            var sub = SubscriptionModule.Get().IsSubscribed ?? false;
+            var sub = SubscriptionModule.Get().IsSubscribed;
             if (!sub)
             {
                 TopMostMessageBox.Show("You must be subscribed to do that.", "OCTGN", MessageBoxButton.OK, MessageBoxImage.Information);

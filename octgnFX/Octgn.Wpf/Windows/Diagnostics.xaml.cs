@@ -20,13 +20,9 @@ using log4net;
 using log4net.Appender;
 using log4net.Core;
 
-using Microsoft.Win32;
-
-using Octgn.Annotations;
-using Octgn.Controls;
 using Octgn.Library;
 
-namespace Octgn.Windows
+namespace Octgn.Wpf.Windows
 {
 
     public partial class Diagnostics : INotifyPropertyChanged
@@ -374,19 +370,21 @@ namespace Octgn.Windows
         private static int lastFrameRate;
         private static int frameRate;
 
+        public static bool IsTestRelease { get; set; }
+
         #endregion
         internal Diagnostics()
         {
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType).Info("######Created Diagnostics Window######");
             AutoScroll = true;
-            if (Program.IsReleaseTest)
+            if (IsTestRelease)
                 VersionType = "Test";
             else if (X.Instance.Debug)
                 VersionType = "Debug";
             else
                 VersionType = "Release";
             OctgnVersion = Const.OctgnVersion.ToString();
-            LatestVersion = UpdateManager.Instance.LatestVersion.Version;
+            LatestVersion = UpdateManager.Current?.LatestVersion.Version;
             EventCounts = "Counts";
             LatestLogLines = new List<string>();
             refreshTimer.Elapsed += RefreshTimerOnElapsed;
@@ -525,7 +523,7 @@ namespace Octgn.Windows
             this.ProcessPercent = pcounter.NextValue() + "%";
             this.ProcessTime = p.TotalProcessorTime.ToString();
             this.FPS = lastFrameRate.ToString(CultureInfo.InvariantCulture);
-            LatestVersion = UpdateManager.Instance.LatestVersion.Version;
+            LatestVersion = UpdateManager.Current?.LatestVersion.Version;
 
             var pathList = Library.Config.Instance.Paths
                 .GetType()
@@ -563,14 +561,9 @@ namespace Octgn.Windows
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
@@ -688,14 +681,9 @@ namespace Octgn.Windows
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
     public class DiagnosticsAppender : AppenderSkeleton

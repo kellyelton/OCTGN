@@ -23,6 +23,7 @@ using Octgn.Library;
 using Octgn.Library.ExtensionMethods;
 
 using log4net;
+using Octgn.Library.Util;
 
 namespace Octgn.Windows
 {
@@ -105,7 +106,7 @@ namespace Octgn.Windows
             ThreadPool.QueueUserWorkItem(s => {
                 UpdateStatus("Checking For Update");
                 UpdateDetails updateDetails = null;
-                Task.Factory.StartNew(() => { updateDetails = UpdateManager.Instance.LatestVersion; });
+                Task.Factory.StartNew(() => { updateDetails = UpdateManager.Current.LatestVersion; });
                 //#if(!DEBUG)
                 if (doingTable == false) {
                     this.RandomMessage();

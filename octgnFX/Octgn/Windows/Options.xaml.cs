@@ -4,10 +4,12 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using log4net;
 using Octgn.Core;
 using Octgn.Library;
 using Octgn.Library.Exceptions;
@@ -16,6 +18,8 @@ namespace Octgn.Windows
 {
     public partial class Options
     {
+        private readonly static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public Options() {
             InitializeComponent();
 

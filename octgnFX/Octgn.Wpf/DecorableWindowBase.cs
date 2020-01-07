@@ -18,7 +18,7 @@ using Octgn.Core;
 
 namespace Octgn.Controls
 {
-    public class DecorableWindow : Window, IDisposable, INotifyPropertyChanged
+    public class DecorableWindowBase : Window, IDisposable, INotifyPropertyChanged
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -27,7 +27,7 @@ namespace Octgn.Controls
         /// <summary>
         /// The content property dependency property.
         /// </summary>
-        public static new readonly DependencyProperty ContentProperty = DependencyProperty.Register("Content", typeof(object), typeof(DecorableWindow), new UIPropertyMetadata(null, ContentChangedCallback));
+        public static new readonly DependencyProperty ContentProperty = DependencyProperty.Register("Content", typeof(object), typeof(DecorableWindowBase), new UIPropertyMetadata(null, ContentChangedCallback));
 
         /// <summary>
         /// Gets or sets Window content
@@ -46,7 +46,7 @@ namespace Octgn.Controls
         /// <param name="args">Dependency Property changed arguments</param>
         private static void ContentChangedCallback(DependencyObject property, DependencyPropertyChangedEventArgs args)
         {
-            var window = (DecorableWindow)property;
+            var window = (DecorableWindowBase)property;
             window.ContentArea.Child = (UIElement)args.NewValue;
         }
         #endregion
@@ -56,7 +56,7 @@ namespace Octgn.Controls
         /// <summary>
         /// The background property dependency property.
         /// </summary>
-        public static new readonly DependencyProperty BackgroundProperty = DependencyProperty.Register("Background", typeof(object), typeof(DecorableWindow), new UIPropertyMetadata(Brushes.Transparent, BackgroundChangedCallback));
+        public static new readonly DependencyProperty BackgroundProperty = DependencyProperty.Register("Background", typeof(object), typeof(DecorableWindowBase), new UIPropertyMetadata(Brushes.Transparent, BackgroundChangedCallback));
 
         /// <summary>
         /// Gets or sets Window background
@@ -82,7 +82,7 @@ namespace Octgn.Controls
         /// <param name="args">The Arguments</param>
         private static void BackgroundChangedCallback(DependencyObject property, DependencyPropertyChangedEventArgs args)
         {
-            var window = (DecorableWindow)property;
+            var window = (DecorableWindowBase)property;
             window.MainContainer.Background = (Brush)args.NewValue;
         }
 
@@ -246,7 +246,7 @@ namespace Octgn.Controls
         /// <summary>
         /// Initializes a new instance of the <see cref="DecorableWindow"/> class.
         /// </summary>
-        public DecorableWindow()
+        public DecorableWindowBase()
         {
             PreviewKeyUp += OnPreviewKeyUp;
             MainContainer = new Border();

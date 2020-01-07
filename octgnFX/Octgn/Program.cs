@@ -21,6 +21,9 @@ using log4net;
 using Octgn.Controls;
 using Octgn.Library.Communication;
 using System.Linq;
+using System.Threading.Tasks;
+using Octgn.Library;
+using Octgn.Wpf.Windows;
 
 namespace Octgn
 {
@@ -59,6 +62,7 @@ namespace Octgn
         {
             Log.Info("Start");
             IsReleaseTest = isTestRelease;
+            Diagnostics.IsTestRelease = isTestRelease;
 
             Log.Info("Setting SSL Validation Helper");
             SSLHelper = new SSLValidationHelper();
@@ -192,6 +196,7 @@ namespace Octgn
             {
                 Log.Warn("Sending stats error", e);
             }
+
             Log.Info("Getting Launcher");
             Launchers.ILauncher launcher = CommandLineHandler.Instance.HandleArguments(Application.Current.Dispatcher, Environment.GetCommandLineArgs());
             DeveloperMode = CommandLineHandler.Instance.DevMode;
@@ -208,6 +213,8 @@ namespace Octgn
 			//END_REPLACE_API_VERSION
             Versioned.Register<ScriptApi>();
 
+            UpdateManager.Current = new UpdateManager(IsReleaseTest);
+
             launcher.Launch().Wait();
 
             if (launcher.Shutdown)
@@ -216,13 +223,21 @@ namespace Octgn
                     Application.Current.MainWindow.Close();
                 return;
             }
+
+            UpdateManager.Current.RestartForUpdate += Instance_RestartForUpdate;
+        }
+
+        private static void Instance_RestartForUpdate(object sender, UpdateDetails e) {
+            Task.Run(() => Program.LaunchApplication(e.UpdateFile.FullName));
+
+            Program.Exit();
         }
 
         internal static void FireOptionsChanged()
         {
             Application.Current.Dispatcher.VerifyAccess();
 
-            var decoratableWindows = Application.Current.Windows.OfType<DecorableWindow>().ToArray();
+            var decoratableWindows = Application.Current.Windows.OfType<DecorableWindowBase>().ToArray();
 
             foreach (var decoratableWindow in decoratableWindows) {
                 decoratableWindow.OnPreferencesChanged();
@@ -240,7 +255,7 @@ namespace Octgn
                 Log.Error( "SSLHelper Dispose Exception", e );
             };
             Sounds.Close();
-            UpdateManager.Instance.Stop();
+            UpdateManager.Current.Stop();
             LogManager.Shutdown();
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {

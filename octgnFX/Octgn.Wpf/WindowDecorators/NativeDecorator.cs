@@ -6,7 +6,7 @@ namespace Octgn.Controls.WindowDecorators
 {
     class NativeDecorator : WindowDecorator
     {
-        public NativeDecorator(DecorableWindow decorated) : base(decorated)
+        public NativeDecorator(DecorableWindowBase decorated) : base(decorated)
         {
             IsUndoable = true;
         }

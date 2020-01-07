@@ -25,6 +25,7 @@ using log4net;
 using Octgn.Communication;
 using Octgn.Communication.Modules;
 using System.Linq;
+using Octgn.Wpf.Windows;
 
 namespace Octgn.Windows
 {
@@ -112,7 +113,7 @@ namespace Octgn.Windows
         {
             this.Loaded -= OnLoaded;
             //SubscriptionModule.Get().IsSubbedChanged += Main_IsSubbedChanged;
-            UpdateManager.Instance.Start();
+            UpdateManager.Current.Start();
 
             var uri = new System.Uri("/Resources/CustomDataAgreement.txt", UriKind.Relative);
             var info = Application.GetResourceStream(uri);
@@ -290,7 +291,7 @@ namespace Octgn.Windows
 
         private void MenuDiagClick(object sender, RoutedEventArgs e)
         {
-            Octgn.Windows.Diagnostics.Instance.Show();
+            Diagnostics.Instance.Show();
         }
 
 

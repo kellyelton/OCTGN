@@ -1,4 +1,4 @@
-﻿<Window x:Class="Octgn.Windows.Diagnostics"
+﻿<Window x:Class="Octgn.Wpf.Windows.Diagnostics"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:library="clr-namespace:Octgn.Library;assembly=Octgn.Library"

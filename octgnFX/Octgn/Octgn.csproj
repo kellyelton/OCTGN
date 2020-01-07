@@ -289,15 +289,14 @@
     </Compile>
     <Compile Include="AppConfig.cs" />
     <Compile Include="CommandLineHandler.cs" />
-    <Compile Include="Const.cs" />
     <Compile Include="Controls\ChildWindow.cs" />
     <Compile Include="Controls\ChildWindowManager.cs" />
+    <Compile Include="Controls\DecorableWindow.cs" />
     <Compile Include="Controls\RichTextBlock.cs" />
     <Compile Include="Controls\ConnectOfflineGame.xaml.cs">
       <DependentUpon>ConnectOfflineGame.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ControlTemplates\UserListItem.cs" />
-    <Compile Include="Controls\WindowDecorator.cs" />
     <Compile Include="Controls\MissedMessagesBreak.xaml.cs">
       <DependentUpon>MissedMessagesBreak.xaml</DependentUpon>
     </Compile>
@@ -337,8 +336,6 @@
     <Compile Include="Controls\HostGameSettings.xaml.cs">
       <DependentUpon>HostGameSettings.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\WindowDecorators\NativeDecorator.cs" />
-    <Compile Include="Controls\WindowDecorators\OctgnDecorator.cs" />
     <Compile Include="DeckBuilder\DeckCardsViewer.xaml.cs">
       <DependentUpon>DeckCardsViewer.xaml</DependentUpon>
     </Compile>
@@ -429,7 +426,6 @@
       <DependentUpon>WatchList.xaml</DependentUpon>
     </Compile>
     <Compile Include="UiMessages\NotifyPropertyChanged.cs" />
-    <Compile Include="UpdateManager.cs" />
     <Compile Include="Utils\BrushCache.cs" />
     <Compile Include="Utils\CompoundCall.cs" />
     <Compile Include="Utils\Converters\BooleanInverterConverter.cs" />
@@ -641,9 +637,6 @@
     </Compile>
     <Compile Include="Windows\Main.xaml.cs">
       <DependentUpon>Main.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\Diagnostics.xaml.cs">
-      <DependentUpon>Diagnostics.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Options.xaml.cs">
       <DependentUpon>Options.xaml</DependentUpon>
@@ -924,10 +917,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\PreGameLobby.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\WindowDecorators\OctgnDecoratorResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1234,10 +1223,6 @@
     <Page Include="Windows\Main.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Windows\Diagnostics.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\Options.xaml">
       <SubType>Designer</SubType>

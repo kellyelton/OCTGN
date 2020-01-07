@@ -27,7 +27,7 @@ namespace Octgn.Controls
         /// </summary>
         /// <param name="window">A <see cref="DecorableWindow"/> instance for which the decorator should be created.</param>
         /// <returns></returns>
-        internal static WindowDecorator Create(DecorableWindow window)
+        internal static WindowDecorator Create(DecorableWindowBase window)
         {
             WindowDecorator decorator;
             switch (Prefs.WindowBorderDecorator)
@@ -44,9 +44,9 @@ namespace Octgn.Controls
         }
 
         /// <summary>
-        /// The <see cref="DecorableWindow"/> instance, to which this decorator is assigned to.
+        /// The <see cref="DecorableWindowBase"/> instance, to which this decorator is assigned to.
         /// </summary>
-        protected DecorableWindow Decorated;
+        protected DecorableWindowBase Decorated;
 
         /// <summary>
         /// Specifies whether this decorator can be undone.
@@ -56,8 +56,8 @@ namespace Octgn.Controls
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowDecorator"/> class.
         /// </summary>
-        /// <param name="decorated">The <see cref="DecorableWindow"/> instance to decorate.</param>
-        protected WindowDecorator(DecorableWindow decorated)
+        /// <param name="decorated">The <see cref="DecorableWindowBase"/> instance to decorate.</param>
+        protected WindowDecorator(DecorableWindowBase decorated)
         {
             Decorated = decorated;
         }

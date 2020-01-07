@@ -149,7 +149,7 @@ namespace Octgn.Utils
 
         public static void PlayGameSoundOld(GameSound sound)
         {
-            var isSubscribed = SubscriptionModule.Get().IsSubscribed ?? false;
+            var isSubscribed = SubscriptionModule.Get().IsSubscribed;
             if (isSubscribed && Prefs.EnableGameSound)
             {
                 Log.InfoFormat("Playing game sound {0}", sound.Name);

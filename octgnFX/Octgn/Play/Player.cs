@@ -438,7 +438,7 @@ namespace Octgn.Play
                 Spectators.Add(this);
             }
             // Assign subscriber status
-            Subscriber = SubscriptionModule.Get().IsSubscribed ?? false;
+            Subscriber = SubscriptionModule.Get().IsSubscribed;
             //Create the color brushes
             SetPlayerColor(id);
             // Create counters

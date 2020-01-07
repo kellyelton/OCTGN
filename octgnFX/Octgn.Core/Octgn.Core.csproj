@@ -104,7 +104,6 @@
     <Compile Include="Tabletop\GameState.cs" />
     <Compile Include="Util\BigInteger.cs" />
     <Compile Include="Util\Crypto.cs" />
-    <Compile Include="Util\FileDownloader.cs" />
     <Compile Include="Util\TextUploader.cs" />
   </ItemGroup>
   <ItemGroup>

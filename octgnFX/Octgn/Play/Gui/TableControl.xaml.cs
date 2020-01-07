@@ -76,7 +76,7 @@ namespace Octgn.Play.Gui
             InitializeComponent();
 
             var tableDef = GameEngine.Definition.Table;
-            var subbed = SubscriptionModule.Get().IsSubscribed ?? false;
+            var subbed = SubscriptionModule.Get().IsSubscribed;
             if (subbed && !String.IsNullOrWhiteSpace(Prefs.DefaultGameBack) && File.Exists(Prefs.DefaultGameBack))
             {
                 SetBackground(Prefs.DefaultGameBack, "uniformToFill");

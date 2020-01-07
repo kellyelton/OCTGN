@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using Octgn.Library;
 
 namespace Octgn.Controls
 {
@@ -26,13 +27,13 @@ namespace Octgn.Controls
         public UpdateBar()
         {
             InitializeComponent();
-            UpdateManager.Instance.UpdateAvailable += InstanceOnUpdateAvailable;
+            UpdateManager.Current.UpdateAvailable += InstanceOnUpdateAvailable;
             this.Visibility = Visibility.Collapsed;
         }
 
-        private void InstanceOnUpdateAvailable(object sender, EventArgs eventArgs)
+        private void InstanceOnUpdateAvailable(object sender, UpdateDetails updateDetails)
         {
-            Message = String.Format("There is a new version of OCTGN available, {0}.", UpdateManager.Instance.LatestVersion.Version);
+            Message = String.Format("There is a new version of OCTGN available, {0}.", updateDetails.Version);
             Dispatcher.Invoke(new Action(
                 () =>
                     this.Visibility = Visibility.Visible)
@@ -50,7 +51,7 @@ namespace Octgn.Controls
 
         private void RestartClick(object sender, MouseButtonEventArgs e)
         {
-            UpdateManager.Instance.UpdateAndRestart();
+            UpdateManager.Current.UpdateAndRestart();
         }
     }
 }

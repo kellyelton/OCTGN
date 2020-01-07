@@ -71,6 +71,9 @@
     <Compile Include="WindowDecorator.cs" />
     <Compile Include="WindowDecorators\NativeDecorator.cs" />
     <Compile Include="WindowDecorators\OctgnDecorator.cs" />
+    <Compile Include="Windows\Diagnostics.xaml.cs">
+      <DependentUpon>Diagnostics.xaml</DependentUpon>
+    </Compile>
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -82,9 +85,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Windows\Diagnostics.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DecorableWindow.cs" />
+    <Compile Include="DecorableWindowBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

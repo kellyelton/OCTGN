@@ -86,6 +86,7 @@
     </Compile>
     <Compile Include="Config.cs" />
     <Compile Include="ConfigFile.cs" />
+    <Compile Include="Const.cs" />
     <Compile Include="Exceptions\DeckExceptions.cs" />
     <Compile Include="Exceptions\UserMessageException.cs" />
     <Compile Include="ExtensionMethods\DirectoryInfoExtensionMethods.cs" />
@@ -134,6 +135,8 @@
       <DependentUpon>Game.xsd</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="UpdateManager.cs" />
+    <Compile Include="Utils\FileDownloader.cs" />
     <Compile Include="Utils\NetworkHelper.cs" />
     <Compile Include="X.cs" />
   </ItemGroup>

@@ -60,7 +60,7 @@ namespace Octgn.Controls.WindowDecorators
         /// </summary>
         private WindowChrome WindowChrome { get; set; }
 
-        public OctgnDecorator(DecorableWindow decoratedWindow) : base(decoratedWindow)
+        public OctgnDecorator(DecorableWindowBase decoratedWindow) : base(decoratedWindow)
         {
             MainBorder = GetContainer();
             ContentArea = GetContentArea();
@@ -182,7 +182,7 @@ namespace Octgn.Controls.WindowDecorators
 
             var styles = new ResourceDictionary
             {
-                Source = new Uri("pack://application:,,,/OCTGN;component/Controls/WindowDecorators/OctgnDecoratorResources.xaml", UriKind.RelativeOrAbsolute)
+                Source = new Uri("pack://application:,,,/OCTGN.Wpf;component/WindowDecorators/OctgnDecoratorResources.xaml", UriKind.RelativeOrAbsolute)
             };
             var buttonStyle = (Style)styles["TitleBarButtonStyle"];
             buttonStyle.Setters.Add(new Setter(Control.TemplateProperty, styles["TitleBarButtonTemplate"]));

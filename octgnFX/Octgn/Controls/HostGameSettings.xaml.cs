@@ -75,10 +75,9 @@ namespace Octgn.Controls
                 || Program.LobbyClient.User.DisplayName == null) ? Prefs.Nickname : Program.LobbyClient.User.DisplayName;
 			Program.OnOptionsChanged += ProgramOnOptionsChanged;
             TextBoxUserName.IsReadOnly = Program.LobbyClient.IsConnected;
-            if(Program.LobbyClient.IsConnected)
-                PasswordGame.IsEnabled = SubscriptionModule.Get().IsSubscribed ?? false;
-            else
-            {
+            if (Program.LobbyClient.IsConnected)
+                PasswordGame.IsEnabled = SubscriptionModule.Get().IsSubscribed;
+            else {
                 PasswordGame.IsEnabled = true;
             }
             StackPanelIsLocalGame.Visibility = Prefs.EnableAdvancedOptions ? Visibility.Visible : Visibility.Collapsed;
@@ -300,7 +299,7 @@ namespace Octgn.Controls
 
         private void CheckBoxIsLocalGame_OnUnchecked(object sender, RoutedEventArgs e)
         {
-            PasswordGame.IsEnabled = SubscriptionModule.Get().IsSubscribed ?? false;
+            PasswordGame.IsEnabled = SubscriptionModule.Get().IsSubscribed;
         }
 
         private void CheckBoxSpectators_OnChecked(object sender, RoutedEventArgs e)
