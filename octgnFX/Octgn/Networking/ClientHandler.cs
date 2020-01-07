@@ -253,7 +253,7 @@ namespace Octgn.Networking
             WriteReplayAction(player.Id);
             // skip for local player, handled when called for consistency
             if (IsLocalPlayer(player)) return;
-            Program.Print(player, text);
+            player.Print(text);
         }
 
         public void Random(int result)

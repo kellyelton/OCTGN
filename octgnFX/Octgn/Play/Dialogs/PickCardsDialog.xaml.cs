@@ -167,7 +167,7 @@ namespace Octgn.Play.Dialogs
                             TabControlMain.IsEnabled = true;
                         }));
                     string noticeText = String.Format("{0} loaded a card pool with {1} cards.",Octgn.Play.Player.LocalPlayer.Name,deck.CardCount());
-                    Program.Print(Octgn.Play.Player.LocalPlayer, noticeText);
+                    Player.LocalPlayer.Print(noticeText);
                     _gameEngine.Client.Rpc.PrintReq(noticeText);
                 }).Start();
         }

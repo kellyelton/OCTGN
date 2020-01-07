@@ -815,21 +815,20 @@ namespace Octgn.Scripting.Versions
             QueueAction(() =>
             {
                 GameEngine.Client.Rpc.PrintReq(message);
-                Program.Print(Player.LocalPlayer, message);
+                Player.LocalPlayer.Print(message);
             });
         }
 
         public void Whisper(string message)
         {
-            QueueAction(() => Program.Print(Player.LocalPlayer, message));
+            QueueAction(() => Player.LocalPlayer.Print(message));
         }
 
         public void NotifyBar(string color, string message)
         {
             QueueAction(() =>
             {
-                //GameEngine.Client.Rpc.PrintReq(message);
-                Program.Print(Player.LocalPlayer, message, color);
+                Player.LocalPlayer.Print(message, color);
             });
         }
 

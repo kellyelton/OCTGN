@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -593,6 +594,84 @@ namespace Octgn.Play
             // Raise the event
             if (PlayerRemoved != null) PlayerRemoved(null, new PlayerEventArgs(this));
         }
+
+        public void Print(string text, string color = null)
+        {
+            var p = Parse(this, text);
+            if (color == null)
+            {
+                GameEngine.GameLog.Notify(p.Item1, p.Item2);
+            }
+            else
+            {
+                Color? c = null;
+                if (String.IsNullOrWhiteSpace(color))
+                {
+                    c = Colors.Black;
+                }
+                if (c == null)
+                {
+                    try
+                    {
+                        if (color.StartsWith("#") == false)
+                        {
+                            color = color.Insert(0, "#");
+                        }
+                        if (color.Length == 7)
+                        {
+                            color = color.Insert(1, "F");
+                            color = color.Insert(1, "F");
+                        }
+                        c = (Color)ColorConverter.ConvertFromString(color);
+                    }
+                    catch
+                    {
+                        c = Colors.Black;
+                    }
+                }
+                GameEngine.GameLog.NotifyBar(c.Value, p.Item1, p.Item2);
+            }
+        }
+
+        private static Tuple<string, object[]> Parse(Player player, string text)
+        {
+            string finalText = text;
+            int i = 0;
+            var args = new List<object>(2);
+            Match match = Regex.Match(text, "{([^}]*)}");
+            while (match.Success)
+            {
+                string token = match.Groups[1].Value;
+                finalText = finalText.Replace(match.Groups[0].Value, "##$$%%^^LEFTBRACKET^^%%$$##" + i + "##$$%%^^RIGHTBRACKET^^%%$$##");
+                i++;
+                object tokenValue = token;
+                switch (token)
+                {
+                    case "me":
+                        tokenValue = player;
+                        break;
+                    default:
+                        if (token.StartsWith("#"))
+                        {
+                            int id;
+                            if (!int.TryParse(token.Substring(1), out id)) break;
+                            ControllableObject obj = ControllableObject.Find(player.GameEngine, id);
+                            if (obj == null) break;
+                            tokenValue = obj;
+                            break;
+                        }
+                        break;
+                }
+                args.Add(tokenValue);
+                match = match.NextMatch();
+            }
+            args.Add(player);
+            finalText = finalText.Replace("{", "").Replace("}", "");
+            finalText = finalText.Replace("##$$%%^^LEFTBRACKET^^%%$$##", "{").Replace(
+                "##$$%%^^RIGHTBRACKET^^%%$$##", "}");
+            return new Tuple<string, object[]>(finalText, args.ToArray());
+        }
+
 
         public override string ToString()
         {
