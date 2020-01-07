@@ -38,7 +38,7 @@
                 </AdornerDecorator.RenderTransform>
                 <Grid x:Name="boardContainer" ClipToBounds="False">
                     <Image
-                        Visibility="{Binding Source={x:Static octgn:Program.GameSettings}, Path=ShowBoard, Converter={StaticResource BooleanToVisibilityHiddenConverter}}"
+                        Visibility="{Binding Path=Settings.ShowBoard, Converter={StaticResource BooleanToVisibilityHiddenConverter}}"
                         DataContext="{Binding ElementName=This, Path=GameEngine, Mode=OneWay}"
                         Source="{Binding Path=BoardImage}"
                         Width="{Binding Path=GameBoard.Width}"

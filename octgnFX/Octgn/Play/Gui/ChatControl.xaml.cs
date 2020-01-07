@@ -43,7 +43,7 @@ namespace Octgn.Play.Gui
                 if (GameEngine == null) {
                     result = false;
                 } else if (GameEngine.Spectator) {
-                    result = Program.GameSettings.MuteSpectators == false;
+                    result = GameEngine.Settings.MuteSpectators == false;
                 } else {
                     result = GameEngine.IsReplay == false;
                 }
@@ -130,7 +130,7 @@ namespace Octgn.Play.Gui
         private static void GameEngine_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
             var chatControl = (ChatControl)d;
 
-            chatControl.Configure((GameEngine)e.NewValue);
+            chatControl.Configure((GameEngine)e.OldValue, (GameEngine)e.NewValue);
             chatControl.OnPropertyChanged(nameof(ShowInput));
             chatControl.OnPropertyChanged(nameof(DevMode));
         }
@@ -145,23 +145,19 @@ namespace Octgn.Play.Gui
             if (DesignerProperties.GetIsInDesignMode(this)) return;
 
             (output.Document.Blocks.FirstBlock).Margin = new Thickness();
-
-            Loaded += delegate
-            {
-                Program.GameSettings.PropertyChanged += GameSettings_PropertyChanged;
-            };
-            Unloaded += delegate
-            {
-                Program.GameSettings.PropertyChanged -= GameSettings_PropertyChanged;
-            };
         }
 
-        private void Configure(GameEngine gameEngine) {
+        private void Configure(GameEngine previousGameEngine, GameEngine gameEngine) {
             _gameLogReader?.Dispose();
+
+            if (previousGameEngine != null) {
+                previousGameEngine.Settings.PropertyChanged -= GameSettings_PropertyChanged;
+            }
 
             if (gameEngine != null) {
                 _gameLogReader = new GameLogReader(gameEngine.GameLog);
                 _gameLogReader.Start(GameLogsAdded);
+                gameEngine.Settings.PropertyChanged += GameSettings_PropertyChanged;
             }
 
         }

@@ -46,14 +46,11 @@ namespace Octgn.Launchers
 
         private async Task Host()
         {
-            Program.GameSettings.UseTwoSidedTable = HostGame.UseTwoSidedTable;
-
             var gameName = Randomness.RandomRoomName();
 
             _gameEngine = await GameEngine.HostLocal(HostGame, gameName, "", Prefs.Nickname, true, Program.DeveloperMode);
 
             Octgn.Play.Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
-            Program.GameSettings.UseTwoSidedTable = HostGame.UseTwoSidedTable;
 
             Dispatcher.CurrentDispatcher.Invoke(new Action(()=>_gameEngine.Begin()));
         }

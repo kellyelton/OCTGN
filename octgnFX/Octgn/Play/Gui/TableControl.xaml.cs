@@ -50,19 +50,10 @@ namespace Octgn.Play.Gui
 
         public void UpdateSided()
         {
-            if (!Program.GameSettings.UseTwoSidedTable)
+            if (!GameEngine.Settings.UseTwoSidedTable)
                 middleLine.Visibility = Visibility.Collapsed;
             else
                 middleLine.Visibility = Visibility.Visible;
-
-            //if (Player.LocalPlayer.InvertedTable)
-            //{
-            //    transforms.Children.Insert(0, new ScaleTransform(-1, -1));
-            //}
-            //else
-            //{
-            //    transforms.Children.Insert(0, new ScaleTransform(0, 0));
-            //}
 
             if (Player.LocalPlayer.InvertedTable)
             {
@@ -97,7 +88,7 @@ namespace Octgn.Play.Gui
             }
             GameEngine.BoardImage = GameEngine.GameBoard.Source;
 
-            if (!Program.GameSettings.UseTwoSidedTable)
+            if (!GameEngine.Settings.UseTwoSidedTable)
                 middleLine.Visibility = Visibility.Collapsed;
 
             if (Player.LocalPlayer.InvertedTable)
@@ -118,41 +109,6 @@ namespace Octgn.Play.Gui
                                 CreateCard.Done -= CardCreated;
                             };
             Loaded += delegate { CenterView(); };
-            //var didIt = false;
-            //Loaded += delegate
-            //{
-            //if (didIt) return;
-            //didIt = true;
-            //foreach (var p in Player.AllExceptGlobal.GroupBy(x => x.InvertedTable))
-            //{
-            //    var sx = GameEngine.BoardMargin.Left;
-            //    var sy = GameEngine.BoardMargin.Bottom;
-            //    if (p.Key == true)
-            //    {
-            //        sy = GameEngine.BoardMargin.Top;
-            //        sx = GameEngine.BoardMargin.Right;
-            //    }
-            //    foreach (var player in p)
-            //    {
-            //        foreach (var tgroup in player.TableGroups)
-            //        {
-            //            var pile = new AdhocPileControl();
-            //            pile.DataContext = tgroup;
-            //            PlayerCanvas.Children.Add(pile);
-            //            Canvas.SetLeft(pile, sx);
-            //            Canvas.SetTop(pile, sy);
-            //            if (p.Key)
-            //                sx -= GameEngine.Definition.CardWidth * 2;
-            //            else
-            //                sx += GameEngine.Definition.CardWidth * 2;
-            //        }
-            //        if (p.Key)
-            //            sx -= GameEngine.Definition.CardWidth * 4;
-            //        else
-            //            sx += GameEngine.Definition.CardWidth * 4;
-            //    }
-            //}
-            //};
             GameEngine.PropertyChanged += GameOnPropertyChanged;
             if (Player.LocalPlayer.InvertedTable)
             {
@@ -220,23 +176,6 @@ namespace Octgn.Play.Gui
             }
         }
 
-        //protected Size CardSize
-        //{
-        //    get
-        //    {
-        //        if (!IsCardSizeValid)
-        //        {
-        //            double scale = Math.Min(ActualWidth/GameEngine.Definition.Table.Width,
-        //                                    ActualHeight/GameEngine.Definition.Table.Height);
-        //            scale *= Zoom;
-        //            _cardSize = new Size(GameEngine.Definition.DefaultSize.Width * scale,
-        //                                 GameEngine.Definition.DefaultSize.Height * scale);
-        //            IsCardSizeValid = true;
-        //        }
-        //        return _cardSize;
-        //    }
-        //}
-
         public int DefaultCardWidth
         {
             get { return _defaultWidth; }
@@ -300,21 +239,6 @@ namespace Octgn.Play.Gui
             Background = backBrush;
         }
 
-        //private void SetBoard(DataNew.Entities.Group tableDef)
-        //{
-        //    Rect pos = new Rect(tableDef.BoardPosition.X,tableDef.BoardPosition.Y,tableDef.BoardPosition.Width,tableDef.BoardPosition.Height);
-        //    var img = new Image
-        //                  {
-        //                      Source = ExtensionMethods.BitmapFromUri(new Uri(tableDef.Board)),
-        //                      Width = pos.Width,
-        //                      Height = pos.Height,
-        //                      HorizontalAlignment = HorizontalAlignment.Left,
-        //                      VerticalAlignment = VerticalAlignment.Top,
-        //                      Margin = new Thickness(pos.Left, pos.Top, 0, 0)
-        //                  };
-        //    boardContainer.Children.Insert(0, img);
-        //}
-
         public static bool IsInInvertedZone(double y, Card card)
         {
             return y < -card.RealHeight / 2;
@@ -359,7 +283,7 @@ namespace Octgn.Play.Gui
             }
             //e.CardSize = CardSize;
 
-            if (!Program.GameSettings.UseTwoSidedTable) return;
+            if (!GameEngine.Settings.UseTwoSidedTable) return;
             var cardCtrl = (CardControl)e.OriginalSource;
             Card baseCard = cardCtrl.Card;
             double mouseY = Mouse.GetPosition(cardsView).Y;
@@ -396,7 +320,7 @@ namespace Octgn.Play.Gui
 
             if (Selection.IsEmpty() || !(Selection.Source is Table))
             {
-                if (Program.GameSettings.UseTwoSidedTable && (e.ClickedCard.Orientation & CardOrientation.Rot90) != 0)
+                if (GameEngine.Settings.UseTwoSidedTable && (e.ClickedCard.Orientation & CardOrientation.Rot90) != 0)
                 {
                     // We have to offset the position if we cross the middle line
                     bool newPosInverted = IsInInvertedZone(pt.Y, e.ClickedCard);
@@ -468,7 +392,7 @@ namespace Octgn.Play.Gui
                     int y = (int)(c.Y + dy);
                     args.Index = table.GetCardIndex(c);
                     // If the card is tapped and has crossed the middle line in a two-sided table, we have to adjust its position
-                    if (Program.GameSettings.UseTwoSidedTable && (c.Orientation & CardOrientation.Rot90) != 0)
+                    if (c.GameEngine.Settings.UseTwoSidedTable && (c.Orientation & CardOrientation.Rot90) != 0)
                     {
                         bool oldPosInverted = IsInInvertedZone(c.Y, c);
                         bool newPosInverted = IsInInvertedZone(y, c);
@@ -1071,7 +995,7 @@ namespace Octgn.Play.Gui
                     (c.Orientation & CardOrientation.Rot90) == 0
                         ? new Rect(c.X, c.Y, w, h)
                         : // Case 2: rotated card on a 1-sided table
-                    !Program.GameSettings.UseTwoSidedTable
+                    !c.GameEngine.Settings.UseTwoSidedTable
                         ? new Rect(c.X, c.Y + h - w, h, w)
                         : // Case 3: rotated card on a 2-sided table, the card is not inversed
                     !IsInInvertedZone(c.Y, c)

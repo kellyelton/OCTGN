@@ -1037,7 +1037,7 @@ namespace Octgn.Scripting.Versions
 
         public bool IsTwoSided()
         {
-            return Program.GameSettings.UseTwoSidedTable;
+            return GameEngine.Settings.UseTwoSidedTable;
         }
 
         //status code initial value set to 0

@@ -182,7 +182,7 @@ namespace Octgn.Play.Gui
                 if (iter is TableCanvas)
                 {
                     IsOnTableCanvas = true;
-                    if (Program.GameSettings.UseTwoSidedTable)
+                    if (GameEngine.Settings.UseTwoSidedTable)
                     {
                         _invertTransform = new ScaleTransform();
                         UpdateInvertedTransform();

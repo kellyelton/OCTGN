@@ -153,9 +153,9 @@ namespace Octgn.Networking
             // than the user to click again on the checkbox.
             if (!GameEngine.IsHost)
             {
-                Program.GameSettings.UseTwoSidedTable = twoSidedTable;
-                Program.GameSettings.AllowSpectators = allowSpectators;
-                Program.GameSettings.MuteSpectators = muteSpectators;
+                GameEngine.Settings.UseTwoSidedTable = twoSidedTable;
+                GameEngine.Settings.AllowSpectators = allowSpectators;
+                GameEngine.Settings.MuteSpectators = muteSpectators;
             }
         }
 

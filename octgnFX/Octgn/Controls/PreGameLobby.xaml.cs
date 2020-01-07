@@ -69,7 +69,7 @@ namespace Octgn.Controls
             lobby.OnPropertyChanged(nameof(CanChangeSettings));
             lobby.OnPropertyChanged(nameof(IsOnline));
 
-            var gameEngine = lobby.GameEngine;
+            var gameEngine = (GameEngine)e.NewValue;
 
             var isLocal = gameEngine.IsLocal;
 
@@ -126,7 +126,6 @@ namespace Octgn.Controls
 
         private void OnUnloaded(object sender, RoutedEventArgs routedEventArgs)
         {
-            Program.GameSettings.PropertyChanged -= SettingsChanged;
             Program.ServerError -= HandshakeError;
             Player.OnLocalPlayerWelcomed -= PlayerOnOnLocalPlayerWelcomed;
         }
@@ -135,12 +134,9 @@ namespace Octgn.Controls
         {
             Loaded -= OnLoaded;
             Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
-            Program.GameSettings.UseTwoSidedTable = GameEngine.Definition.UseTwoSidedTable;
-            Program.GameSettings.ChangeTwoSidedTable = GameEngine.Definition.ChangeTwoSidedTable;
 
             Program.Dispatcher = Dispatcher;
             Program.ServerError += HandshakeError;
-            Program.GameSettings.PropertyChanged += SettingsChanged;
             // Fix: defer the call to Program.Game.Begin(), so that the trace has
             // time to connect to the ChatControl (done inside ChatControl.Loaded).
             // Otherwise, messages notifying a disconnection may be lost
@@ -224,17 +220,10 @@ namespace Octgn.Controls
             if (Player.LocalPlayer.Id == 1 && !GameEngine.IsReplay)
             {
                 Dispatcher.BeginInvoke(new Action(() => { startBtn.Visibility = Visibility.Visible; }));
-                GameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
+                GameEngine.Client.Rpc.Settings(GameEngine.Settings.UseTwoSidedTable, GameEngine.Settings.AllowSpectators, GameEngine.Settings.MuteSpectators);
             }
 			Player.LocalPlayer.SetPlayerColor(Player.LocalPlayer.Id);
             this.StartingGame = true;
-        }
-
-        private void SettingsChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (DesignerProperties.GetIsInDesignMode(this)) return;
-            if (GameEngine.IsHost)
-                GameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable, Program.GameSettings.AllowSpectators, Program.GameSettings.MuteSpectators);
         }
 
         private bool calledStart = false;
@@ -246,7 +235,7 @@ namespace Octgn.Controls
                 calledStart = true;
             }
             // Reset the InvertedTable flags if they were set and they are not used
-            if (!Program.GameSettings.UseTwoSidedTable)
+            if (!GameEngine.Settings.UseTwoSidedTable)
                 foreach (Player player in Player.AllExceptGlobal)
                     player.InvertedTable = false;
             foreach (Player player in Player.Spectators)

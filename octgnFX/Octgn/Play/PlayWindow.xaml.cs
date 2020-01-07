@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -36,7 +35,6 @@ using Octgn.Core.Play;
 using Octgn.DataNew.Entities;
 using Octgn.Library;
 using Octgn.Library.Exceptions;
-using Octgn.Windows;
 
 using log4net;
 using Octgn.Controls;
@@ -122,8 +120,6 @@ namespace Octgn.Play
             }
         }
 
-        public GameSettings GameSettings { get; set; }
-
         public ReplayEngine ReplayEngine { get; }
 
         public GameEngine GameEngine {
@@ -132,7 +128,13 @@ namespace Octgn.Play
         }
 
         public static readonly DependencyProperty GameEngineProperty =
-            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(PlayWindow), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(GameEngine), typeof(GameEngine), typeof(PlayWindow), new PropertyMetadata(GameEngine_Changed));
+
+        private static void GameEngine_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            var playWindow = (PlayWindow)d;
+
+            playWindow.OnPropertyChanged(nameof(GameSettings));
+        }
 
         [Obsolete("Used only when in design mode")]
         public PlayWindow()
@@ -143,7 +145,6 @@ namespace Octgn.Play
         public PlayWindow(GameEngine gameEngine) {
             GameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
 
-            GameSettings = Program.GameSettings;
             IsHost = GameEngine.IsHost;
             GameMessages = new ObservableCollection<IGameMessage>();
             _gameMessageReader = new GameLogReader(GameEngine.GameLog);
@@ -198,21 +199,12 @@ namespace Octgn.Play
 					Dispatcher.BeginInvoke(new Action(GameEngine.Ready), DispatcherPriority.ContextIdle);
 
                     //GameEngine.Ready();
-                    if (Program.DeveloperMode && Player.LocalPlayer.Spectator == false && GameEngine.IsReplay == false)
+                    if (GameEngine.IsDeveloperMode && Player.LocalPlayer.Spectator == false && GameEngine.IsReplay == false)
                     {
                         MenuConsole.Visibility = Visibility.Visible;
                         var wnd = new DeveloperWindow(GameEngine) { Owner = this };
                         wnd.Show();
                     }
-                    Program.GameSettings.PropertyChanged += (sender, args) =>
-                        {
-                            if (GameEngine.IsHost)
-                            {
-                                GameEngine.Client.Rpc.Settings(Program.GameSettings.UseTwoSidedTable,
-                                                            Program.GameSettings.AllowSpectators,
-                                                            Program.GameSettings.MuteSpectators);
-                            }
-                        };
                     // Select proper player tab
                     Dispatcher.BeginInvoke(new Action(() =>
                         {

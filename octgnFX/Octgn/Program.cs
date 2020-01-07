@@ -34,7 +34,6 @@ namespace Octgn
 
         public static Client LobbyClient;
 
-        public static GameSettings GameSettings { get; set; }
         public static event Action OnOptionsChanged;
 
 #pragma warning disable 67
@@ -115,7 +114,6 @@ namespace Octgn
 
             //BasePath = Path.GetDirectoryName(typeof (Program).Assembly.Location) + '\\';
             Log.Info("Setting Games Path");
-            GameSettings = new GameSettings();
             if (shutDown)
             {
                 Log.Info("Shutdown Time");

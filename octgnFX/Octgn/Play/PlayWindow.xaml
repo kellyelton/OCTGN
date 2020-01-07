@@ -96,7 +96,7 @@
                         </DataTemplate>
                     </MenuItem.ItemTemplate>
                 </MenuItem>
-                <MenuItem Header="Mute Spectators" IsCheckable="True" IsChecked="{Binding Path=GameSettings.MuteSpectators,ElementName=self, Mode=TwoWay}">
+                <MenuItem Header="Mute Spectators" IsCheckable="True" IsChecked="{Binding Path=GameEngine.Settings.MuteSpectators,ElementName=self, Mode=TwoWay}">
 
                 </MenuItem>
             </MenuItem>
