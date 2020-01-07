@@ -113,7 +113,7 @@ namespace Octgn.DeckBuilder
         public bool AlwaysShowProxy
         {
             get { return this.alwaysShowProxy; }
-            set { 
+            set {
                 this.alwaysShowProxy = value;
                 if (this.card != null)
                 {
@@ -285,7 +285,7 @@ namespace Octgn.DeckBuilder
             {
                 get
                 {
-                    if (Card == null) return false; 
+                    if (Card == null) return false;
                     var set = Card.GetSet();
                     var files = Directory.GetFiles(set.ImagePackUri, card.GetImageUri() + ".*").Where(x => Path.GetFileNameWithoutExtension(x).Equals(card.GetImageUri(), StringComparison.InvariantCultureIgnoreCase)).OrderBy(x => x.Length).ToArray();
                     if (files.Length == 0) return false;
@@ -425,7 +425,7 @@ namespace Octgn.DeckBuilder
                 IsDragDropping = false;
                 if (SubscriptionModule.Get().IsSubscribed == false)
                 {
-                    Program.DoCrazyException(new Exception("Not subscribed"), "You must be subscribed to do that.");
+                    Program.DoCrazyException("You must be subscribed to do that.");
                     return;
                 }
                 var dropFiles = (string[])args.Data.GetData(DataFormats.FileDrop);
@@ -460,7 +460,6 @@ namespace Octgn.DeckBuilder
             {
                 Log.Warn("Could not replace image", e);
                 Program.DoCrazyException(
-                    e,
                     "Could not replace the image, something went terribly wrong...You might want to try restarting OCTGN and/or your computer.");
             }
         }
@@ -522,7 +521,7 @@ namespace Octgn.DeckBuilder
             {
                 if (SubscriptionModule.Get().IsSubscribed == false)
                 {
-                    Program.DoCrazyException(new Exception("Not subscribed"), "You must be subscribed to do that." );
+                    Program.DoCrazyException("You must be subscribed to do that." );
                     return;
                 }
                 var set = Card.Card.GetSet();
@@ -546,7 +545,7 @@ namespace Octgn.DeckBuilder
             catch (Exception ex)
             {
                 Log.Warn("Could not delete card image", ex);
-                Program.DoCrazyException(ex, "Could not delete the card image, something went terribly wrong...You might want to try restarting OCTGN and/or your computer.");
+                Program.DoCrazyException("Could not delete the card image, something went terribly wrong...You might want to try restarting OCTGN and/or your computer.");
             }
         }
     }

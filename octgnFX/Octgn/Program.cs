@@ -3,18 +3,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Management;
-using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Threading;
 using Octgn.Networking;
 using Octgn.Play;
 using Octgn.Scripting;
 using Octgn.Utils;
-using Player = Octgn.Play.Player;
 using System.Reflection;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -101,16 +97,9 @@ namespace Octgn
 
             Log.Info("Creating Lobby Client");
             LobbyClient = new Client(LibraryCommunicationClientConfig.Get(), typeof(Program).Assembly.GetName().Version);
-            //Log.Info("Adding trace listeners");
-            //Debug.Listeners.Add(DebugListener);
-            //DebugTrace.Listeners.Add(DebugListener);
-            //Trace.Listeners.Add(DebugListener);
-            //ChatLog = new CacheTraceListener();
-            //Trace.Listeners.Add(ChatLog);
 
             Log.Info("Registering versioned stuff");
 
-            //BasePath = Path.GetDirectoryName(typeof (Program).Assembly.Location) + '\\';
             Log.Info("Setting Games Path");
             if (shutDown)
             {
@@ -203,9 +192,6 @@ namespace Octgn
             {
                 Log.Warn("Sending stats error", e);
             }
-            //var win = new ShareDeck();
-            //win.ShowDialog();
-            //return;
             Log.Info("Getting Launcher");
             Launchers.ILauncher launcher = CommandLineHandler.Instance.HandleArguments(Application.Current.Dispatcher, Environment.GetCommandLineArgs());
             DeveloperMode = CommandLineHandler.Instance.DevMode;
@@ -263,8 +249,7 @@ namespace Octgn
                 WindowManager.Shutdown();
 
                 //Apparently this can be null sometimes?
-                if (Application.Current != null)
-                    Application.Current.Shutdown(0);
+                Application.Current?.Shutdown(0);
             }));
 
         }
@@ -273,17 +258,13 @@ namespace Octgn
         public static void LaunchUrl(string url)
         {
             if (url == null) return;
-            if (GetDefaultBrowserPath() == null)
-            {
-                Dispatcher d = null;
-                if (d == null) d = Application.Current.Dispatcher;
-                if (d == null) d = System.Windows.Threading.Dispatcher.CurrentDispatcher;
-                if (d == null && Application.Current != null && Application.Current.MainWindow != null) d = Application.Current.MainWindow.Dispatcher;
-                if (d == null) return;
-                d.Invoke(new Action(() => new BrowserWindow(url).Show()));
-                return;
+            if (GetDefaultBrowserPath() == null) {
+                var dispatcher = Application.Current?.Dispatcher;
+                if (dispatcher == null) return;
+                dispatcher.Invoke(new Action(() => new BrowserWindow(url).Show()));
+            } else {
+                Process.Start(url);
             }
-            Process.Start(url);
         }
 
         public static void LaunchApplication(string path, params string[] args)
@@ -344,32 +325,9 @@ namespace Octgn
             return defaultBrowserPath;
         }
 
-        public static void DoCrazyException(Exception e, string action)
+        public static void DoCrazyException(string message)
         {
-            var res = TopMostMessageBox.Show(action + Environment.NewLine + Environment.NewLine + "Are you going to be ok?", "Oh No!",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question);
-//            dieinfireplz
-//            if (res == MessageBoxResult.No)
-//            {
-//                res = TopMostMessageBox.Show(
-//                    "There there...It'll all be alright..." + Environment.NewLine + Environment.NewLine +
-//                    "Do you feel that we properly comforted you in this time of great sorrow?", "Comfort Dialog",
-//                    MessageBoxButton.YesNo, MessageBoxImage.Question);
-//                if (res == MessageBoxResult.Yes)
-//                {
-//                    TopMostMessageBox.Show(
-//                        "Great! Maybe you could swing by my server room later and we can hug it out.",
-//                        "Inappropriate Gesture Dialog", MessageBoxButton.OK, MessageBoxImage.Question);
-//                    TopMostMessageBox.Show("I'll be waiting...", "Creepy Dialog Box", MessageBoxButton.OK,
-//                        MessageBoxImage.Information);
-//                }
-//                else if (res == MessageBoxResult.No)
-//                {
-//                    TopMostMessageBox.Show(
-//                        "Ok. We will sack the person responsible for that not so comforting message. Have a nice day!",
-//                        "Repercussion Dialog", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-//                }
-//            }
+            TopMostMessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

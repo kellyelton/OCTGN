@@ -1135,7 +1135,7 @@ namespace Octgn.Scripting.Versions
                 {
                     try
                     {
-                        QueueAction(() => GameEngein.FireLaunchUrl(url));
+                        QueueAction(() => GameEngine.FireLaunchUrl(url));
                         return true;
                     }
                     catch (Exception)
