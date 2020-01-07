@@ -103,7 +103,7 @@ namespace Octgn.Windows
                 return;
             }
 
-            var gameEngine = GameEngine.Replay(game, History.ReplayFile, Program.DeveloperMode);
+            var gameEngine = GameEngine.Replay(Dispatcher, game, History.ReplayFile, Program.DeveloperMode);
 
             LaunchPlayWindow(gameEngine);
         }

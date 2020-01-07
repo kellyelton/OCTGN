@@ -135,7 +135,6 @@ namespace Octgn.Controls
             Loaded -= OnLoaded;
             Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
 
-            Program.Dispatcher = Dispatcher;
             Program.ServerError += HandshakeError;
             // Fix: defer the call to Program.Game.Begin(), so that the trace has
             // time to connect to the ChatControl (done inside ChatControl.Loaded).

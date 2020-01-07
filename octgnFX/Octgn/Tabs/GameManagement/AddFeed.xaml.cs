@@ -153,7 +153,6 @@ namespace Octgn.Tabs.GameManagement
             var username = FeedUsername;
             var password = FeedPassword;
 			this.StartWait();
-			Program.Dispatcher = this.Dispatcher;
             var task = new Task(() =>
             {
                 this.ValidateFields(feedName,feedUrl,username,password);

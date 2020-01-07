@@ -218,7 +218,6 @@ namespace Octgn.Controls
 
             var error = "";
             try {
-                Program.Dispatcher = this.Dispatcher;
                 this.StartWait();
                 this.Game = (ComboBoxGame.SelectedItem as DataGameViewModel).GetGame();
                 this.Gamename = TextBoxGameName.Text;
@@ -227,11 +226,11 @@ namespace Octgn.Controls
                 var isLocalGame = CheckBoxIsLocalGame?.IsChecked ?? false;
 
                 if (isLocalGame) {
-                    GameEngine = await GameEngine.HostLocal(Game, Gamename, Password, Program.LobbyClient?.User, Username, Specators, Program.DeveloperMode);
+                    GameEngine = await GameEngine.HostLocal(Dispatcher, Game, Gamename, Password, Program.LobbyClient?.User, Username, Specators, Program.DeveloperMode);
                 } else {
                     Username = Program.LobbyClient.User.DisplayName;
 
-                    GameEngine = await GameEngine.HostOnline(Program.LobbyClient, Game, Gamename, Password, Specators, Program.DeveloperMode);
+                    GameEngine = await GameEngine.HostOnline(Dispatcher, Program.LobbyClient, Game, Gamename, Password, Specators, Program.DeveloperMode);
                 }
 
                 SuccessfulHost = true;

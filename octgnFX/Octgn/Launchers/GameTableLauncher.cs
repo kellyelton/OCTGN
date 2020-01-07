@@ -25,9 +25,8 @@ namespace Octgn.Launchers
         internal Game HostGame;
         internal string HostUrl;
 
-        public Task Launch(int? hostport, Guid? game)
+        public Task Launch(Dispatcher dispatcher, int? hostport, Guid? game)
         {
-            Program.Dispatcher = Application.Current.Dispatcher;
             HostGame = GameManager.Get().GetById(game.Value);
             if (hostport == null || hostport <= 0)
             {
@@ -39,16 +38,16 @@ namespace Octgn.Launchers
                 this.HostPort = hostport.Value;
             }
             // Host a game
-            return this.Host();
+            return this.Host(dispatcher);
         }
 
         private GameEngine _gameEngine;
 
-        private async Task Host()
+        private async Task Host(Dispatcher dispatcher)
         {
             var gameName = Randomness.RandomRoomName();
 
-            _gameEngine = await GameEngine.HostLocal(HostGame, gameName, "", Program.LobbyClient?.User, Prefs.Nickname, true, Program.DeveloperMode);
+            _gameEngine = await GameEngine.HostLocal(dispatcher, HostGame, gameName, "", Program.LobbyClient?.User, Prefs.Nickname, true, Program.DeveloperMode);
 
             Octgn.Play.Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
 

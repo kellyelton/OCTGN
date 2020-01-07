@@ -66,7 +66,6 @@ namespace Octgn.Controls
         {
             InitializeComponent();
             this.TextBoxPort.Text = Prefs.LastLocalHostedGamePort.ToString();
-            Program.Dispatcher = WindowManager.Main.Dispatcher;
             Games = new ObservableCollection<DataGameViewModel>();
             Program.LobbyClient.Connected += LobbyClient_Connected;
             Program.LobbyClient.Disconnected += LobbyClient_Disconnected;
@@ -109,7 +108,7 @@ namespace Octgn.Controls
             var port = -1;
             this.ValidateFields(username, game, userhost, userport, password, out var host, out port);
 
-            GameEngine = await GameEngine.Join(game.GetGame(), username, password, Spectator, host, port, Program.DeveloperMode).ConfigureAwait(false);
+            GameEngine = await GameEngine.Join(Dispatcher, game.GetGame(), Program.LobbyClient?.User, username, password, Spectator, host, port, Program.DeveloperMode).ConfigureAwait(false);
 
             Successful = true;
         }

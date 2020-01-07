@@ -41,8 +41,6 @@ namespace Octgn
         internal static event EventHandler<ServerErrorEventArgs> ServerError;
 #pragma warning restore 67
 
-        internal static Dispatcher Dispatcher;
-
         private static SSLValidationHelper SSLHelper;
 
         public static bool DeveloperMode { get; private set; }
@@ -210,7 +208,7 @@ namespace Octgn
             //win.ShowDialog();
             //return;
             Log.Info("Getting Launcher");
-            Launchers.ILauncher launcher = CommandLineHandler.Instance.HandleArguments(Environment.GetCommandLineArgs());
+            Launchers.ILauncher launcher = CommandLineHandler.Instance.HandleArguments(Application.Current.Dispatcher, Environment.GetCommandLineArgs());
             DeveloperMode = CommandLineHandler.Instance.DevMode;
 
             Versioned.Setup(Program.DeveloperMode);
@@ -237,7 +235,7 @@ namespace Octgn
 
         internal static void FireOptionsChanged()
         {
-            Dispatcher.VerifyAccess();
+            Application.Current.Dispatcher.VerifyAccess();
 
             var playWindows = Application.Current.Windows.OfType<PlayWindow>().ToArray();
 
@@ -375,7 +373,7 @@ namespace Octgn
             if (url == null) return;
             if (GetDefaultBrowserPath() == null)
             {
-                Dispatcher d = Dispatcher;
+                Dispatcher d = null;
                 if (d == null) d = Application.Current.Dispatcher;
                 if (d == null) d = System.Windows.Threading.Dispatcher.CurrentDispatcher;
                 if (d == null && Application.Current != null && Application.Current.MainWindow != null) d = Application.Current.MainWindow.Dispatcher;

@@ -1419,7 +1419,7 @@ namespace Octgn.Scripting.Versions
             public void Action()
             {
                 //Thread.Sleep(30);
-                Program.Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(this.Continuation));
+                engine.GameEngine.Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(this.Continuation));
             }
 
             public void Continuation()

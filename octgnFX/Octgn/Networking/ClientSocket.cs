@@ -60,7 +60,7 @@ namespace Octgn.Networking
 
         public override void OnDataReceived(object sender, byte[] data)
         {
-            Program.Dispatcher.BeginInvoke(new Action(() =>
+            Handler.GameEngine.Dispatcher.BeginInvoke(new Action(() =>
             {
                 try {
                     Handler.ReceiveMessage(data.Skip(4).ToArray());

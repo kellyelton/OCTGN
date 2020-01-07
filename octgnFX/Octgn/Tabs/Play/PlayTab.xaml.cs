@@ -261,7 +261,7 @@ namespace Octgn.Tabs.Play
 
                 var game = GameManager.Get().GetById(hostedGame.GameId);
 
-                var gameEngine = await GameEngine.Join(game, username, password, spectate, hostedGame.IPAddress, hostedGame.Port, Program.DeveloperMode);
+                var gameEngine = await GameEngine.Join(Dispatcher, game, Program.LobbyClient?.User, username, password, spectate, hostedGame.IPAddress, hostedGame.Port, Program.DeveloperMode);
 
                 Log.Info($"{nameof(JoinGame)}: Launching {nameof(PlayWindow)}");
                 LaunchPlayWindow(gameEngine);

@@ -5,7 +5,7 @@ namespace Octgn
     using System;
     using System.IO;
     using System.Reflection;
-
+    using System.Windows.Threading;
     using log4net;
 
     using Octgn.Launchers;
@@ -13,7 +13,7 @@ namespace Octgn
     public class CommandLineHandler
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-		
+
         #region Singleton
 
         internal static CommandLineHandler SingletonContext { get; set; }
@@ -44,7 +44,7 @@ namespace Octgn
 
 		public bool ShutdownProgram { get; private set; }
 
-        public ILauncher HandleArguments(string[] args)
+        public ILauncher HandleArguments(Dispatcher dispatcher, string[] args)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace Octgn
                 }
                 if (tableOnly)
                 {
-                    return new TableLauncher(hostport, gameid);
+                    return new TableLauncher(dispatcher, hostport, gameid);
                 }
 
                 if (File.Exists(args[1]))
@@ -116,7 +116,7 @@ namespace Octgn
                     // This is where we either launch the deck viewer(basically
                     //   the same control we use for the deck manager, except
                     //   it has the option to save the deck...or maybe, that's
-                    //   all that we do. That way we don't have to talk to 
+                    //   all that we do. That way we don't have to talk to
                     //   the current running octgn.
                     break;
             }

@@ -130,6 +130,8 @@ namespace Octgn
 
         public GameSettings Settings { get; }
 
+        public Dispatcher Dispatcher { get; }
+
         public string LocalUserId { get; }
 
         public ushort CurrentUniqueId;
@@ -142,10 +144,12 @@ namespace Octgn
 
         }
 
-        private GameEngine(Game def, string nickname, string localUserId, ReplayReader replayReader, bool isDeveloperMode) {
+        private GameEngine(Game def, Dispatcher dispatcher, string nickname, string localUserId, ReplayReader replayReader, bool isDeveloperMode) {
             if (def == null) throw new ArgumentNullException(nameof(def));
             if (replayReader == null) throw new ArgumentNullException(nameof(replayReader));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
+
+            Dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
 
             LocalUserId = localUserId;
 
@@ -250,7 +254,9 @@ namespace Octgn
             Client.Rpc.Settings(Settings.UseTwoSidedTable, Settings.AllowSpectators, Settings.MuteSpectators);
         }
 
-        private GameEngine(Game def, string hostedGameName, bool isHost, string nickname, string localUserId, bool specator, bool isDevMode, string password = "", bool isLocal = false, HostedGame hostedGame = null) {
+        private GameEngine(Game def, Dispatcher dispatcher, string hostedGameName, bool isHost, string nickname, string localUserId, bool specator, bool isDevMode, string password = "", bool isLocal = false, HostedGame hostedGame = null) {
+            Dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+
             LocalUserId = localUserId;
 
             Settings = new GameSettings();
@@ -314,7 +320,7 @@ namespace Octgn
                 this.Nickname = Prefs.Nickname;
                 if (string.IsNullOrWhiteSpace(this.Nickname)) this.Nickname = Randomness.GrabRandomNounWord() + new Random().Next(30);
                 var retNick = this.Nickname;
-                Program.Dispatcher.Invoke(new Action(() => {
+                Dispatcher.Invoke(new Action(() => {
                     var i = new InputDlg("Choose a nickname", "Choose a nickname", this.Nickname);
                     retNick = i.GetString();
                 }));
@@ -718,7 +724,7 @@ namespace Octgn
             throw new InvalidOperationException($"Unable to connect to {AppConfig.GameServerPath}.{port}");
         }
 
-        public static async Task<GameEngine> HostLocal(Game game, string name, string password, User octgnUser, string nickname, bool allowSpectators, bool isDeveloperMode) {
+        public static async Task<GameEngine> HostLocal(Dispatcher dispatcher, Game game, string name, string password, User octgnUser, string nickname, bool allowSpectators, bool isDeveloperMode) {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
@@ -748,7 +754,7 @@ namespace Octgn
 
             Prefs.Nickname = nickname;
 
-            var engine = new GameEngine(game, name, true, nickname, octgnUser?.Id, false, isDeveloperMode, password, true);
+            var engine = new GameEngine(game, dispatcher, name, true, nickname, octgnUser?.Id, false, isDeveloperMode, password, true);
 
             var ip = IPAddress.Parse("127.0.0.1");
 
@@ -757,7 +763,7 @@ namespace Octgn
             return engine;
         }
 
-        public static async Task<GameEngine> HostOnline(Client lobbyClient, Game game, string name, string password, bool allowSpectators, bool isDeveloperMode) {
+        public static async Task<GameEngine> HostOnline(Dispatcher dispatcher, Client lobbyClient, Game game, string name, string password, bool allowSpectators, bool isDeveloperMode) {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
 
@@ -790,27 +796,27 @@ namespace Octgn
                 throw new UserMessageException("The Game Service is currently offline. Please try again.");
             }
 
-            var engine = new GameEngine(game, result.Name, true, result.HostUser.DisplayName, lobbyClient.User.Id, false, isDeveloperMode, password, false);
+            var engine = new GameEngine(game, dispatcher, result.Name, true, result.HostUser.DisplayName, lobbyClient.User.Id, false, isDeveloperMode, password, false);
 
             await engine.Connect(AppConfig.GameServerPath, result.Port).ConfigureAwait(false);
 
             return engine;
         }
 
-        public static async Task<GameEngine> Join(Game game, User octgnUser, string nickname, string password, bool spectator, IPAddress host, int port, bool isDeveloperMode) {
+        public static async Task<GameEngine> Join(Dispatcher dispatcher, Game game, User octgnUser, string nickname, string password, bool spectator, IPAddress host, int port, bool isDeveloperMode) {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
 
             Log.InfoFormat("Creating client for {0}:{1}", host, port);
 
-            var engine = new GameEngine(game, null, false, nickname, octgnUser?.Id, spectator, isDeveloperMode, password, true);
+            var engine = new GameEngine(game, dispatcher, null, false, nickname, octgnUser?.Id, spectator, isDeveloperMode, password, true);
 
             await engine.Connect(host, port).ConfigureAwait(false);
 
             return engine;
         }
 
-        public static GameEngine Replay(Game game, string replayFile, bool isDeveloperMode) {
+        public static GameEngine Replay(Dispatcher dispatcher, Game game, string replayFile, bool isDeveloperMode) {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (string.IsNullOrWhiteSpace(replayFile)) throw new ArgumentNullException(nameof(replayFile));
 
@@ -818,7 +824,7 @@ namespace Octgn
             try {
                 reader = ReplayReader.FromStream(File.OpenRead(replayFile));
 
-                return new GameEngine(game, reader.Replay.User, null, reader, isDeveloperMode);
+                return new GameEngine(game, dispatcher, reader.Replay.User, null, reader, isDeveloperMode);
             } catch {
                 reader?.Dispose();
 
@@ -1221,7 +1227,7 @@ namespace Octgn
 
             string blockString = null;
 
-            Program.Dispatcher.InvokeAsync(() => {
+            Dispatcher.InvokeAsync(() => {
                 var block = ChatControl.GameMessageToBlock(message);
 
                 blockString = BlockToString(block);

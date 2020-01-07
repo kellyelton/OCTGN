@@ -2,6 +2,7 @@
 using MessageBox = System.Windows.MessageBox;
 using System;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace Octgn.Launchers
 {
@@ -9,8 +10,11 @@ namespace Octgn.Launchers
     {
         private readonly int? hostPort;
         private readonly Guid? gameId;
+        private readonly Dispatcher _dispatcher;
 
-        public TableLauncher(int? hostport, Guid? gameid) {
+        public TableLauncher(Dispatcher dispatcher, int? hostport, Guid? gameid) {
+            _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+
             this.hostPort = hostport;
             this.gameId = gameid;
             if (this.gameId == null) {
@@ -26,7 +30,7 @@ namespace Octgn.Launchers
 
         public override async Task AfterUpdate() {
             try {
-                await new GameTableLauncher().Launch(this.hostPort, this.gameId);
+                await new GameTableLauncher().Launch(_dispatcher, this.hostPort, this.gameId);
             } catch (Exception e) {
                 this.Log.Warn("Couldn't host/join table mode", e);
                 this.Shutdown = true;

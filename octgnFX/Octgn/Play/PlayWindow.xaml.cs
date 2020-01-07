@@ -149,7 +149,6 @@ namespace Octgn.Play
             GameMessages = new ObservableCollection<IGameMessage>();
             _gameMessageReader = new GameLogReader(GameEngine.GameLog);
             var isLocal = GameEngine.IsLocal;
-            Program.Dispatcher = Dispatcher;
             DataContext = GameEngine;
 
             ReplayEngine = GameEngine.ReplayEngine;
