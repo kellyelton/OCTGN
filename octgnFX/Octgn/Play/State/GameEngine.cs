@@ -712,7 +712,7 @@ namespace Octgn
             throw new InvalidOperationException($"Unable to connect to {AppConfig.GameServerPath}.{port}");
         }
 
-        public static async Task<GameEngine> HostLocal(Game game, string name, string password, string nickname, bool allowSpectators, bool isDeveloperMode) {
+        public static async Task<GameEngine> HostLocal(Game game, string name, string password, User octgnUser, string nickname, bool allowSpectators, bool isDeveloperMode) {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
@@ -723,7 +723,7 @@ namespace Octgn
             var result = new HostedGame() {
                 Id = Guid.NewGuid(),
                 Name = name,
-                HostUser = Program.LobbyClient?.User ?? new User(hostport.ToString(), nickname),
+                HostUser = octgnUser ?? new User(hostport.ToString(), nickname),
                 GameName = game.Name,
                 GameId = game.Id,
                 GameVersion = game.Version.ToString(),
@@ -732,8 +732,8 @@ namespace Octgn
                 GameIconUrl = game.IconUrl,
                 Spectators = allowSpectators,
             };
-            if (Program.LobbyClient?.User != null) {
-                result.HostUserIconUrl = ApiUserCache.Instance.ApiUser(Program.LobbyClient.User)?.IconUrl;
+            if (octgnUser != null) {
+                result.HostUserIconUrl = ApiUserCache.Instance.ApiUser(octgnUser)?.IconUrl;
             }
 
             // Since it's a local game, we want to use the username instead of a userid, since that won't exist.
@@ -751,7 +751,7 @@ namespace Octgn
             return engine;
         }
 
-        public static async Task<GameEngine> HostOnline(Game game, string name, string password, bool allowSpectators, bool isDeveloperMode) {
+        public static async Task<GameEngine> HostOnline(Client lobbyClient, Game game, string name, string password, bool allowSpectators, bool isDeveloperMode) {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
 
@@ -778,7 +778,7 @@ namespace Octgn
 
             HostedGame result;
             try {
-                result = await Program.LobbyClient.HostGame(req) ?? throw new InvalidOperationException("HostGame returned a null");
+                result = await lobbyClient.HostGame(req) ?? throw new InvalidOperationException("HostGame returned a null");
             } catch (ErrorResponseException ex) {
                 if (ex.Code != ErrorResponseCodes.UserOffline) throw;
                 throw new UserMessageException("The Game Service is currently offline. Please try again.");
