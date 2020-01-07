@@ -25,6 +25,7 @@ using Octgn.Windows;
 using log4net;
 using Octgn.Controls;
 using Octgn.Library.Communication;
+using System.Linq;
 
 namespace Octgn
 {
@@ -236,8 +237,17 @@ namespace Octgn
 
         internal static void FireOptionsChanged()
         {
+            Dispatcher.VerifyAccess();
+
+            var playWindows = Application.Current.Windows.OfType<PlayWindow>().ToArray();
+
+            foreach (var playWindow in playWindows) {
+                playWindow.OnPreferencesChanged();
+            }
+
             if (OnOptionsChanged != null)
                 OnOptionsChanged.Invoke();
+
         }
 
         public static void Exit()

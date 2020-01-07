@@ -220,7 +220,6 @@ namespace Octgn.Play
 
             this.Loaded += delegate
             {
-                Program.OnOptionsChanged += ProgramOnOnOptionsChanged;
                 _gameMessageReader.Start(
                     x =>
                     {
@@ -275,7 +274,6 @@ namespace Octgn.Play
             };
             this.Unloaded += delegate
             {
-                Program.OnOptionsChanged -= ProgramOnOnOptionsChanged;
                 _gameMessageReader.Stop();
             };
 
@@ -286,8 +284,7 @@ namespace Octgn.Play
             //};
         }
 
-        private void ProgramOnOnOptionsChanged()
-        {
+        public void OnPreferencesChanged() {
             OnPropertyChanged("EnableGameScripts");
         }
 
