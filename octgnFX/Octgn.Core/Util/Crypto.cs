@@ -4,7 +4,7 @@ namespace Octgn.Core.Util
     using System.Collections.Generic;
     using System.Linq;
 
-    internal static class Crypto
+    public static class Crypto
     {
         private static readonly BigInteger B = new BigInteger(1125899906842628);
         private static readonly BigInteger M = new BigInteger(18446744073709550147);

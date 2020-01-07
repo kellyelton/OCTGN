@@ -68,9 +68,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitmapImageExtensions.cs" />
+    <Compile Include="BrushCache.cs" />
+    <Compile Include="ControlExtensions.cs" />
+    <Compile Include="MouseClickHandler.cs" />
+    <Compile Include="TopMostMessageBox.cs" />
     <Compile Include="WindowDecorator.cs" />
     <Compile Include="WindowDecorators\NativeDecorator.cs" />
     <Compile Include="WindowDecorators\OctgnDecorator.cs" />
+    <Compile Include="WindowExtensionMethods.cs" />
     <Compile Include="Windows\Diagnostics.xaml.cs">
       <DependentUpon>Diagnostics.xaml</DependentUpon>
     </Compile>

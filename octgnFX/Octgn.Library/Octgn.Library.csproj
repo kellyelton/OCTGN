@@ -89,6 +89,7 @@
     <Compile Include="Const.cs" />
     <Compile Include="Exceptions\DeckExceptions.cs" />
     <Compile Include="Exceptions\UserMessageException.cs" />
+    <Compile Include="ExtensionMethods\Conversion.cs" />
     <Compile Include="ExtensionMethods\DirectoryInfoExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\EnumerableExtensionMethods.cs" />
     <Compile Include="ExtensionMethods\ExtensionMethods.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="FeedProvider.cs" />
     <Compile Include="ISimpleConfig.cs" />
     <Compile Include="LimitedMemoryAppender.cs" />
+    <Compile Include="LinqExtensions.cs" />
     <Compile Include="Localization\DynamicLanguageDictionary.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -136,6 +138,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="UpdateManager.cs" />
+    <Compile Include="Utils\CryptoRandom.cs" />
     <Compile Include="Utils\FileDownloader.cs" />
     <Compile Include="Utils\NetworkHelper.cs" />
     <Compile Include="X.cs" />
