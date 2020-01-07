@@ -283,8 +283,10 @@ namespace Octgn.Play
             //};
         }
 
-        public void OnPreferencesChanged() {
+        public override void OnPreferencesChanged() {
             OnPropertyChanged("EnableGameScripts");
+
+            base.OnPreferencesChanged();
         }
 
         private void PlayerTabsOnMouseLeave(object sender, MouseEventArgs mouseEventArgs)

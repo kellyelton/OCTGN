@@ -222,10 +222,10 @@ namespace Octgn
         {
             Application.Current.Dispatcher.VerifyAccess();
 
-            var playWindows = Application.Current.Windows.OfType<PlayWindow>().ToArray();
+            var decoratableWindows = Application.Current.Windows.OfType<DecorableWindow>().ToArray();
 
-            foreach (var playWindow in playWindows) {
-                playWindow.OnPreferencesChanged();
+            foreach (var decoratableWindow in decoratableWindows) {
+                decoratableWindow.OnPreferencesChanged();
             }
 
             if (OnOptionsChanged != null)

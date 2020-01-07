@@ -13,15 +13,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-
 using log4net;
+using Octgn.Core;
 
 namespace Octgn.Controls
 {
-    using Core;
-    using Extentions;
-    using Windows;
-
     public class DecorableWindow : Window, IDisposable, INotifyPropertyChanged
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -258,19 +254,15 @@ namespace Octgn.Controls
             ContentArea = new AdornerDecorator();
             MainContainer.Child = ContentArea;
 
-            if (this.IsInDesignMode())
-            {
-                return;
-                // none of the following statements are necessery in design mode
-            }
+            if (DesignerProperties.GetIsInDesignMode(this)) return;
+
             MainContainer.BorderThickness = new Thickness(0);
             MainContainer.BorderBrush = Brushes.Transparent;
             MainContainer.Background = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Resources/background.png"))) { Stretch = Stretch.Fill };
 
             SetWindowPosition();
 
-            Program.OnOptionsChanged += Program_OnOptionsChanged;
-            SubscriptionModule.Get().IsSubbedChanged += OnIsSubbedChanged;
+            Subscription.SubscriptionChanged += SubscriptionChanged;
             Loaded += OnLoaded;
             LocationChanged += OnLocationChanged;
 
@@ -336,7 +328,7 @@ namespace Octgn.Controls
         {
             if (args.Key == Key.F12 && (Keyboard.IsKeyDown(Key.LeftCtrl & Key.RightCtrl)))
             {
-                Diagnostics.Instance.Show();
+                LaunchDiagnostics();
             }
             if (args.Key == Key.F5 && (Keyboard.IsKeyDown(Key.LeftCtrl & Key.RightCtrl)))
             {
@@ -347,13 +339,17 @@ namespace Octgn.Controls
             }
         }
 
+        protected virtual void LaunchDiagnostics() {
+            throw new NotImplementedException();
+        }
+
         private void SetWindowPosition()
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             try
             {
-                var mainWindow = WindowManager.Main ?? Application.Current.MainWindow;
+                var mainWindow = Application.Current.MainWindow;
                 if (mainWindow != null && mainWindow.Owner == null && !Equals(mainWindow, this) && mainWindow.IsVisible)
                 {
                     WindowStartupLocation = WindowStartupLocation.Manual;
@@ -368,20 +364,22 @@ namespace Octgn.Controls
             }
         }
 
-
-        private void OnIsSubbedChanged(bool subbed)
-        {
-            Program_OnOptionsChanged();
+        public virtual void OnPreferencesChanged() {
+            Update();
         }
 
-        private void Program_OnOptionsChanged()
+        private void SubscriptionChanged(object sender, bool? e) {
+            Update();
+        }
+
+        private void Update()
         {
             if (Dispatcher.CheckAccess())
             {
-                Task.Factory.StartNew(Program_OnOptionsChanged);
+                Task.Factory.StartNew(Update);
                 return;
             }
-            var isSubbed = SubscriptionModule.Get().IsSubscribed ?? false;
+            var isSubbed = Subscription.IsActive;
             Dispatcher.Invoke(new Action(() =>
             {
                 ImageBrush ib;
@@ -427,7 +425,7 @@ namespace Octgn.Controls
         private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
             OnLocationChanged(sender, new EventArgs());
-            Program_OnOptionsChanged();
+            Update();
         }
 
         #region Implementation of IDisposable
@@ -443,8 +441,7 @@ namespace Octgn.Controls
         /// </summary>
         public void Dispose()
         {
-            Program.OnOptionsChanged -= Program_OnOptionsChanged;
-            SubscriptionModule.Get().IsSubbedChanged -= OnIsSubbedChanged;
+            Subscription.SubscriptionChanged -= SubscriptionChanged;
             Loaded -= OnLoaded;
             LocationChanged -= OnLocationChanged;
             PreviewKeyUp -= OnPreviewKeyUp;

@@ -264,11 +264,20 @@
     <Reference Include="PresentationFramework">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="Xceed.Wpf.AvalonDock">
-      <HintPath>..\..\packages\Extended.Wpf.Toolkit.3.4.0\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
+    <Reference Include="Xceed.Wpf.AvalonDock, Version=3.7.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Extended.Wpf.Toolkit.3.7.0\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
     </Reference>
-    <Reference Include="Xceed.Wpf.Toolkit, Version=3.2.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Extended.Wpf.Toolkit.3.2.0\lib\net40\Xceed.Wpf.Toolkit.dll</HintPath>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Aero, Version=3.7.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Extended.Wpf.Toolkit.3.7.0\lib\net40\Xceed.Wpf.AvalonDock.Themes.Aero.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Metro, Version=3.7.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Extended.Wpf.Toolkit.3.7.0\lib\net40\Xceed.Wpf.AvalonDock.Themes.Metro.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.VS2010, Version=3.7.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Extended.Wpf.Toolkit.3.7.0\lib\net40\Xceed.Wpf.AvalonDock.Themes.VS2010.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.Toolkit, Version=3.7.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Extended.Wpf.Toolkit.3.7.0\lib\net40\Xceed.Wpf.Toolkit.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -295,7 +304,6 @@
     <Compile Include="Controls\SubscribeMessageLargeMessage.xaml.cs">
       <DependentUpon>SubscribeMessageLargeMessage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\DecorableWindow.cs" />
     <Compile Include="Controls\OpaqueClickableImage.cs" />
     <Compile Include="Controls\TopMostMessageBox.cs" />
     <Compile Include="Controls\UpdateBar.xaml.cs">
@@ -456,7 +464,6 @@
     <Compile Include="Play\DefaultMarkerModel.cs" />
     <Compile Include="Play\DragAdorner.cs" />
     <Compile Include="Utils\CacheTraceListener.cs" />
-    <Compile Include="Utils\Cryptor.cs" />
     <Compile Include="DeckBuilder\DeckBuilderWindow.xaml.cs">
       <DependentUpon>DeckBuilderWindow.xaml</DependentUpon>
     </Compile>
@@ -1338,6 +1345,10 @@
     <ProjectReference Include="..\Octgn.Tools.Proxytest\Octgn.Tools.Proxytest.csproj">
       <Project>{4ea73d38-5443-4a40-93ab-4869202efffc}</Project>
       <Name>Octgn.Tools.Proxytest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Octgn.Wpf\Octgn.Wpf.csproj">
+      <Project>{048232d1-b13c-43dd-9855-4cf4606073a6}</Project>
+      <Name>Octgn.Wpf</Name>
     </ProjectReference>
     <ProjectReference Include="..\Octide\Octide.csproj">
       <Project>{8e3ee43c-8702-445f-95a8-abc91f3337a8}</Project>

@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Octgn.Utils
+namespace Octgn.Core
 {
     internal class Cryptor
     {

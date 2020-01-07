@@ -1,53 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using Octgn.Utils;
-using Octgn.Data;
+﻿/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+using System;
+using log4net;
 
 namespace Octgn.Extentions
 {
-    using log4net;
-
-    using Octgn.Core;
-
     public static partial class StringExtensionMethods
     {
-        public static string Decrypt(this string text)
-        {
-            if( string.IsNullOrEmpty( text ) ) return text;
-            RIPEMD160 hash = RIPEMD160.Create();
-            var un = (Prefs.Username ?? string.Empty).Clone() as string;
-            byte[] hasher = hash.ComputeHash(Encoding.Unicode.GetBytes(un));
-            text = Cryptor.Decrypt(text, BitConverter.ToString(hasher));
-            return text;
-        }
-
-        public static string Encrypt(this string text)
-        {
-            // Create a hash of current nickname to use as the Cryptographic Key
-            RIPEMD160 hash = RIPEMD160.Create();
-            var un = (Prefs.Username ?? string.Empty).Clone() as string;
-            byte[] hasher = hash.ComputeHash(Encoding.Unicode.GetBytes(un));
-            return Cryptor.Encrypt(text, BitConverter.ToString(hasher));
-        }
-
-		/// <summary>
-		/// Provides a cleaner method of string concatenation. (i.e. "Name {0}".With(firstName)
-		/// </summary>
-		public static string With(this string input, params object[] args)
-		{
-			return string.Format(input, args);
-		}
-
-        public static string Sha1(this string text)
-        {
-            var buffer = Encoding.Default.GetBytes(text);
-            var cryptoTransformSHA1 = new SHA1CryptoServiceProvider();
-            return BitConverter.ToString(cryptoTransformSHA1.ComputeHash(buffer)).Replace("-", "");
-        }
-
         public static void SetLastPythonFunction(this ILog log, string function)
         {
             GlobalContext.Properties["lastpythonfunction"] = function;
@@ -63,11 +24,6 @@ namespace Octgn.Extentions
             GlobalContext.Properties["gameName"] = gameName;
             GlobalContext.Properties["gameId"] = gameId;
             GlobalContext.Properties["gameVersion"] = gameVersion;
-        }
-
-        public static int ToInt(this Guid guid)
-        {
-            return guid.ToByteArray().Aggregate(0, (current, b) => current + b*2);
         }
     }
 }
