@@ -130,6 +130,8 @@ namespace Octgn
 
         public GameSettings Settings { get; }
 
+        public string LocalUserId { get; }
+
         public ushort CurrentUniqueId;
 
         /// <summary>
@@ -140,10 +142,12 @@ namespace Octgn
 
         }
 
-        private GameEngine(Game def, string nickname, ReplayReader replayReader, bool isDeveloperMode) {
+        private GameEngine(Game def, string nickname, string localUserId, ReplayReader replayReader, bool isDeveloperMode) {
             if (def == null) throw new ArgumentNullException(nameof(def));
             if (replayReader == null) throw new ArgumentNullException(nameof(replayReader));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
+
+            LocalUserId = localUserId;
 
             Settings = new GameSettings();
             Settings.UseTwoSidedTable = def.UseTwoSidedTable;
@@ -232,7 +236,7 @@ namespace Octgn
                 if (Definition.GlobalPlayer != null)
                     Play.Player.GlobalPlayer = new Play.Player(this, Definition, IsReplay);
                 // Create the local player
-                Play.Player.LocalPlayer = new Player(this, Definition, this.Nickname, Program.UserId, 255, Crypto.ModExp(Prefs.PrivateKey), false, true, IsReplay);
+                Play.Player.LocalPlayer = new Player(this, Definition, this.Nickname, LocalUserId, 255, Crypto.ModExp(Prefs.PrivateKey), false, true, IsReplay);
 
                 IsConnected = true;
             }));
@@ -246,7 +250,9 @@ namespace Octgn
             Client.Rpc.Settings(Settings.UseTwoSidedTable, Settings.AllowSpectators, Settings.MuteSpectators);
         }
 
-        private GameEngine(Game def, string hostedGameName, bool isHost, string nickname, bool specator, bool isDevMode, string password = "", bool isLocal = false, HostedGame hostedGame = null) {
+        private GameEngine(Game def, string hostedGameName, bool isHost, string nickname, string localUserId, bool specator, bool isDevMode, string password = "", bool isLocal = false, HostedGame hostedGame = null) {
+            LocalUserId = localUserId;
+
             Settings = new GameSettings();
             Settings.UseTwoSidedTable = def.UseTwoSidedTable;
             Settings.ChangeTwoSidedTable = def.ChangeTwoSidedTable;
@@ -340,7 +346,7 @@ namespace Octgn
                 Play.Player.All.Clear();
                 Player.Spectators.Clear();
                 // Create the local player
-                Play.Player.LocalPlayer = new Player(this, Definition, this.Nickname, Program.UserId, 255, Crypto.ModExp(Prefs.PrivateKey), specator, true, IsReplay);
+                Play.Player.LocalPlayer = new Player(this, Definition, this.Nickname, LocalUserId, 255, Crypto.ModExp(Prefs.PrivateKey), specator, true, IsReplay);
                 // Create the global player, if any
                 if (Definition.GlobalPlayer != null)
                     Play.Player.GlobalPlayer = new Play.Player(this, Definition, IsReplay);
@@ -742,7 +748,7 @@ namespace Octgn
 
             Prefs.Nickname = nickname;
 
-            var engine = new GameEngine(game, name, true, nickname, false, isDeveloperMode, password, true);
+            var engine = new GameEngine(game, name, true, nickname, octgnUser?.Id, false, isDeveloperMode, password, true);
 
             var ip = IPAddress.Parse("127.0.0.1");
 
@@ -784,20 +790,20 @@ namespace Octgn
                 throw new UserMessageException("The Game Service is currently offline. Please try again.");
             }
 
-            var engine = new GameEngine(game, result.Name, true, result.HostUser.DisplayName, false, isDeveloperMode, password, false);
+            var engine = new GameEngine(game, result.Name, true, result.HostUser.DisplayName, lobbyClient.User.Id, false, isDeveloperMode, password, false);
 
             await engine.Connect(AppConfig.GameServerPath, result.Port).ConfigureAwait(false);
 
             return engine;
         }
 
-        public static async Task<GameEngine> Join(Game game, string nickname, string password, bool spectator, IPAddress host, int port, bool isDeveloperMode) {
+        public static async Task<GameEngine> Join(Game game, User octgnUser, string nickname, string password, bool spectator, IPAddress host, int port, bool isDeveloperMode) {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
 
             Log.InfoFormat("Creating client for {0}:{1}", host, port);
 
-            var engine = new GameEngine(game, null, false, nickname, spectator, isDeveloperMode, password, true);
+            var engine = new GameEngine(game, null, false, nickname, octgnUser?.Id, spectator, isDeveloperMode, password, true);
 
             await engine.Connect(host, port).ConfigureAwait(false);
 
@@ -812,7 +818,7 @@ namespace Octgn
             try {
                 reader = ReplayReader.FromStream(File.OpenRead(replayFile));
 
-                return new GameEngine(game, reader.Replay.User, reader, isDeveloperMode);
+                return new GameEngine(game, reader.Replay.User, null, reader, isDeveloperMode);
             } catch {
                 reader?.Dispose();
 
