@@ -857,7 +857,7 @@ namespace Octgn.Play
             if (this.PreGameLobby.Visibility == Visibility.Visible) return;
             //var wnd = new AboutWindow() { Owner = this };
             //wnd.ShowDialog();
-            Program.LaunchUrl(AppConfig.WebsitePath);
+            GameEngine.FireLaunchUrl(AppConfig.WebsitePath);
         }
 
         private void ConsoleClicked(object sender, RoutedEventArgs e)
@@ -1078,7 +1078,7 @@ namespace Octgn.Play
             var url = SubscriptionModule.Get().GetSubscribeUrl(new SubType() { Description = "", Name = "" });
             if (url != null)
             {
-                Program.LaunchUrl(url);
+                GameEngine.FireLaunchUrl(url);
             }
         }
 

@@ -109,6 +109,9 @@ namespace Octgn.Controls
             this.ValidateFields(username, game, userhost, userport, password, out var host, out port);
 
             GameEngine = await GameEngine.Join(Dispatcher, game.GetGame(), Program.LobbyClient?.User, username, password, Spectator, host, port, Program.DeveloperMode).ConfigureAwait(false);
+            GameEngine.LaunchUrl += (_, url) => {
+                Program.LaunchUrl(url);
+            };
 
             Successful = true;
         }

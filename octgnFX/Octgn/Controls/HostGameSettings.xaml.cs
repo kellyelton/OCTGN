@@ -233,6 +233,10 @@ namespace Octgn.Controls
                     GameEngine = await GameEngine.HostOnline(Dispatcher, Program.LobbyClient, Game, Gamename, Password, Specators, Program.DeveloperMode);
                 }
 
+                GameEngine.LaunchUrl += (_, url) => {
+                    Program.LaunchUrl(url);
+                };
+
                 SuccessfulHost = true;
 
                 if (isLocalGame) {

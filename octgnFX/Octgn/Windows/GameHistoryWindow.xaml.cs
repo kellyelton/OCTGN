@@ -104,6 +104,9 @@ namespace Octgn.Windows
             }
 
             var gameEngine = GameEngine.Replay(Dispatcher, game, History.ReplayFile, Program.DeveloperMode);
+            gameEngine.LaunchUrl += (_, url) => {
+                Program.LaunchUrl(url);
+            };
 
             LaunchPlayWindow(gameEngine);
         }

@@ -136,6 +136,8 @@ namespace Octgn
 
         public ushort CurrentUniqueId;
 
+        public event EventHandler<string> LaunchUrl;
+
         /// <summary>
         /// For Testing
         /// </summary>
@@ -608,6 +610,10 @@ namespace Octgn
             GameLog.Warning("You have been kicked: {0}", reason);
 
             Client.Shutdown();
+        }
+
+        public void FireLaunchUrl(string url) {
+            LaunchUrl?.Invoke(this, url);
         }
 
         private string BlockToString(System.Windows.Documents.Block block) {

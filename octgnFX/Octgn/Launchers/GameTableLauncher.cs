@@ -48,6 +48,9 @@ namespace Octgn.Launchers
             var gameName = Randomness.RandomRoomName();
 
             _gameEngine = await GameEngine.HostLocal(dispatcher, HostGame, gameName, "", Program.LobbyClient?.User, Prefs.Nickname, true, Program.DeveloperMode);
+            _gameEngine.LaunchUrl += (_, url) => {
+                Program.LaunchUrl(url);
+            };
 
             Octgn.Play.Player.OnLocalPlayerWelcomed += PlayerOnOnLocalPlayerWelcomed;
 
