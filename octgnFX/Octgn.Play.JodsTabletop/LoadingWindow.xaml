@@ -1,0 +1,41 @@
+﻿<Window x:Class="Octgn.LoadingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Octgn"
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen"
+        SizeToContent="Height"
+        Title="Octgn Tabletop" Height="Auto" Width="632.932">
+    <Border Background="{StaticResource GlassPanelBrush}" Padding="5">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="150"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image Source="pack://application:,,,/Octgn.Wpf;component/Resources/Images/logolarger.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <TextBlock Text="Loading..." Grid.Column="2" FontSize="60" VerticalAlignment="Top" HorizontalAlignment="Right"
+                       Foreground="#aaFF0000" Margin="0,5,25,0">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled" />
+                        <Setter Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect ShadowDepth="1" Direction="330" RenderingBias="Quality" Color="#000000" Opacity="0.9"
+                          BlurRadius="4.5" />
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <Button Width="100" Height="20" Style="{StaticResource FlatDarkButtonStyle}" Grid.Column="1" Grid.Row="1"/>
+            <ProgressBar IsIndeterminate="True" Grid.ColumnSpan="3" Grid.Row="2" Height="30"/>
+        </Grid>
+    </Border>
+</Window>

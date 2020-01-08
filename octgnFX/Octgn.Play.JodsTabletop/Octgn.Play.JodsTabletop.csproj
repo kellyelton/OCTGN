@@ -321,6 +321,9 @@
     <Compile Include="State\GameEngine.cs" />
     <Compile Include="State\GameSaveState.cs" />
     <Compile Include="Table.cs" />
+    <Compile Include="LoadingWindow.xaml.cs">
+      <DependentUpon>LoadingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils\CompoundCall.cs" />
     <Compile Include="Utils\ImageUtils.cs" />
   </ItemGroup>
@@ -464,6 +467,10 @@
     <Page Include="Scripting\Controls\SelectMultiCardsDlg.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="LoadingWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

@@ -118,6 +118,8 @@ namespace Octgn
                 var gameEngine = GameEngine.Join(Dispatcher, game, octgnUser, nickname, password, spectator, host.Address, host.Port, IsDeveloperMode).Result;
 
                 Dispatcher.InvokeAsync(() => {
+                    //new LoadingWindow().Show();
+
                     App.PlayWindow = new PlayWindow(gameEngine);
                     App.PlayWindow.Show();
                     App.PlayWindow.Activate();
