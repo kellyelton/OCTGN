@@ -194,7 +194,7 @@ namespace Octgn.Controls.WindowDecorators
                 Content = new Image
                 {
                     Stretch = Stretch.None,
-                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/minimize.png"))
+                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN.Wpf;component/Resources/minimize.png"))
                 }
             };
             WindowChrome.SetIsHitTestVisibleInChrome(WindowMinimizeButton, true);
@@ -211,7 +211,7 @@ namespace Octgn.Controls.WindowDecorators
                 Content = new Image
                 {
                     Stretch = Stretch.None,
-                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/minmax.png"))
+                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN.Wpf;component/Resources/minmax.png"))
                 }
             };
             WindowChrome.SetIsHitTestVisibleInChrome(WindowResizeButton, true);
@@ -229,7 +229,7 @@ namespace Octgn.Controls.WindowDecorators
                 Content = new Image
                 {
                     Stretch = Stretch.None,
-                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN;component/Resources/closewindow.png"))
+                    Source = new BitmapImage(new Uri("pack://application:,,,/OCTGN.Wpf;component/Resources/closewindow.png"))
                 }
             };
             WindowChrome.SetIsHitTestVisibleInChrome(WindowCloseButton, true);

@@ -6,8 +6,6 @@
         </ResourceDictionary>
         <ResourceDictionary Source="/Resources/Themes/Full/ExpressionDark.xaml">
         </ResourceDictionary>
-        <ResourceDictionary Source="/Resources/Themes/Global.xaml">
-        </ResourceDictionary>
         <ResourceDictionary Source="/Resources/Themes/NumericUpDown.xaml">
         </ResourceDictionary>
         <ResourceDictionary Source="/Resources/Themes/ChildWindow.xaml">
@@ -15,8 +13,6 @@
         <ResourceDictionary Source="/Resources/Themes/Target.xaml">
         </ResourceDictionary>
         <ResourceDictionary Source="/Resources/Themes/BlueGlass/Window.xaml">
-        </ResourceDictionary>
-        <ResourceDictionary Source="/Resources/Themes/BlueGlass/Panel.xaml">
         </ResourceDictionary>
         <ResourceDictionary Source="/Resources/Themes/BlueGlass/CommonControls.xaml">
         </ResourceDictionary>

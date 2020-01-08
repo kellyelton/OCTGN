@@ -346,7 +346,6 @@
     <Compile Include="Launchers\GameTableLauncher.cs" />
     <Compile Include="LibraryCommunicationClientConfig.cs" />
     <Compile Include="Utils\Converters\ConnectionStatusConverter.cs" />
-    <Compile Include="Utils\Log4NetLogger.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="SubscriptionModule.cs" />
     <Compile Include="Tabs\ChallengeBoards\ChallengeBoards.xaml.cs">
@@ -370,8 +369,6 @@
       <DependentUpon>WatchList.xaml</DependentUpon>
     </Compile>
     <Compile Include="UiMessages\NotifyPropertyChanged.cs" />
-    <Compile Include="Utils\Converters\BooleanInverterConverter.cs" />
-    <Compile Include="Utils\Converters\BooleanToVisibleHiddenConverter.cs" />
     <Compile Include="Utils\Converters\NullableBooleanConverter.cs" />
     <Compile Include="Utils\ImportFile.cs" />
     <Compile Include="Utils\PasswordBoxAssistant.cs" />
@@ -506,12 +503,7 @@
     <Resource Include="Resources\soul1355.png" />
     <Resource Include="Resources\subscriberbenefits.txt" />
     <None Include="app.manifest" />
-    <None Include="DoVersionStuff.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>DoVersionStuff.txt</LastGenOutput>
-    </None>
     <None Include="Properties\SlowCheetah\SlowCheetah.Transforms.targets" />
-    <Resource Include="Resources\Fonts\Entypo.otf" />
     <Resource Include="Resources\sub.png" />
     <EmbeddedResource Include="Resources\StartupMessages.txt" />
     <Resource Include="Resources\log.ico" />
@@ -528,13 +520,7 @@
     <Resource Include="Resources\CustomDataAgreement.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\background.png" />
     <Resource Include="Resources\Icons\diag.ico" />
-    <Resource Include="DoVersionStuff.txt">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DoVersionStuff.tt</DependentUpon>
-    </Resource>
     <Resource Include="Resources\people.png" />
     <Resource Include="Resources\gamemode.png" />
     <Resource Include="Resources\circle-back-button.png" />
@@ -551,9 +537,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Content Include="Resources\knockknock.wav" />
-    <Resource Include="Resources\minimize.png" />
-    <Resource Include="Resources\minmax.png" />
-    <Resource Include="Resources\closewindow.png" />
     <Resource Include="Resources\search.png" />
     <Resource Include="Resources\admin.png" />
     <Resource Include="Resources\moderator.png" />
@@ -704,10 +687,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Resources\Themes\BlueGlass\Button.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Resources\Themes\BlueGlass\CardRun.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -732,10 +711,6 @@
     </Page>
     <Page Include="Resources\Themes\BlueGlass\NumericUpDown.xaml">
       <Generator>MSBuild:Compile</Generator>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Resources\Themes\BlueGlass\Panel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -772,14 +747,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Resources\Themes\Full\ExpressionDark.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Resources\Themes\Full\ExpressionLight.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Resources\Themes\Full\ShinyBlue.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -789,12 +756,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Resources\Themes\Full\WhistlerBlue.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Resources\Themes\Global.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

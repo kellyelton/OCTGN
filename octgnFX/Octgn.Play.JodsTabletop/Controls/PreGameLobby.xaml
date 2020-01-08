@@ -84,6 +84,7 @@
                     </Rectangle.Fill>
                 </Rectangle>
 
+
                 <Grid HorizontalAlignment="Stretch" Margin="5 0 0 0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="20"/>
