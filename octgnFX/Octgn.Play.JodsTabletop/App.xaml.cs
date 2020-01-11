@@ -36,6 +36,8 @@ namespace Octgn
 
         protected override void OnStartup(StartupEventArgs e) {
             //TODO: Get from command args
+            App.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+
             log4net.GlobalContext.Properties["gameid"] = "12345";
 
             LoggerFactory.DefaultMethod = (con)=> new Log4NetLogger(con.Name);
@@ -126,9 +128,9 @@ namespace Octgn
                 Dispatcher.InvokeAsync(() => {
                     //new LoadingWindow().Show();
 
-                    App.PlayWindow = new PlayWindow(gameEngine);
-                    App.PlayWindow.Show();
-                    App.PlayWindow.Activate();
+                    MainWindow = PlayWindow = new PlayWindow(gameEngine);
+                    PlayWindow.Show();
+                    PlayWindow.Activate();
                 });
             });
         }
