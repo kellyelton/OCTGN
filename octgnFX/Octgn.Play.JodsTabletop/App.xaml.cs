@@ -110,6 +110,12 @@ namespace Octgn
 			//END_REPLACE_API_VERSION
             Versioned.Register<ScriptApi>();
 
+            if (host == null) {
+                var port = Prefs.LastLocalHostedGamePort;
+
+                host = new IPEndPoint(IPAddress.Loopback, port);
+            }
+
 
             var game = GameManager.Get().GetById(GameDefinitionId);
             User octgnUser = null;
