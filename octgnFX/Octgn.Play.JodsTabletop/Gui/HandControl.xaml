@@ -32,7 +32,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <gui:CardControl GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:HandControl}, Mode=OneWay}"/>
+                            <gui:CardControl GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:GroupControl}, Mode=OneWay}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                     <ItemsControl.ItemContainerStyle>

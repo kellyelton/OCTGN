@@ -16,7 +16,7 @@
              >
     <UserControl.Resources>
         <DataTemplate x:Key="CardTemplate">
-            <gui:CardControl GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:AdhocPileControl}, Mode=OneWay}"/>
+            <gui:CardControl GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:GroupControl}, Mode=OneWay}"/>
         </DataTemplate>
     </UserControl.Resources>
     <Border Padding="2" >
@@ -40,7 +40,7 @@
                 </Border>
             </Grid>
 
-            <gui:CardControl x:Name="cardsCtrl" DataContext="{Binding TopCard}" GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:AdhocPileControl}, Mode=OneWay}">
+            <gui:CardControl x:Name="cardsCtrl" DataContext="{Binding TopCard}" GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:GroupControl}, Mode=OneWay}">
                 <gui:CardControl.Style>
                     <Style>
                         <Style.Triggers>

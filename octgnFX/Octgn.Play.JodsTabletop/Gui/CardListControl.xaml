@@ -15,7 +15,7 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <gui:CardControl Height="100" Margin="3" IsAlwaysUp="{Binding IsAlwaysUp, ElementName=Self}" CardImageStretch="Uniform"
-                               GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:CardListControl}, Mode=OneWay}"/>
+                               GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:GroupControl}, Mode=OneWay}"/>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
           <ItemsControl.GroupStyle>
@@ -33,7 +33,7 @@
                         <gui:CardControl Height="100" Margin="3" IsAlwaysUp="{Binding IsAlwaysUp, ElementName=Self}"
                                          MultipleCards="{Binding DataContext.Items, RelativeSource={RelativeSource TemplatedParent}}"
                                          DataContext="{Binding Items/}" CardImageStretch="Uniform"
-                                         GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:CardListControl}, Mode=OneWay}"/>
+                                         GameEngine="{Binding Path=GameEngine, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=gui:GroupControl}, Mode=OneWay}"/>
 
                       </ControlTemplate>
                     </Setter.Value>

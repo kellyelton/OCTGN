@@ -102,9 +102,37 @@ namespace Octgn.Play.Gui
         private static void GameEngine_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e) {
             var cardControl = (CardControl)d;
 
+            var previousGameEngine = (GameEngine)e.OldValue;
             var gameEngine = (GameEngine)e.NewValue;
 
+            if (previousGameEngine != null) {
+                previousGameEngine.Settings.PropertyChanged -= cardControl.Settings_PropertyChanged;
+            }
+
+            if (gameEngine != null) {
+                gameEngine.Settings.PropertyChanged += cardControl.Settings_PropertyChanged;
+            }
+
             cardControl.UpdateMarkersMargins(gameEngine);
+
+            cardControl.GameEngineSettingsUpdated();
+        }
+
+        private void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+            GameEngineSettingsUpdated();
+        }
+
+        private void GameEngineSettingsUpdated() {
+            if (GameEngine?.Settings.UseTwoSidedTable ?? false && IsOnTableCanvas) {
+                _invertTransform = new ScaleTransform();
+                UpdateInvertedTransform();
+                RenderTransform = _invertTransform;
+                RenderTransformOrigin = new Point(0.5, 0.5);
+            } else {
+                RenderTransform = null;
+                RenderTransformOrigin = new Point(0, 0);
+                _invertTransform = null;
+            }
         }
 
         #endregion
@@ -171,28 +199,20 @@ namespace Octgn.Play.Gui
             base.OnVisualParentChanged(oldParent);
 
             IsOnTableCanvas = IsInverted = false;
-            if (_invertTransform != null)
-            {
-                RenderTransform = null;
-                _invertTransform = null;
-            }
+
             DependencyObject iter = this;
             while (iter != null)
             {
                 if (iter is TableCanvas)
                 {
                     IsOnTableCanvas = true;
-                    if (GameEngine.Settings.UseTwoSidedTable)
-                    {
-                        _invertTransform = new ScaleTransform();
-                        UpdateInvertedTransform();
-                        RenderTransform = _invertTransform;
-                        RenderTransformOrigin = new Point(0.5, 0.5);
-                    }
+
                     break;
                 }
                 iter = VisualTreeHelper.GetParent(iter);
             }
+
+            GameEngineSettingsUpdated();
         }
 
         public bool IsAlwaysUp
