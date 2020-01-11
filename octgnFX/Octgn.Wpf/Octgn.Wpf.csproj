@@ -190,16 +190,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\background.png" />
+    <Resource Include="Resources\Images\background.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\minimize.png" />
+    <Resource Include="Resources\Images\minimize.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\minmax.png" />
+    <Resource Include="Resources\Images\minmax.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\closewindow.png" />
+    <Resource Include="Resources\Images\closewindow.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Icon.ico">
@@ -211,6 +211,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Images\logolarger.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\orangebullet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\greenbullet.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

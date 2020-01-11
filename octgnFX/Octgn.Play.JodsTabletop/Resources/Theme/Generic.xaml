@@ -1,13 +1,25 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:converters="clr-namespace:Octgn.Utils.Converters;assembly=Octgn.Wpf"
-                    xmlns:local="clr-namespace:Octgn.Resources.Theme">
+                    xmlns:local="clr-namespace:Octgn.Resources.Theme"
+                    xmlns:gui="clr-namespace:Octgn.Play.Gui">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/OCTGN.Wpf;component/Resources/Themes/ThemeSupport.xaml"/>
+        <ResourceDictionary Source="/OCTGN.Play.JodsTabletop;component/Resources/Theme/Target.xaml"/>
         <ResourceDictionary>
             <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
+            <gui:CenterConverter x:Key="CenterConverter" />
+            <gui:HighlightColorConverter x:Key="HighlightConverter" />
+            <gui:FilterColorConverter x:Key="FilterConverter" />
+            <gui:CountToVisibilityConverter x:Key="CountConverter" />
+            <gui:VisibleAndNullConverter x:Key="VisibleAndNullConverter" />
+            <converters:BooleanToVisibileHiddenConverter x:Key="BooleanToVisibilityHiddenConverter"/>
+
+            <DataTemplate x:Key="MarkerTemplate">
+                <gui:MarkerControl />
+            </DataTemplate>
 
             <ControlTemplate x:Key="IsAlternate" TargetType="{x:Type RadioButton}">
                 <Grid>

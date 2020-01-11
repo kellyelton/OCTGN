@@ -46,7 +46,7 @@ namespace Octgn
             IsReleaseTest = false;
 
             string nickname = null;
-            string password = null;
+            string password = string.Empty;
             bool spectator = false;
             IPEndPoint host = null;
 

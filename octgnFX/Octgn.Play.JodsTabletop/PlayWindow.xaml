@@ -163,10 +163,10 @@
                                             <Style TargetType="{x:Type Image}">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Ready}" Value="False">
-                                                        <Setter Property="Source" Value="/Resources/orangebullet.png"></Setter>
+                                                        <Setter Property="Source" Value="pack://application:,,,/OCTGN.Wpf;component/Resources/Images/orangebullet.png"></Setter>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Ready}" Value="True">
-                                                        <Setter Property="Source" Value="/Resources/greenbullet.png"></Setter>
+                                                        <Setter Property="Source" Value="pack://application:,,,/OCTGN.Wpf;component/Resources/Images/greenbullet.png"></Setter>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>

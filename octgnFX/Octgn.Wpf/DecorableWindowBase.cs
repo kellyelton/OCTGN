@@ -258,7 +258,7 @@ namespace Octgn.Controls
 
             MainContainer.BorderThickness = new Thickness(0);
             MainContainer.BorderBrush = Brushes.Transparent;
-            MainContainer.Background = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Octgn.Wpf;component/Resources/background.png"))) { Stretch = Stretch.Fill };
+            MainContainer.Background = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Octgn.Wpf;component/Resources/Images/background.png"))) { Stretch = Stretch.Fill };
 
             SetWindowPosition();
 
@@ -402,7 +402,7 @@ namespace Octgn.Controls
                 }
                 else
                 {
-                    ib = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Resources/background.png"))) { Stretch = Stretch.Fill };
+                    ib = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/OCTGN.wpf;component/Resources/Images/background.png"))) { Stretch = Stretch.Fill };
                 }
                 MainContainer.Background = ib;
             }));
