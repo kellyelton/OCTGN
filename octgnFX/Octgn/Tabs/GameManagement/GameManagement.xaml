@@ -91,7 +91,7 @@
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <Image Grid.Row="1" Source="../../Resources/Icons/Ok.png" Stretch="Uniform" Margin="5" HorizontalAlignment="Right" DataContext="{Binding}" Visibility="{Binding Installed,Converter={StaticResource BooleanToVisibilityConverter}}"></Image>
+                            <Image Grid.Row="1" Source="pack://application:,,,/Octgn.Wpf;component/Resources/Images/Ok.png" Stretch="Uniform" Margin="5" HorizontalAlignment="Right" DataContext="{Binding}" Visibility="{Binding Installed,Converter={StaticResource BooleanToVisibilityConverter}}"></Image>
                         </Grid>
                     </Grid>
                 </DataTemplate>

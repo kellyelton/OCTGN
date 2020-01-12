@@ -218,5 +218,26 @@
   <ItemGroup>
     <Resource Include="Resources\Images\greenbullet.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\Ok.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\Quit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\Save.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\LoadLimited.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\cards.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\console.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Images\diag.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

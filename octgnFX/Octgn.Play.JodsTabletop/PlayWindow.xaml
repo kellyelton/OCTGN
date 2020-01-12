@@ -332,31 +332,31 @@
                 <StackPanel Orientation="Horizontal">
                     <Button Padding="10,5,10,5" Margin="0,0,10,0" Click="LimitedOkClicked">
                         <StackPanel>
-                            <Image Source="/Resources/Icons/Ok.png" Width="32"/>
+                            <Image Source="pack://application:,,,/OCTGN.Wpf;component/Resources/Images/Ok.png" Width="32"/>
                             <TextBlock Text="Load Cards"></TextBlock>
                         </StackPanel>
                     </Button>
                     <Button Padding="10,5,10,5" Margin="0,0,10,0" Click="LimitedCancelClicked">
                         <StackPanel>
-                            <Image Source="/Resources/Icons/Quit.png" Width="32"/>
+                            <Image Source="pack://application:,,,/OCTGN.Wpf;component/Resources/Images/Quit.png" Width="32"/>
                             <TextBlock Text="Cancel"></TextBlock>
                         </StackPanel>
                     </Button>
                     <Button Padding="10,5,10,5" Margin="0,0,10,0" Click="LimitedSaveClicked">
                         <StackPanel>
-                            <Image Source="/Resources/Icons/Save.png" Width="32"/>
+                            <Image Source="pack://application:,,,/OCTGN.Wpf;component/Resources/Images/Save.png" Width="32"/>
                             <TextBlock Text="Save Deck"></TextBlock>
                         </StackPanel>
                     </Button>
                     <Button Padding="10,5,10,5" Margin="0,0,10,0" Click="LimitedLoadCardPool">
                         <StackPanel>
-                            <Image Source="/Resources/Icons/LoadLimited.png" Width="32"/>
+                            <Image Source="pack://application:,,,/OCTGN.Wpf;component/Resources/Images/LoadLimited.png" Width="32"/>
                             <TextBlock Text="Load CardPool"></TextBlock>
                         </StackPanel>
                     </Button>
                     <Button Padding="10,5,10,5" Margin="0,0,10,0" Click="LimitedAddPacks">
                         <StackPanel>
-                            <Image Source="/Resources/Icons/cards.png" Width="32"/>
+                            <Image Source="pack://application:,,,/OCTGN.Wpf;component/Resources/Images/cards.png" Width="32"/>
                             <TextBlock Text="Add Pack(s)"></TextBlock>
                         </StackPanel>
                     </Button>

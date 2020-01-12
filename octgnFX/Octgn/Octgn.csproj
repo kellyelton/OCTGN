@@ -518,7 +518,6 @@
     <Resource Include="Resources\CustomDataAgreement.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\Icons\diag.ico" />
     <Resource Include="Resources\people.png" />
     <Resource Include="Resources\gamemode.png" />
     <Resource Include="Resources\circle-back-button.png" />
@@ -568,25 +567,19 @@
     </EmbeddedResource>
     <Resource Include="Resources\eye.png" />
     <Resource Include="Resources\Icons\LoadDeck.png" />
-    <Resource Include="Resources\Icons\LoadLimited.png" />
-    <Resource Include="Resources\Icons\Quit.png" />
     <Resource Include="Resources\Icons\About.png" />
     <Resource Include="Resources\Icons\Reset.png" />
-    <Resource Include="Resources\Icons\Ok.png" />
-    <Resource Include="Resources\Icons\Save.png" />
     <None Include="Resources\109_AllAnnotations_Error_24x24_72.png" />
     <Resource Include="Resources\logo %281%29.png" />
     <Resource Include="Resources\logoback.png" />
     <Resource Include="Resources\logowords.png" />
     <Resource Include="Resources\close.png" />
-    <Resource Include="Resources\Icons\cards.png" />
     <Resource Include="Resources\cross.png" />
     <Resource Include="Resources\statusAway.png" />
     <Resource Include="Resources\statusDND.png" />
     <Resource Include="Resources\statusOffline.png" />
     <Resource Include="Resources\statusOnline.png" />
     <Resource Include="Resources\chaticon.png" />
-    <Resource Include="Resources\Icons\console.png" />
     <Resource Include="Resources\Avatar9_80.jpg" />
     <Resource Include="Resources\ralig.png" />
     <Resource Include="Resources\d0c.jpeg" />
