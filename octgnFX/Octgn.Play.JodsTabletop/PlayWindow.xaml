@@ -305,14 +305,22 @@
                 <ItemsControl Grid.Row="2" Grid.Column="0" ItemsSource="{x:Static play:Player.AllExceptGlobal}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name}" Foreground="{Binding Color}"/>
+                            <TextBlock Text="{Binding Name}">
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{Binding Color}"/>
+                                </TextBlock.Foreground>
+                            </TextBlock>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <ItemsControl Grid.Row="2" Grid.Column="2" ItemsSource="{x:Static play:Player.Spectators}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name}" Foreground="{Binding Color}"/>
+                            <TextBlock Text="{Binding Name}">
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{Binding Color}"/>
+                                </TextBlock.Foreground>
+                            </TextBlock>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -452,7 +460,7 @@
             <Grid.Style>
                 <Style>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Path=GameEngine.DeckStats.IsVisible}" Value="True">
+                        <DataTrigger Binding="{Binding Path=DeckStats.IsVisible}" Value="True">
                             <DataTrigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -518,7 +526,11 @@
                                 <Run Text="{Binding TurnNumber}" />
                                 <Run Text=":" />
                                 <LineBreak/>
-                                <Run Text="{Binding ActivePlayer.Name}" Foreground="{Binding ActivePlayer.Color}" />
+                                <Run Text="{Binding ActivePlayer.Name}">
+                                    <Run.Foreground>
+                                        <SolidColorBrush Color="{Binding ActivePlayer.Color}"/>
+                                    </Run.Foreground>
+                                </Run>
                             </TextBlock>
                             <TextBlock Style="{StaticResource PanelText}" Padding="5,0,5,2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="{Binding CurrentPhase.Name}" />
                         </StackPanel>

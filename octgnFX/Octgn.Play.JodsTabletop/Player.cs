@@ -482,7 +482,7 @@ namespace Octgn.Play
         }
 
         public bool IsGlobal { get; }
-        internal GameEngine GameEngine { get; }
+        public GameEngine GameEngine { get; }
 
         // C'tor for global items
         internal Player(GameEngine gameEngine, DataNew.Entities.Game g, bool isReplay)

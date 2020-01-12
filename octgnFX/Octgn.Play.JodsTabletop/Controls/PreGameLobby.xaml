@@ -108,7 +108,7 @@
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
                     <CheckBox VerticalAlignment="Center" Margin="0,0,8,0" IsChecked="{Binding Spectator}" IsEnabled="{Binding CanChangeSettings, ElementName=me}"
-                                            Visibility="{Binding Settings.AllowSpectators, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:PreGameLobby}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            Visibility="{Binding GameEngine.Settings.AllowSpectators, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:PreGameLobby}, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <CheckBox.Template>
                             <ControlTemplate TargetType="CheckBox">
                                 <Border Padding="2" SnapsToDevicePixels="True" BorderBrush="#eee" BorderThickness="1" Background="Transparent">
@@ -126,7 +126,7 @@
                     </CheckBox>
 
                     <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" IsChecked="{Binding InvertedTable}" IsEnabled="{Binding CanChangeSettings, ElementName=me}"
-                                            Visibility="{Binding Settings.UseTwoSidedTable, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:PreGameLobby}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            Visibility="{Binding GameEngine.Settings.UseTwoSidedTable, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:PreGameLobby}, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <CheckBox.Template>
                             <ControlTemplate TargetType="CheckBox">
                                 <Border Padding="2" SnapsToDevicePixels="True" BorderBrush="#eee" BorderThickness="1" Background="Transparent">
