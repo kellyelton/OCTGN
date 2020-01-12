@@ -550,7 +550,7 @@ namespace Octgn.Play.Gui
         protected void ZoomChanged()
         {
             IsCardSizeValid = false;
-            UpdateYCenterOffset();
+            DispatchUpdateYCenterOffset();
         }
 
         protected static void OffsetChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -560,32 +560,32 @@ namespace Octgn.Play.Gui
 
         protected void OffsetChanged()
         {
-            UpdateYCenterOffset();
+            DispatchUpdateYCenterOffset();
         }
 
-        protected void UpdateYCenterOffset()
+        protected void DispatchUpdateYCenterOffset()
         {
             // Don't queue the update multiple times (could happen e.g. when updating the Offset and then the Zoom property)
-            if (_updateYCenterOperation != null && _updateYCenterOperation.Status == DispatcherOperationStatus.Pending)
+            if (_updateYCenterOperation != null)
                 return;
 
             // Bug fix: if done immediately, the layout is slightly incorrect (e.g. in the case of mouse wheel zoom).
             // so we dispatch the update until all transforms are updated.
-            _updateYCenterOperation = Dispatcher.BeginInvoke(new Action(delegate
-                                                                            {
-                                                                                // TODO: Figure out what this is for and why it sometimes fails
-                                                                                try
-                                                                                {
-                                                                                    if (!cardsView.IsAncestorOf(this)) return;
+            _updateYCenterOperation = Dispatcher.BeginInvoke(new Action(UpdateYCenterOffset));
+        }
 
-                                                                                    Point pt = cardsView.TransformToAncestor(this).Transform(new Point());
-                                                                                    YCenterOffset = pt.Y;
-                                                                                }
-                                                                                catch (InvalidOperationException e) when (!cardsView.IsAncestorOf(this))
-                                                                                {
-                                                                                    // Swallow
-                                                                                }
-                                                                            }));
+        private void UpdateYCenterOffset() {
+            try {
+                Dispatcher.VerifyAccess();
+
+                if (!IsAncestorOf(cardsView)) return;
+
+                Point pt = cardsView.TransformToAncestor(this).Transform(new Point());
+
+                YCenterOffset = pt.Y;
+            } finally {
+                _updateYCenterOperation = null;
+            }
         }
 
         protected override void OnMouseWheel(MouseWheelEventArgs e)
@@ -645,7 +645,7 @@ namespace Octgn.Play.Gui
                 _stretchMargins.Height = 0;
             }
 
-            UpdateYCenterOffset();
+            DispatchUpdateYCenterOffset();
         }
 
         protected void BringCardIntoView(Card card)
