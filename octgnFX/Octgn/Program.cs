@@ -7,9 +7,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Management;
 using System.Windows;
-using Octgn.Networking;
-using Octgn.Play;
-using Octgn.Scripting;
 using Octgn.Utils;
 using System.Reflection;
 using System.Windows.Interop;
@@ -35,10 +32,6 @@ namespace Octgn
         public static Client LobbyClient;
 
         public static event Action OnOptionsChanged;
-
-#pragma warning disable 67
-        internal static event EventHandler<ServerErrorEventArgs> ServerError;
-#pragma warning restore 67
 
         private static SSLValidationHelper SSLHelper;
 
@@ -243,7 +236,6 @@ namespace Octgn
             catch (Exception e) {
                 Log.Error( "SSLHelper Dispose Exception", e );
             };
-            Sounds.Close();
             UpdateManager.Current.Stop();
             LogManager.Shutdown();
             Application.Current.Dispatcher.Invoke(new Action(() =>

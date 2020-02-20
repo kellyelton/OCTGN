@@ -13,7 +13,7 @@ namespace Octgn.Library.Plugin
 
     using log4net;
 
-    internal static class PluginManager
+    public static class PluginManager
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         internal static IFileSystem FS { get; set; }
@@ -26,7 +26,7 @@ namespace Octgn.Library.Plugin
             PluginDomains = new Dictionary<string, AppDomain>();
         }
 
-        internal static IQueryable<T> GetPlugins<T>()
+        public static IQueryable<T> GetPlugins<T>()
         {
             if (!FS.Directory.Exists(Config.Instance.Paths.PluginPath)) FS.Directory.CreateDirectory(Config.Instance.Paths.PluginPath);
 
@@ -50,7 +50,7 @@ namespace Octgn.Library.Plugin
             return ret.AsQueryable();
         }
 
-        internal static T LoadExtension<T>(string path)
+        public static T LoadExtension<T>(string path)
         {
             //var pc = new PluginContainer(path);
             var loadedHotAss = Assembly.LoadFile(path);
@@ -60,7 +60,7 @@ namespace Octgn.Library.Plugin
             throw new InstanceNotFoundException(String.Format("Instance of the plugin type {0} was not found in the file {1}", typeof(T).Name, path));
         }
 
-        internal static AppDomain GetOrCreate(string path)
+        public static AppDomain GetOrCreate(string path)
         {
             if (!PluginDomains.ContainsKey(path))
                 PluginDomains[path] = AppDomain.CreateDomain(Guid.NewGuid().ToString());

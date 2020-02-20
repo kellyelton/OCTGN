@@ -38,6 +38,9 @@
     <StartupObject>Octgn.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine, Version=2.7.82.0, Culture=neutral, PublicKeyToken=5a870481e358d379, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\CommandLineParser.2.7.82\lib\net461\CommandLine.dll</HintPath>
+    </Reference>
     <Reference Include="CommonServiceLocator, Version=2.0.2.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
       <HintPath>..\..\packages\CommonServiceLocator.2.0.2\lib\net47\CommonServiceLocator.dll</HintPath>
     </Reference>
@@ -73,9 +76,6 @@
     </Reference>
     <Reference Include="Microsoft.Scripting.Metadata, Version=1.2.2.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <HintPath>..\..\packages\DynamicLanguageRuntime.1.2.2\lib\net45\Microsoft.Scripting.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Options, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Mono.Options.5.3.0.1\lib\net4-client\Mono.Options.dll</HintPath>
     </Reference>
     <Reference Include="NAudio, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NAudio.1.9.0\lib\net35\NAudio.dll</HintPath>
@@ -161,6 +161,31 @@
     <Compile Include="Controls\TextOrIcon.cs" />
     <Compile Include="Controls\VirtualizingWrapPanel.cs" />
     <Compile Include="Counter.cs" />
+    <Compile Include="DeckBuilder\DeckBuilderWindow.xaml.cs">
+      <DependentUpon>DeckBuilderWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeckBuilder\DeckCardsViewer.xaml.cs">
+      <DependentUpon>DeckCardsViewer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeckBuilder\DeckEditorPreviewControl.xaml.cs">
+      <DependentUpon>DeckEditorPreviewControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeckBuilder\DeckManager.xaml.cs">
+      <DependentUpon>DeckManager.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeckBuilder\FilterControl.xaml.cs">
+      <DependentUpon>FilterControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeckBuilder\MetaDeck.cs" />
+    <Compile Include="DeckBuilder\SearchControl.xaml.cs">
+      <DependentUpon>SearchControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeckBuilder\SearchFilterItem.cs" />
+    <Compile Include="DeckBuilder\SearchSave.cs" />
+    <Compile Include="DeckBuilder\SetPropertyDef.cs" />
+    <Compile Include="DeckBuilder\SleeveManagerView.xaml.cs">
+      <DependentUpon>SleeveManagerView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DefaultMarkerModel.cs" />
     <Compile Include="DeveloperConsole\InteractiveConsole.xaml.cs">
       <DependentUpon>InteractiveConsole.xaml</DependentUpon>
@@ -178,9 +203,11 @@
       <DependentUpon>RulesWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="DragAdorner.cs" />
+    <Compile Include="Effects\GridLengthAnimation.cs" />
     <Compile Include="Events.cs" />
-    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extensions\String.cs" />
+    <Compile Include="Extensions\DeckExtensionMethods.cs" />
+    <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="Gui\AdhocPileControl.xaml.cs">
       <DependentUpon>AdhocPileControl.xaml</DependentUpon>
@@ -243,6 +270,10 @@
     <Compile Include="Gui\VirtualizingTilePanel.cs" />
     <Compile Include="Gui\WrapPanel.cs" />
     <Compile Include="Hand.cs" />
+    <Compile Include="Launchers\ILauncher.cs" />
+    <Compile Include="Launchers\JoinGameLauncher.cs" />
+    <Compile Include="Launchers\NewDeckLauncher.cs" />
+    <Compile Include="Launchers\OpenDeckLauncher.cs" />
     <Compile Include="Marker.cs" />
     <Compile Include="Networking\BinaryParser.cs">
       <DependentUpon>BinaryParser.tt</DependentUpon>
@@ -271,6 +302,7 @@
     <Compile Include="PlayWindow.xaml.cs">
       <DependentUpon>PlayWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Save\History.cs" />
     <Compile Include="Save\Replay.cs" />
     <Compile Include="Save\ReplayClient.cs" />
@@ -320,10 +352,12 @@
     <Compile Include="Sounds.cs" />
     <Compile Include="State\GameEngine.cs" />
     <Compile Include="State\GameSaveState.cs" />
+    <Compile Include="SubscriptionModule.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="LoadingWindow.xaml.cs">
       <DependentUpon>LoadingWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UiMessages\NotifyPropertyChanged.cs" />
     <Compile Include="Utils\CompoundCall.cs" />
     <Compile Include="Utils\ImageUtils.cs" />
   </ItemGroup>
@@ -357,6 +391,34 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\PreGameLobby.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DeckBuilder\DeckBuilderWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DeckBuilder\DeckCardsViewer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DeckBuilder\DeckEditorPreviewControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DeckBuilder\DeckManager.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DeckBuilder\FilterControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DeckBuilder\SearchControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DeckBuilder\SleeveManagerView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

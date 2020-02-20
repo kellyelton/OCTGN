@@ -20,7 +20,6 @@ using Octgn.Core.Plugin;
 using Octgn.DataNew.Entities;
 using Octgn.Library.Exceptions;
 using Octgn.Library.Plugin;
-using Octgn.Windows;
 
 using log4net;
 using Octgn.Controls;
@@ -28,6 +27,7 @@ using System.Windows.Media;
 using System.Windows.Documents;
 using Octgn.Extentions;
 using System.Windows.Media.Imaging;
+using Octgn.Wpf;
 
 namespace Octgn.DeckBuilder
 {
@@ -632,11 +632,6 @@ namespace Octgn.DeckBuilder
             }
             isRealClosing = true;
             Game = null; // Close DB if required
-            WindowManager.DeckEditor = null;
-            if (this.exitOnClose)
-            {
-                Program.Exit();
-            }
         }
 
         private void CardSelected(object sender, SearchCardImageEventArgs e)

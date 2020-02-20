@@ -321,29 +321,11 @@
     <Compile Include="Controls\HostGameSettings.xaml.cs">
       <DependentUpon>HostGameSettings.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DeckBuilder\DeckCardsViewer.xaml.cs">
-      <DependentUpon>DeckCardsViewer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DeckBuilder\DeckEditorPreviewControl.xaml.cs">
-      <DependentUpon>DeckEditorPreviewControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DeckBuilder\DeckManager.xaml.cs">
-      <DependentUpon>DeckManager.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DeckBuilder\MetaDeck.cs" />
-    <Compile Include="DeckBuilder\SearchFilterItem.cs" />
-    <Compile Include="DeckBuilder\SearchSave.cs" />
-    <Compile Include="Effects\GridLengthAnimation.cs" />
-    <Compile Include="Extentions\DeckExtensionMethods.cs" />
-    <Compile Include="Extentions\ExtensionMethods.cs" />
     <Compile Include="GameUpdater.cs" />
     <Compile Include="InterProcess.cs" />
-    <Compile Include="Launchers\DeckEditorLauncher.cs" />
     <Compile Include="Launchers\ILauncher.cs" />
     <Compile Include="Launchers\MainLauncher.cs" />
-    <Compile Include="Launchers\TableLauncher.cs" />
     <Compile Include="Launchers\UpdatingLauncher.cs" />
-    <Compile Include="Launchers\GameTableLauncher.cs" />
     <Compile Include="LibraryCommunicationClientConfig.cs" />
     <Compile Include="Utils\Converters\ConnectionStatusConverter.cs" />
     <Compile Include="Properties\Annotations.cs" />
@@ -362,13 +344,9 @@
     <Compile Include="Tabs\Profile\UserProfilePage.xaml.cs">
       <DependentUpon>UserProfilePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DeckBuilder\SleeveManagerView.xaml.cs">
-      <DependentUpon>SleeveManagerView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Tabs\Watch\WatchList.xaml.cs">
       <DependentUpon>WatchList.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UiMessages\NotifyPropertyChanged.cs" />
     <Compile Include="Utils\Converters\NullableBooleanConverter.cs" />
     <Compile Include="Utils\ImportFile.cs" />
     <Compile Include="Utils\PasswordBoxAssistant.cs" />
@@ -383,16 +361,6 @@
     </Compile>
     <Compile Include="Controls\TabCommands.cs" />
     <Compile Include="Utils\CacheTraceListener.cs" />
-    <Compile Include="DeckBuilder\DeckBuilderWindow.xaml.cs">
-      <DependentUpon>DeckBuilderWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DeckBuilder\FilterControl.xaml.cs">
-      <DependentUpon>FilterControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DeckBuilder\SearchControl.xaml.cs">
-      <DependentUpon>SearchControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DeckBuilder\SetPropertyDef.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -642,36 +610,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="DeckBuilder\DeckBuilderWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="DeckBuilder\DeckCardsViewer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="DeckBuilder\DeckEditorPreviewControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="DeckBuilder\DeckManager.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="DeckBuilder\FilterControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="DeckBuilder\SearchControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Resources\PlayResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -764,10 +702,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Tabs\Profile\UserProfilePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="DeckBuilder\SleeveManagerView.xaml">
-      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Tabs\Watch\WatchList.xaml">

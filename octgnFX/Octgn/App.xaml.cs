@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Windows;
 using Exceptionless;
 using log4net.Repository.Hierarchy;
@@ -19,15 +18,14 @@ using Octgn.Core.Util;
 using Octgn.Library.Exceptions;
 
 using log4net;
-using Octgn.Controls;
 using Octgn.Core.Plugin;
 using Octgn.Library.Plugin;
-using Octgn.Play;
 using Octgn.Utils;
 using Octgn.Windows;
 using Octgn.Communication;
 using System.Net;
 using System.Threading;
+using Octgn.Wpf;
 
 namespace Octgn
 {
@@ -159,46 +157,6 @@ namespace Octgn
 
                 X.Instance.Try(() =>
                 {
-                    var gameEngines = Application.Current.Windows
-                        .OfType<PlayWindow>()
-                        .Select(window => window.GameEngine)
-                        .ToArray();
-
-                    for(var engineIndex = 0; engineIndex < gameEngines.Length; engineIndex++) {
-                        var gameEngine = gameEngines[engineIndex];
-
-                        if (gameEngine.Definition == null) continue;
-
-                        var gameObject = new {
-                            Game = new {
-                                Name = gameEngine.Definition.Name,
-                                Version = gameEngine.Definition.Version,
-                                ID = gameEngine.Definition.Id,
-                                Variables = gameEngine.Variables,
-                                GlobalVariables = gameEngine.GlobalVariables
-                            },
-                            IsConnected = gameEngine.IsConnected,
-                            IsLocal = gameEngine.IsLocal,
-                            SessionId = gameEngine.SessionId,
-                            WaitingForState = gameEngine.WaitForGameState,
-                            Players = Player.All.Select(player => new {
-                                GlobalVariables = player.GlobalVariables,
-                                Id = player.Id,
-                                InvertedTable = player.InvertedTable,
-                                IsGlobalPlayer = player.IsGlobalPlayer,
-                                Name = player.Name,
-                                Ready = player.Ready,
-                                State = player.State,
-                                WaitingOnPlayers = player.WaitingOnPlayers,
-                            })
-                        };
-
-                        args.Event.AddObject(gameObject, $"Game State {engineIndex}");
-                    }
-                });
-
-                X.Instance.Try(() =>
-                {
                     var hierarchy = LogManager.GetRepository() as Hierarchy;
                     if (hierarchy != null)
                     {
@@ -323,7 +281,6 @@ namespace Octgn
                     ShowErrorMessageBox("Error", "We will now shut down OCTGN.\nIf this continues to happen please let us know!");
                 else
                     ShowErrorMessageBox("Error", "Something unexpected happened. We will now shut down OCTGN.\nIf this continues to happen please let us know!");
-                Sounds.Close();
                 Application.Current.Shutdown(-1);
             }
         }
@@ -343,7 +300,6 @@ namespace Octgn
         protected override void OnExit(ExitEventArgs e)
         {
             ExceptionlessClient.Default.Shutdown();
-            Sounds.Close();
             base.OnExit(e);
         }
     }

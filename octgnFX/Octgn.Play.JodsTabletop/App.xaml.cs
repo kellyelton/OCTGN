@@ -2,10 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+using CommandLine;
 using log4net;
 using Octgn.Communication;
 using Octgn.Core;
 using Octgn.Core.DataManagers;
+using Octgn.Launchers;
 using Octgn.Library;
 using Octgn.Play;
 using Octgn.Scripting;
@@ -30,7 +32,7 @@ namespace Octgn
 
         public static bool IsDeveloperMode { get; private set; }
 
-        public static PlayWindow PlayWindow { get; private set; }
+        public static PlayWindow PlayWindow { get; set; }
 
         public static Guid GameDefinitionId { get; private set; }
 
@@ -40,31 +42,24 @@ namespace Octgn
 
             log4net.GlobalContext.Properties["gameid"] = "12345";
 
-            LoggerFactory.DefaultMethod = (con)=> new Log4NetLogger(con.Name);
+            LoggerFactory.DefaultMethod = (con) => new Log4NetLogger(con.Name);
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
 
             IsReleaseTest = false;
 
-            string nickname = null;
-            string password = string.Empty;
-            bool spectator = false;
-            IPEndPoint host = null;
+            Environment.ExitCode = Parser.Default.ParseArguments<JoinGameLauncher, NewDeckLauncher, OpenDeckLauncher>(e.Args)
+                .MapResult(
+                    (JoinGameLauncher opts) => RunAndReturnExitCode(opts),
+                    (NewDeckLauncher opts) => RunAndReturnExitCode(opts),
+                    (OpenDeckLauncher opts) => RunAndReturnExitCode(opts),
+                errs => 1);
+        }
 
-            var os = new Mono.Options.OptionSet()
-            {
-                    {"g|game=", x => GameDefinitionId = Guid.Parse(x)},
-                    {"n|nickname=", x => nickname = x},
-                    {"p|password=", x => password = x},
-                    {"s|spectator", x => spectator = true},
-                    {"h|host=", x => host = ParseHost(x)},
-                    {"x|devmode", x => IsDeveloperMode = true}
-                };
-
-            os.Parse(e.Args);
-
+        private int RunAndReturnExitCode(ILauncher launcher) {
             Log.Info("Creating Config class");
+
             try {
                 Config.Instance = new Config();
             } catch (Exception ex) {
@@ -73,9 +68,7 @@ namespace Octgn
 
                 MessageBox.Show($"Error loading Config:{Environment.NewLine}{ex}", "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
-                Shutdown(1);
-
-                return;
+                return 1;
             }
 
             Environment.SetEnvironmentVariable("OCTGN_DATA", Config.Instance.DataDirectoryFull, EnvironmentVariableTarget.Process);
@@ -103,36 +96,18 @@ namespace Octgn
             Versioned.Setup(IsDeveloperMode);
             /* This section is automatically generated from the file Scripting/ApiVersions.xml. So, if you enjoy not getting pissed off, don't modify it.*/
             //START_REPLACE_API_VERSION
-			Versioned.RegisterVersion(Version.Parse("3.1.0.0"),DateTime.Parse("2014-1-12"),ReleaseMode.Live );
-			Versioned.RegisterVersion(Version.Parse("3.1.0.1"),DateTime.Parse("2014-1-22"),ReleaseMode.Live );
-			Versioned.RegisterVersion(Version.Parse("3.1.0.2"),DateTime.Parse("2015-8-26"),ReleaseMode.Live );
-			Versioned.RegisterFile("PythonApi", "pack://application:,,,/Scripting/Versions/3.1.0.0.py", Version.Parse("3.1.0.0"));
-			Versioned.RegisterFile("PythonApi", "pack://application:,,,/Scripting/Versions/3.1.0.1.py", Version.Parse("3.1.0.1"));
-			Versioned.RegisterFile("PythonApi", "pack://application:,,,/Scripting/Versions/3.1.0.2.py", Version.Parse("3.1.0.2"));
-			//END_REPLACE_API_VERSION
+            Versioned.RegisterVersion(Version.Parse("3.1.0.0"), DateTime.Parse("2014-1-12"), ReleaseMode.Live);
+            Versioned.RegisterVersion(Version.Parse("3.1.0.1"), DateTime.Parse("2014-1-22"), ReleaseMode.Live);
+            Versioned.RegisterVersion(Version.Parse("3.1.0.2"), DateTime.Parse("2015-8-26"), ReleaseMode.Live);
+            Versioned.RegisterFile("PythonApi", "pack://application:,,,/Scripting/Versions/3.1.0.0.py", Version.Parse("3.1.0.0"));
+            Versioned.RegisterFile("PythonApi", "pack://application:,,,/Scripting/Versions/3.1.0.1.py", Version.Parse("3.1.0.1"));
+            Versioned.RegisterFile("PythonApi", "pack://application:,,,/Scripting/Versions/3.1.0.2.py", Version.Parse("3.1.0.2"));
+            //END_REPLACE_API_VERSION
             Versioned.Register<ScriptApi>();
 
-            if (host == null) {
-                var port = Prefs.LastLocalHostedGamePort;
+            launcher.Launch();
 
-                host = new IPEndPoint(IPAddress.Loopback, port);
-            }
-
-
-            var game = GameManager.Get().GetById(GameDefinitionId);
-            User octgnUser = null;
-
-            Task.Run(() => {
-                var gameEngine = GameEngine.Join(Dispatcher, game, octgnUser, nickname, password, spectator, host.Address, host.Port, IsDeveloperMode).Result;
-
-                Dispatcher.InvokeAsync(() => {
-                    //new LoadingWindow().Show();
-
-                    MainWindow = PlayWindow = new PlayWindow(gameEngine);
-                    PlayWindow.Show();
-                    PlayWindow.Activate();
-                });
-            });
+            return 0;
         }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) {
@@ -151,19 +126,6 @@ namespace Octgn
             var message = "There was an unexpected error and OCTGN will now close." + Environment.NewLine + Environment.NewLine + exception.Message;
 
             MessageBox.Show(message, "Unexpected Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        private IPEndPoint ParseHost(string host) {
-            var parts = host.Split(new char[1] { ':' }, 2);
-            if (parts.Length != 2) throw new FormatException($"{host} is not a valid host");
-
-            var ip = IPAddress.Parse(parts[0]);
-
-            var port = int.Parse(parts[1]);
-
-            if (port <= 0) throw new FormatException($"port {port} is invalid");
-
-            return new IPEndPoint(ip, port);
         }
     }
 }

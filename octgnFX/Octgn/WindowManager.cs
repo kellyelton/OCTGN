@@ -1,29 +1,19 @@
 ﻿using System.Reflection;
-using System.Threading;
 using System.Windows;
-using System.Windows.Threading;
 using log4net;
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Octgn.Windows;
 
 namespace Octgn
 {
-    using System;
-    using System.Collections.Concurrent;
-    using System.Diagnostics;
-    using System.Runtime.InteropServices;
-
-    using Octgn.DeckBuilder;
-    using Octgn.Play;
-    using Octgn.Windows;
-
     public static class WindowManager
     {
         internal static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static DWindow DebugWindow { get; set; }
         public static Main Main { get; set; }
-        public static DeckBuilderWindow DeckEditor { get; set; }
-        public static PlayWindow PlayWindow { get; set; }
-        //public static PreGameLobbyWindow PreGameLobbyWindow { get; set; }
         public static GrowlNotifications GrowlWindow { get; set; }
 
         static WindowManager()
@@ -64,9 +54,6 @@ namespace Octgn
                 Debug.WriteLine(e);
                 if (Debugger.IsAttached) Debugger.Break();
             }
-            if (WindowManager.PlayWindow != null)
-                if (WindowManager.PlayWindow.IsLoaded)
-                    WindowManager.PlayWindow.Close();
         }
 
 
