@@ -21,7 +21,8 @@
                 deck.Save(game,tempFile);
 
                 var client = new ApiClient();
-                if (!Program.LobbyClient.IsConnected) throw new UserMessageException("You must be logged in to share a deck.");
+                //if (!Program.LobbyClient.IsConnected) throw new UserMessageException("You must be logged in to share a deck.");
+                throw new NotImplementedException();
                 if (string.IsNullOrWhiteSpace(name)) throw new UserMessageException("The deck name can't be blank.");
                 if (name.Length > 32) throw new UserMessageException("The deck name is too long.");
                 var result = client.ShareDeck(Prefs.Username, Prefs.Password.Decrypt(), name, tempFile);

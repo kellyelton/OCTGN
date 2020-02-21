@@ -158,6 +158,7 @@
     <Compile Include="Controls\PreGameLobby.xaml.cs">
       <DependentUpon>PreGameLobby.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\RichTextBlock.cs" />
     <Compile Include="Controls\TextOrIcon.cs" />
     <Compile Include="Controls\VirtualizingWrapPanel.cs" />
     <Compile Include="Counter.cs" />
@@ -360,6 +361,15 @@
     <Compile Include="UiMessages\NotifyPropertyChanged.cs" />
     <Compile Include="Utils\CompoundCall.cs" />
     <Compile Include="Utils\ImageUtils.cs" />
+    <Compile Include="Windows\ImportImages.xaml.cs">
+      <DependentUpon>ImportImages.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\PickCardFromList.xaml.cs">
+      <DependentUpon>PickCardFromList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ShareDeck.xaml.cs">
+      <DependentUpon>ShareDeck.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -537,6 +547,18 @@
     <Page Include="LoadingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ImportImages.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\PickCardFromList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\ShareDeck.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>

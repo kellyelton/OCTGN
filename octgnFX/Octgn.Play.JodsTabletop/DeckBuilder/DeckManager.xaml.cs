@@ -23,6 +23,7 @@ using log4net;
 using Octgn.Controls;
 using Octgn.Extentions;
 using Octgn.Scripting.Controls;
+using Octgn.Wpf;
 
 namespace Octgn.DeckBuilder
 {

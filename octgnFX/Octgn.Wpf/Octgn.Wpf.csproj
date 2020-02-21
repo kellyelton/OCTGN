@@ -94,8 +94,14 @@
     <Compile Include="WindowDecorators\NativeDecorator.cs" />
     <Compile Include="WindowDecorators\OctgnDecorator.cs" />
     <Compile Include="WindowExtensionMethods.cs" />
+    <Compile Include="Windows\BrowserWindow.xaml.cs">
+      <DependentUpon>BrowserWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\Diagnostics.xaml.cs">
       <DependentUpon>Diagnostics.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ErrorWindow.xaml.cs">
+      <DependentUpon>ErrorWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="Resources\Themes\Base\Base.xaml">
       <SubType>Designer</SubType>
@@ -144,7 +150,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Windows\BrowserWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Windows\Diagnostics.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\ErrorWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

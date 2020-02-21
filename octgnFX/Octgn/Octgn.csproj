@@ -290,7 +290,6 @@
     <Compile Include="AppConfig.cs" />
     <Compile Include="CommandLineHandler.cs" />
     <Compile Include="Controls\DecorableWindow.cs" />
-    <Compile Include="Controls\RichTextBlock.cs" />
     <Compile Include="Controls\ConnectOfflineGame.xaml.cs">
       <DependentUpon>ConnectOfflineGame.xaml</DependentUpon>
     </Compile>
@@ -378,14 +377,8 @@
     <Compile Include="Windows\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\BrowserWindow.xaml.cs">
-      <DependentUpon>BrowserWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Windows\DWindow.xaml.cs">
       <DependentUpon>DWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\ErrorWindow.xaml.cs">
-      <DependentUpon>ErrorWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tabs\Login\LoginTab.xaml.cs">
       <DependentUpon>LoginTab.xaml</DependentUpon>
@@ -401,15 +394,6 @@
     </Compile>
     <Compile Include="Windows\Options.xaml.cs">
       <DependentUpon>Options.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\PickCardFromList.xaml.cs">
-      <DependentUpon>PickCardFromList.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\ImportImages.xaml.cs">
-      <DependentUpon>ImportImages.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\ShareDeck.xaml.cs">
-      <DependentUpon>ShareDeck.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\UpdateChecker.xaml.cs">
       <DependentUpon>UpdateChecker.xaml</DependentUpon>
@@ -712,15 +696,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Windows\BrowserWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Windows\DWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Windows\ErrorWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -741,18 +717,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\Options.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\PickCardFromList.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\ImportImages.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Windows\ShareDeck.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

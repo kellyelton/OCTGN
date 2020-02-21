@@ -23,6 +23,7 @@ namespace Octgn.Windows
     using Octgn.Controls;
     using System.Windows.Data;
     using Octgn.Core;
+    using Octgn.Wpf;
 
     /// <summary>
     /// Interaction logic for ImportImages.xaml

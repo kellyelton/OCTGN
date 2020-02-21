@@ -13,6 +13,7 @@
     using Octgn.Controls;
 
     using log4net;
+    using Octgn.Wpf;
 
     [Serializable]
     public class SearchSave

@@ -4,6 +4,7 @@
 
 using CommandLine;
 using log4net;
+using Microsoft.Win32;
 using Octgn.Communication;
 using Octgn.Core;
 using Octgn.Core.DataManagers;
@@ -12,8 +13,11 @@ using Octgn.Library;
 using Octgn.Play;
 using Octgn.Scripting;
 using Octgn.Utils;
+using Octgn.Windows;
+using Octgn.Wpf;
 using Octgn.Wpf.Windows;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -35,6 +39,45 @@ namespace Octgn
         public static PlayWindow PlayWindow { get; set; }
 
         public static Guid GameDefinitionId { get; private set; }
+
+        public static void LaunchUrl(string url) {
+            if (url == null) return;
+            if (GetDefaultBrowserPath() == null) {
+                var dispatcher = Application.Current?.Dispatcher;
+                if (dispatcher == null) return;
+                dispatcher.Invoke(new Action(() => new BrowserWindow(url).Show()));
+            } else {
+                Process.Start(url);
+            }
+        }
+
+        public static string GetDefaultBrowserPath() {
+            string defaultBrowserPath = null;
+
+            RegistryKey regkey;
+
+            // Check if we are on Vista or Higher
+            OperatingSystem OS = Environment.OSVersion;
+            if ((OS.Platform == PlatformID.Win32NT) && (OS.Version.Major >= 6)) {
+                regkey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\shell\\Associations\\UrlAssociations\\http\\UserChoice", false);
+                if (regkey != null) {
+                    defaultBrowserPath = regkey.GetValue("Progid").ToString();
+                } else {
+                    regkey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Classes\\IE.HTTP\\shell\\open\\command", false);
+                    defaultBrowserPath = regkey.GetValue("").ToString();
+                }
+            } else {
+                regkey = Registry.ClassesRoot.OpenSubKey("http\\shell\\open\\command", false);
+                defaultBrowserPath = regkey.GetValue("").ToString();
+            }
+
+            return defaultBrowserPath;
+        }
+
+        public static void DisplayError(string message)
+        {
+            TopMostMessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
 
         protected override void OnStartup(StartupEventArgs e) {
             //TODO: Get from command args

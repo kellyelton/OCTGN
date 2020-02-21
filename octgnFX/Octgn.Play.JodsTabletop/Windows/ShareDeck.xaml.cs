@@ -27,7 +27,7 @@ namespace Octgn.Windows
     public partial class ShareDeck : INotifyPropertyChanged
     {
         internal new static ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-		
+
         private string errorText;
 
         private string shareUrl;
@@ -180,7 +180,8 @@ namespace Octgn.Windows
                 Deck.Save(game, tempFile);
 
                 var client = new ApiClient();
-                if (!Program.LobbyClient.IsConnected) throw new UserMessageException("You must be logged into OCTGN to share a deck.");
+                throw new NotImplementedException();
+                //if (!Program.LobbyClient.IsConnected) throw new UserMessageException("You must be logged into OCTGN to share a deck.");
                 if (string.IsNullOrWhiteSpace(DeckName)) throw new UserMessageException("The deck name can't be blank.");
                 if (DeckName.Length > 32) throw new UserMessageException("The deck name is too long.");
                 var result = client.ShareDeck(Prefs.Username, Prefs.Password.Decrypt(), DeckName, tempFile);

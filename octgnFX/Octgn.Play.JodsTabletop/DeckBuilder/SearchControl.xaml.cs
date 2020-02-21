@@ -24,6 +24,7 @@ namespace Octgn.DeckBuilder
 
     using Octgn.Core;
     using Octgn.Core.DataManagers;
+    using Octgn.Wpf;
 
     public partial class SearchControl : INotifyPropertyChanged
     {
@@ -209,7 +210,7 @@ namespace Octgn.DeckBuilder
                         else
                             // focus next section
                             _deckWindow.ChangeActiveSection(1);
-                        
+
                         if (lastFocus != null)
                         {
                             Keyboard.Focus(lastFocus);
@@ -443,7 +444,7 @@ namespace Octgn.DeckBuilder
 
         private void RefreshSearch(object sender, RoutedEventArgs e)
         {
-            //I'm not sure why the button was being dissabled, or if it was actually acomplishing anything, 
+            //I'm not sure why the button was being dissabled, or if it was actually acomplishing anything,
             //but it doesn't seem to matter
             //((Button)sender).IsEnabled = false;
             var conditions = new List<String>();

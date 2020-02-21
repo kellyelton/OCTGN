@@ -28,6 +28,7 @@ using System.Windows.Documents;
 using Octgn.Extentions;
 using System.Windows.Media.Imaging;
 using Octgn.Wpf;
+using Octgn.Windows;
 
 namespace Octgn.DeckBuilder
 {
@@ -1142,7 +1143,7 @@ namespace Octgn.DeckBuilder
                     var url = SubscriptionModule.Get().GetSubscribeUrl(new SubType() { Description = "", Name = "" });
                     if (url != null)
                     {
-                        Program.LaunchUrl(url);
+                        App.LaunchUrl(url);
                     }
                 }
                 return;
@@ -1175,7 +1176,7 @@ namespace Octgn.DeckBuilder
                     var url = SubscriptionModule.Get().GetSubscribeUrl(new SubType() { Description = "", Name = "" });
                     if (url != null)
                     {
-                        Program.LaunchUrl(url);
+                        App.LaunchUrl(url);
                     }
                 }
                 return;
@@ -1208,7 +1209,7 @@ namespace Octgn.DeckBuilder
                     var url = SubscriptionModule.Get().GetSubscribeUrl(new SubType() { Description = "", Name = "" });
                     if (url != null)
                     {
-                        Program.LaunchUrl(url);
+                        App.LaunchUrl(url);
                     }
                 }
                 return;
