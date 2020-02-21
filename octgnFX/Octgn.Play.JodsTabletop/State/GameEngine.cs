@@ -146,7 +146,7 @@ namespace Octgn
 
         }
 
-        private GameEngine(Game def, Dispatcher dispatcher, string nickname, string localUserId, ReplayReader replayReader, bool isDeveloperMode) {
+        public GameEngine(Game def, Dispatcher dispatcher, string nickname, string localUserId, ReplayReader replayReader, bool isDeveloperMode) {
             if (def == null) throw new ArgumentNullException(nameof(def));
             if (replayReader == null) throw new ArgumentNullException(nameof(replayReader));
             if (string.IsNullOrWhiteSpace(nickname)) throw new ArgumentNullException(nameof(nickname));
@@ -820,22 +820,6 @@ namespace Octgn
             await engine.Connect(host, port).ConfigureAwait(false);
 
             return engine;
-        }
-
-        public static GameEngine Replay(Dispatcher dispatcher, Game game, string replayFile, bool isDeveloperMode) {
-            if (game == null) throw new ArgumentNullException(nameof(game));
-            if (string.IsNullOrWhiteSpace(replayFile)) throw new ArgumentNullException(nameof(replayFile));
-
-            ReplayReader reader = null;
-            try {
-                reader = ReplayReader.FromStream(File.OpenRead(replayFile));
-
-                return new GameEngine(game, dispatcher, reader.Replay.User, null, reader, isDeveloperMode);
-            } catch {
-                reader?.Dispose();
-
-                throw;
-            }
         }
 
         public void Begin() {

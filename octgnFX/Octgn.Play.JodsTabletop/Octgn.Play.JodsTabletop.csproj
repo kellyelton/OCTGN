@@ -275,6 +275,7 @@
     <Compile Include="Launchers\JoinGameLauncher.cs" />
     <Compile Include="Launchers\NewDeckLauncher.cs" />
     <Compile Include="Launchers\OpenDeckLauncher.cs" />
+    <Compile Include="Launchers\ReplayLauncher.cs" />
     <Compile Include="Marker.cs" />
     <Compile Include="Networking\BinaryParser.cs">
       <DependentUpon>BinaryParser.tt</DependentUpon>

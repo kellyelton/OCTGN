@@ -5,9 +5,7 @@ using Octgn.Core.DataManagers;
 using Octgn.Play;
 using System;
 using System.Net;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace Octgn.Launchers
 {
