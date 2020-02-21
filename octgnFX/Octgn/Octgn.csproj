@@ -383,9 +383,6 @@
     <Compile Include="Tabs\Login\LoginTab.xaml.cs">
       <DependentUpon>LoginTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\GameLog.xaml.cs">
-      <DependentUpon>GameLog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Windows\GrowlNotifications.xaml.cs">
       <DependentUpon>GrowlNotifications.xaml</DependentUpon>
     </Compile>
@@ -703,10 +700,6 @@
     <Page Include="Tabs\Login\LoginTab.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Windows\GameLog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\GrowlNotifications.xaml">
       <SubType>Designer</SubType>

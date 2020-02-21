@@ -5,27 +5,22 @@
 using System.Windows.Controls;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Win32;
 using Octgn.Annotations;
 using Octgn.Core;
 using Octgn.Core.DataManagers;
-using Octgn.Core.Util;
-using Octgn.DeckBuilder;
 using Octgn.Extentions;
 using Octgn.Controls;
 using Octgn.Library;
-using Octgn.Library.Exceptions;
 using log4net;
 using Octgn.Communication;
 using Octgn.Communication.Modules;
-using System.Linq;
 using Octgn.Wpf.Windows;
+using Octgn.Wpf;
 
 namespace Octgn.Windows
 {
@@ -163,20 +158,6 @@ namespace Octgn.Windows
         /// </param>
         private void OnClosing(object sender, CancelEventArgs cancelEventArgs)
         {
-            if (WindowManager.PlayWindow != null) {
-                WindowManager.PlayWindow.Activate();
-                if (!WindowManager.PlayWindow.TryClose()) {
-                    cancelEventArgs.Cancel = true;
-                    return;
-                }
-            }
-            if (WindowManager.DeckEditor != null) {
-                WindowManager.DeckEditor.Activate();
-                if (!WindowManager.DeckEditor.TryClose()) {
-                    cancelEventArgs.Cancel = true;
-                    return;
-                }
-            }
             Program.LobbyClient.Disconnected -= LobbyClient_Disconnected;
             Program.LobbyClient.Connected -= LobbyClient_Connected;
             Program.LobbyClient.Connecting -= LobbyClient_Connecting;

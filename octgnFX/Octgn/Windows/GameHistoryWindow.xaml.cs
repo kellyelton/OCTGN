@@ -3,13 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 using Octgn.DataNew;
-using Octgn.Play;
 using Octgn.Tabs.GameHistory;
 using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Documents;
-using System.Windows.Threading;
 
 namespace Octgn.Windows
 {
@@ -89,39 +87,10 @@ namespace Octgn.Windows
 
                 return;
             }
-            if(WindowManager.PlayWindow != null) {
-                MessageBox.Show("Unable to watch replay, you're currently in a game.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
 
-                return;
-            }
-
-            var game = DbContext.Get().GameById(History.GameId);
-
-            if(game == null) {
-                MessageBox.Show("Unable to watch replay, the game isn't installed.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                return;
-            }
-
-            var gameEngine = GameEngine.Replay(Dispatcher, game, History.ReplayFile, Program.DeveloperMode);
-            gameEngine.LaunchUrl += (_, url) => {
-                Program.LaunchUrl(url);
-            };
-
-            LaunchPlayWindow(gameEngine);
-        }
-
-        private void LaunchPlayWindow(GameEngine gameEngine) {
-            Dispatcher.VerifyAccess();
-
-            if (WindowManager.PlayWindow != null) throw new InvalidOperationException($"Can't run more than one game at a time.");
-
-            Dispatcher.InvokeAsync(async () => {
-                await Dispatcher.Yield(DispatcherPriority.Background);
-                WindowManager.PlayWindow = new PlayWindow(gameEngine);
-                WindowManager.PlayWindow.Show();
-                WindowManager.PlayWindow.Activate();
-            });
+            //TODO: Launch play table with replay
+            Lol do suff
+            throw new NotImplementedException();
         }
     }
 }

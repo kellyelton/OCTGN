@@ -362,6 +362,9 @@
     <Compile Include="UiMessages\NotifyPropertyChanged.cs" />
     <Compile Include="Utils\CompoundCall.cs" />
     <Compile Include="Utils\ImageUtils.cs" />
+    <Compile Include="Windows\GameLog.xaml.cs">
+      <DependentUpon>GameLog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\ImportImages.xaml.cs">
       <DependentUpon>ImportImages.xaml</DependentUpon>
     </Compile>
@@ -548,6 +551,10 @@
     <Page Include="LoadingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\GameLog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\ImportImages.xaml">
       <Generator>MSBuild:Compile</Generator>

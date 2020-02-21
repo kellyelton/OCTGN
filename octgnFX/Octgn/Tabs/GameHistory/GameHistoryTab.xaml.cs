@@ -37,8 +37,6 @@ namespace Octgn.Tabs.GameHistory
             if(history != null) {
                 Dispatcher.VerifyAccess();
 
-                if (WindowManager.PlayWindow != null) throw new InvalidOperationException($"Can't run more than one game at a time.");
-
                 Dispatcher.InvokeAsync(async () => {
                     await Dispatcher.Yield(DispatcherPriority.Background);
                     var win = new GameHistoryWindow(history);

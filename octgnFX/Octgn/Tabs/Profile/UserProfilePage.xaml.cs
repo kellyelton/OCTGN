@@ -9,7 +9,6 @@ using GalaSoft.MvvmLight.Messaging;
 
 using Octgn.Core.DataManagers;
 using Octgn.DataNew.Entities;
-using Octgn.UiMessages;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -21,16 +20,14 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 
 using Octgn.Annotations;
-using Octgn.Controls;
 using Octgn.Core;
 using Octgn.Library.Exceptions;
 using Octgn.Site.Api;
 using Octgn.Site.Api.Models;
 
 using log4net;
-using Octgn.Extentions;
-using Octgn.Online;
 using Octgn.Communication;
+using Octgn.Wpf;
 
 namespace Octgn.Tabs.Profile
 {
