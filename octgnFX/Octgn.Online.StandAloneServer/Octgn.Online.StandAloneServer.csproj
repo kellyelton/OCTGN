@@ -98,7 +98,7 @@
     <Compile Include="..\..\Version.cs">
       <Link>Version.cs</Link>
     </Compile>
-    <Compile Include="..\Octgn\Utils\Log4NetLogger.cs">
+    <Compile Include="..\Octgn.Core\Util\Log4NetLogger.cs">
       <Link>Log4NetLogger.cs</Link>
     </Compile>
     <Compile Include="Mono.Options.Options.cs" />

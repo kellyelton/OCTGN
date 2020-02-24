@@ -88,9 +88,9 @@ namespace Octgn.Windows
                 return;
             }
 
-            //TODO: Launch play table with replay
-            Lol do suff
-            throw new NotImplementedException();
+            var launcher = new GameTableLauncher();
+
+            launcher.Replay();
         }
     }
 }

@@ -306,6 +306,7 @@
     <Compile Include="Controls\WaitingDialog.xaml.cs">
       <DependentUpon>WaitingDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GameTableLauncher.cs" />
     <Compile Include="Windows\GameHistoryWindow.xaml.cs">
       <DependentUpon>GameHistoryWindow.xaml</DependentUpon>
     </Compile>
