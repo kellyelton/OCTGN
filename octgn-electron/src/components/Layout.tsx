@@ -1,6 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import { useGameStore } from '../stores/gameStore';
-import { useAuthStore } from '../stores/authStore';
 
 const navItems = [
   { path: '/', label: 'Home', icon: '🏠' },
@@ -11,9 +10,7 @@ const navItems = [
 ];
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
-  const navigate = useNavigate();
   const { connected, playerName } = useGameStore();
-  const { isLoggedIn, username, logout } = useAuthStore();
 
   return (
     <div className="h-screen flex bg-octgn-dark">
@@ -48,52 +45,25 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           ))}
         </nav>
 
-        {/* Auth / Connection Status */}
-        <div className="p-4 border-t border-octgn-accent/30 space-y-2">
-          {isLoggedIn ? (
-            <div className="glass rounded-xl p-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-octgn-highlight to-octgn-blue flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
-                  {(username || 'U')[0].toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm font-medium text-white truncate"
-                    data-testid="sidebar-username"
-                  >
-                    {username}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {connected ? 'In game' : 'Online'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => logout()}
-                  className="text-gray-500 hover:text-red-400 transition-colors text-xs ml-1 flex-shrink-0"
-                  title="Sign out"
-                  data-testid="logout-button"
-                >
-                  ✕
-                </button>
+        {/* Connection Status */}
+        <div className="p-4 border-t border-octgn-accent/30">
+          <div className="glass rounded-xl p-3">
+            <div className="flex items-center space-x-3">
+              <div
+                className={`status-dot ${
+                  connected ? 'status-online' : 'status-offline'
+                }`}
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white">
+                  {playerName || 'Offline'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {connected ? 'Connected' : 'Disconnected'}
+                </p>
               </div>
             </div>
-          ) : (
-            <button
-              onClick={() => navigate('/login')}
-              className="w-full btn btn-primary text-sm py-2"
-              data-testid="signin-button"
-            >
-              Sign In
-            </button>
-          )}
-
-          {/* Game connection indicator */}
-          {connected && (
-            <div className="flex items-center space-x-2 px-1">
-              <div className="status-dot status-online" />
-              <p className="text-xs text-gray-500">{playerName} · Connected</p>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Version */}

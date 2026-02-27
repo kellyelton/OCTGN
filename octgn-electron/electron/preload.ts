@@ -29,10 +29,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // App info
   getAppPath: () => ipcRenderer.invoke('get-app-path'),
   getVersion: () => ipcRenderer.invoke('get-version'),
-
-  // Credential storage (encrypted via OS safeStorage, mirrors Windows DPAPI)
-  saveCredentials: (username: string, password: string) =>
-    ipcRenderer.invoke('save-credentials', username, password),
-  loadCredentials: () => ipcRenderer.invoke('load-credentials'),
-  clearCredentials: () => ipcRenderer.invoke('clear-credentials'),
 });

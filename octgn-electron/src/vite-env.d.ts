@@ -56,10 +56,6 @@ declare global {
       writeFile: (path: string, data: string) => Promise<{ success: boolean; error?: string }>;
       getAppPath: () => Promise<string>;
       getVersion: () => Promise<string>;
-      // Credential storage (OS-level encrypted via safeStorage)
-      saveCredentials: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
-      loadCredentials: () => Promise<{ success: boolean; username: string | null; password: string | null; error?: string }>;
-      clearCredentials: () => Promise<{ success: boolean; error?: string }>;
     };
   }
 }
