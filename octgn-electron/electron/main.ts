@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, safeStorage } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { GameServer } from './server/GameServer';
@@ -86,6 +86,57 @@ ipcMain.handle('read-file', async (_, path: string) => {
 ipcMain.handle('write-file', async (_, path: string, data: string) => {
   try {
     await fs.promises.writeFile(path, data, 'utf-8');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Credential storage handlers (mirrors Windows app SavedPasswordManager + DPAPI)
+const getCredentialsPath = () =>
+  path.join(app.getPath('userData'), 'credentials.dat');
+
+ipcMain.handle('save-credentials', async (_, username: string, password: string) => {
+  try {
+    const data = JSON.stringify({ username, password });
+    let stored: string;
+    if (safeStorage.isEncryptionAvailable()) {
+      const encrypted = safeStorage.encryptString(data);
+      stored = encrypted.toString('base64');
+    } else {
+      // Fallback: base64 only (not truly secure, but matches behavior gracefully)
+      stored = Buffer.from(data).toString('base64');
+    }
+    fs.writeFileSync(getCredentialsPath(), stored, 'utf-8');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('load-credentials', async () => {
+  try {
+    const credPath = getCredentialsPath();
+    if (!fs.existsSync(credPath)) return { success: true, username: null, password: null };
+    const stored = fs.readFileSync(credPath, 'utf-8');
+    let data: string;
+    if (safeStorage.isEncryptionAvailable()) {
+      const encrypted = Buffer.from(stored, 'base64');
+      data = safeStorage.decryptString(encrypted);
+    } else {
+      data = Buffer.from(stored, 'base64').toString('utf-8');
+    }
+    const { username, password } = JSON.parse(data);
+    return { success: true, username, password };
+  } catch (error: any) {
+    return { success: false, error: error.message, username: null, password: null };
+  }
+});
+
+ipcMain.handle('clear-credentials', async () => {
+  try {
+    const credPath = getCredentialsPath();
+    if (fs.existsSync(credPath)) fs.unlinkSync(credPath);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
